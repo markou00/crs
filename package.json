@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "preinstall": "npx only-allow yarn",
     "dev": "next dev",
     "build": "next build",
     "analyze": "ANALYZE=true next build",
@@ -17,6 +18,10 @@
     "test": "npm run prettier:check && npm run lint && npm run typecheck && npm run jest",
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "yarn": ">=4.0.0"
   },
   "dependencies": {
     "@mantine/core": "7.5.1",
