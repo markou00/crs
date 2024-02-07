@@ -1,8 +1,7 @@
 'use client';
 
-import { AppShell, Burger, Group } from '@mantine/core';
+import { AppShell, Avatar, Box, Burger, Flex, Group, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { MantineLogo } from '@mantinex/mantine-logo';
 import { ReactNode } from 'react';
 import { Navbar } from '@/components/Navbar/Navbar';
 
@@ -20,9 +19,16 @@ export default function AppShellLayout({ children }: { children: ReactNode }) {
       padding="md"
     >
       <AppShell.Header>
-        <Group h="100%" px="md">
-          <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-          <MantineLogo size={30} />
+        <Group h="100%" px="md" justify="space-between">
+          <Flex align="center" gap="sm">
+            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+            <Text size="xl">CRS</Text>
+          </Flex>
+          <Avatar
+            src="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-8.png"
+            radius="xl"
+            hiddenFrom="md"
+          />
         </Group>
       </AppShell.Header>
       <AppShell.Navbar>
