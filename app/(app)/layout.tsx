@@ -1,12 +1,13 @@
 'use client';
 
-import { AppShell, Avatar, Box, Burger, Flex, Group, Text } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { AppShell, Avatar, Burger, Flex, Group, Text } from '@mantine/core';
 import { ReactNode } from 'react';
 import { Navbar } from '@/components/Navbar/Navbar';
+import useNavbarStore from '@/lib/states/useNavbarDisclosure';
 
 export default function AppShellLayout({ children }: { children: ReactNode }) {
-  const [opened, { toggle }] = useDisclosure();
+  const opened = useNavbarStore((state) => state.opened);
+  const toggle = useNavbarStore((state) => state.toggle);
 
   return (
     <AppShell

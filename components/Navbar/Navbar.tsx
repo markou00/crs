@@ -1,4 +1,4 @@
-import { Box } from '@mantine/core';
+import { Box, useMantineTheme } from '@mantine/core';
 import Link from 'next/link';
 import {
   IconSettings,
@@ -11,9 +11,11 @@ import {
   IconBox,
   IconLayoutDashboard,
 } from '@tabler/icons-react';
+import { useMediaQuery } from '@mantine/hooks';
 import { usePathname } from 'next/navigation';
 import { UserButton } from './UserButton/UserButton';
 import classes from './Navbar.module.css';
+import useNavbarStore from '@/lib/states/useNavbarDisclosure';
 
 const data = [
   { link: '/dashboard', label: 'Dashboard', icon: IconLayoutDashboard },
@@ -29,6 +31,9 @@ const data = [
 
 export function Navbar() {
   const pathname = usePathname();
+  const theme = useMantineTheme();
+  const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
+  const toggle = useNavbarStore((state) => state.toggle);
 
   const links = data.map((item) => (
     <Link
@@ -36,6 +41,7 @@ export function Navbar() {
       data-active={pathname === item.link ? true : undefined}
       href={item.link}
       key={item.label}
+      onClick={() => isMobile && toggle()}
     >
       <item.icon className={classes.linkIcon} stroke={1.5} />
       <span>{item.label}</span>
