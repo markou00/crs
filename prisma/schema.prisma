@@ -15,3 +15,16 @@ model User {
   email String @unique
   name  String
 }
+
+model Customer {
+  id             Int      @id @default(autoincrement())
+  name           String
+  type           String
+  contactName    String
+  contactEmail   String   @unique
+  contactPhone   String?
+  address        String
+  city           String
+  postalCode     String
+  country        String
+}
