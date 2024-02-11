@@ -10,6 +10,10 @@ import {
   Code,
   Container,
   Title,
+  PinInput,
+  Flex,
+  Text,
+  Box,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 
@@ -18,30 +22,40 @@ export default function SignupPage() {
 
   const form = useForm({
     initialValues: {
-      username: '',
+      email: '',
+      pin: '',
       password: '',
       name: '',
-      email: '',
-      website: '',
-      github: '',
+      organisationName: '',
+      organisationId: '',
     },
 
     validate: (values) => {
       if (active === 0) {
         return {
-          username:
-            values.username.trim().length < 6
-              ? 'Username must include at least 6 characters'
-              : null,
-          password:
-            values.password.length < 6 ? 'Password must include at least 6 characters' : null,
+          email: /^\S+@\S+.+\S$/.test(values.email) ? null : 'Invalid email',
         };
       }
 
       if (active === 1) {
         return {
+          pin: values.pin.trim().length < 4 ? 'Name must include at least 4 characters' : null,
+        };
+      }
+
+      if (active === 2) {
+        return {
           name: values.name.trim().length < 2 ? 'Name must include at least 2 characters' : null,
-          email: /^\S+@\S+$/.test(values.email) ? null : 'Invalid email',
+          organisationName:
+            values.organisationName.trim().length < 2
+              ? 'Name must include at least 2 characters'
+              : null,
+          organisationId:
+            values.organisationId.trim().length < 2
+              ? 'Name must include at least 2 characters'
+              : null,
+          password:
+            values.password.length < 6 ? 'Password must include at least 6 characters' : null,
         };
       }
 
@@ -61,33 +75,70 @@ export default function SignupPage() {
 
   return (
     <Container size="sm" mt="xl">
-      <Title ta="center" mb="md">
+      <Title ta="center" mb="xl">
         Velkommen til CRS
       </Title>
       <Stepper active={active}>
         <Stepper.Step label="Opprett en konto" description="Registrer e-posten din">
-          <TextInput label="Username" placeholder="Username" {...form.getInputProps('username')} />
-          <PasswordInput
+          <TextInput
             mt="md"
-            label="Password"
-            placeholder="Password"
-            {...form.getInputProps('password')}
+            label="E-post"
+            placeholder="post@crs.com"
+            {...form.getInputProps('email')}
           />
         </Stepper.Step>
 
         <Stepper.Step label="Verifisering" description="Oppgi tilsendt kode">
-          <TextInput label="Name" placeholder="Name" {...form.getInputProps('name')} />
-          <TextInput mt="md" label="Email" placeholder="Email" {...form.getInputProps('email')} />
+          <Flex direction="column" align="center">
+            <Title order={2}>Sjek inboxen din!</Title>
+            <Text>Vennligst lim inn koden vi sendte til deg på e-post:</Text>
+            <PinInput ta="center" mt="md" {...form.getInputProps('pin')} />
+          </Flex>
         </Stepper.Step>
 
-        <Stepper.Step label="Opprett organisasjonen" description="Social media">
-          <TextInput label="Website" placeholder="Website" {...form.getInputProps('website')} />
+        <Stepper.Step label="Opprett organisasjonen" description="Fullfør registreringen">
           <TextInput
-            mt="md"
-            label="GitHub"
-            placeholder="GitHub"
-            {...form.getInputProps('github')}
+            mb="md"
+            label="Navn"
+            placeholder="Ole Nordmann"
+            {...form.getInputProps('name')}
           />
+          <PasswordInput
+            mb="md"
+            label="Passord"
+            placeholder="Sterk passord"
+            {...form.getInputProps('password')}
+          />
+          <TextInput
+            mb="md"
+            label="Organisasjons navn"
+            placeholder="Container bedrift AS"
+            {...form.getInputProps('organisationName')}
+            onChange={(event) =>
+              form.setValues({
+                organisationName: event.currentTarget.value,
+                organisationId: event.currentTarget.value.toLocaleLowerCase().replace(' ', '-'),
+              })
+            }
+          />
+
+          <Box>
+            <Text>Organisasjons id</Text>
+            <Flex gap=".3rem">
+              <TextInput placeholder="crs.com/" disabled />
+              <TextInput
+                placeholder="container-bedrift-as"
+                {...form.getInputProps('organisationId')}
+                flex={1}
+                value={form.values.organisationId}
+                onChange={(event) =>
+                  form.setValues({
+                    organisationId: event.currentTarget.value.toLocaleLowerCase().replace(' ', '-'),
+                  })
+                }
+              />
+            </Flex>
+          </Box>
         </Stepper.Step>
         <Stepper.Completed>
           Completed! Form values:
@@ -100,10 +151,10 @@ export default function SignupPage() {
       <Group justify="flex-end" mt="xl">
         {active !== 0 && (
           <Button variant="default" onClick={prevStep}>
-            Back
+            Tilbake
           </Button>
         )}
-        {active !== 3 && <Button onClick={nextStep}>Next step</Button>}
+        {active !== 3 && <Button onClick={nextStep}>Neste</Button>}
       </Group>
     </Container>
   );
