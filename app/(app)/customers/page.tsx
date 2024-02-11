@@ -6,6 +6,7 @@ import { CustomerCard } from './CustomerCard/CustomerCard';
 import { CustomerModal } from './CustomerModal/CustomerModal';
 import { mockCustomers } from './data';
 import { Customer } from './types';
+import prisma from '@/prisma/client';
 
 export default function CustomersPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
