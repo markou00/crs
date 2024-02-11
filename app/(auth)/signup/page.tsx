@@ -14,7 +14,6 @@ import {
   Flex,
   Text,
   Box,
-  Input,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 
@@ -88,6 +87,7 @@ export default function SignupPage() {
             mt="md"
             label="E-post"
             placeholder="post@crs.com"
+            autoFocus={form.values.email.length === 0}
             {...form.getInputProps('email')}
           />
         </Stepper.Step>
@@ -96,7 +96,13 @@ export default function SignupPage() {
           <Flex direction="column" align="center">
             <Title order={2}>Sjek inboxen din!</Title>
             <Text>Vennligst lim inn koden vi sendte til deg på e-post:</Text>
-            <PinInput type="number" ta="center" mt="md" {...form.getInputProps('pin')} />
+            <PinInput
+              type="number"
+              ta="center"
+              mt="md"
+              autoFocus={form.values.pin.length === 0}
+              {...form.getInputProps('pin')}
+            />
           </Flex>
         </Stepper.Step>
 
@@ -105,6 +111,7 @@ export default function SignupPage() {
             mb="md"
             label="Fornavn"
             placeholder="Ole"
+            autoFocus={form.values.firstName.length === 0}
             {...form.getInputProps('firstName')}
           />
           <TextInput
