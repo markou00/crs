@@ -20,7 +20,7 @@ export function CustomerCard({ customer, onOpenModal }: CustomerCardProps) {
           </Text>
         </div>
         <Button onClick={() => onOpenModal(customer)} variant="subtle">
-          Detaljer
+          Mer info
         </Button>
       </Group>
     </Card>
