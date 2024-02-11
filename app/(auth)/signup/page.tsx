@@ -14,6 +14,7 @@ import {
   Flex,
   Text,
   Box,
+  Input,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 
@@ -25,7 +26,8 @@ export default function SignupPage() {
       email: '',
       pin: '',
       password: '',
-      name: '',
+      firstName: '',
+      lastName: '',
       organisationName: '',
       organisationId: '',
     },
@@ -33,29 +35,31 @@ export default function SignupPage() {
     validate: (values) => {
       if (active === 0) {
         return {
-          email: /^\S+@\S+.+\S$/.test(values.email) ? null : 'Invalid email',
+          email: /^\S+@\S+.+\S$/.test(values.email) ? null : 'Ugyldig e-post adress!',
         };
       }
 
       if (active === 1) {
         return {
-          pin: values.pin.trim().length < 4 ? 'Name must include at least 4 characters' : null,
+          pin: values.pin.trim().length < 4,
         };
       }
 
       if (active === 2) {
         return {
-          name: values.name.trim().length < 2 ? 'Name must include at least 2 characters' : null,
+          firstName:
+            values.firstName.trim().length < 2 ? 'Fornavnet må bestå av minst 2 karakterer' : null,
+          lastName:
+            values.lastName.trim().length < 2 ? 'Etternavnet må bestå av minst 2 karakterer' : null,
+          password: values.password.length < 6 ? 'Passordet må bestå av minst 6 karakterer' : null,
           organisationName:
             values.organisationName.trim().length < 2
-              ? 'Name must include at least 2 characters'
+              ? 'Organisasjons navnet må bestå av minst 2 karakterer'
               : null,
           organisationId:
             values.organisationId.trim().length < 2
-              ? 'Name must include at least 2 characters'
+              ? 'Organisasjons id må bestå av minst 2 karakterer'
               : null,
-          password:
-            values.password.length < 6 ? 'Password must include at least 6 characters' : null,
         };
       }
 
@@ -92,16 +96,22 @@ export default function SignupPage() {
           <Flex direction="column" align="center">
             <Title order={2}>Sjek inboxen din!</Title>
             <Text>Vennligst lim inn koden vi sendte til deg på e-post:</Text>
-            <PinInput ta="center" mt="md" {...form.getInputProps('pin')} />
+            <PinInput type="number" ta="center" mt="md" {...form.getInputProps('pin')} />
           </Flex>
         </Stepper.Step>
 
         <Stepper.Step label="Opprett organisasjonen" description="Fullfør registreringen">
           <TextInput
             mb="md"
-            label="Navn"
-            placeholder="Ole Nordmann"
-            {...form.getInputProps('name')}
+            label="Fornavn"
+            placeholder="Ole"
+            {...form.getInputProps('firstName')}
+          />
+          <TextInput
+            mb="md"
+            label="Etternavn"
+            placeholder="Nordmann"
+            {...form.getInputProps('lastName')}
           />
           <PasswordInput
             mb="md"
