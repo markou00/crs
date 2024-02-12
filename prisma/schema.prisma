@@ -10,8 +10,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  admin
+  user
+}
+
 model User {
-  id    Int    @id @default(autoincrement())
-  email String @unique
+  id        String  @id @db.Uuid
+  email     String  @unique
+  role      Role    @default(user)
+  firstName String?
+  lastName  String?
+  tenantId  String?
+  Tenant    Tenant? @relation(fields: [tenantId], references: [id])
+}
+
+model Tenant {
+  id    String @id @unique
   name  String
+  users User[]
 }
