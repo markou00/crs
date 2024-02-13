@@ -7,18 +7,24 @@ import {
   Group,
   TextInput,
   PasswordInput,
-  Code,
   Container,
   Title,
   PinInput,
   Flex,
   Text,
   Box,
+  Alert,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { IconInfoCircle } from '@tabler/icons-react';
+import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
   const [active, setActive] = useState(0);
+  const router = useRouter();
+  const supabase = createClientComponentClient();
 
   const form = useForm({
     initialValues: {
@@ -35,6 +41,7 @@ export default function SignupPage() {
       if (active === 0) {
         return {
           email: /^\S+@\S+.+\S$/.test(values.email) ? null : 'Ugyldig e-post adress!',
+          password: values.password.length < 6 ? 'Passordet må bestå av minst 6 karakterer' : null,
         };
       }
 
@@ -50,7 +57,6 @@ export default function SignupPage() {
             values.firstName.trim().length < 2 ? 'Fornavnet må bestå av minst 2 karakterer' : null,
           lastName:
             values.lastName.trim().length < 2 ? 'Etternavnet må bestå av minst 2 karakterer' : null,
-          password: values.password.length < 6 ? 'Passordet må bestå av minst 6 karakterer' : null,
           organisationName:
             values.organisationName.trim().length < 2
               ? 'Organisasjons navnet må bestå av minst 2 karakterer'
@@ -66,15 +72,140 @@ export default function SignupPage() {
     },
   });
 
-  const nextStep = () =>
-    setActive((current) => {
-      if (form.validate().hasErrors) {
-        return current;
-      }
-      return current < 3 ? current + 1 : current;
-    });
+  const userQuery = useQuery({
+    queryKey: ['user', form.values.email],
+    enabled: false,
+    queryFn: () => fetch(`/api/users/${form.values.email}`).then((data) => data.json()),
+    retry: false,
+  });
 
-  const prevStep = () => setActive((current) => (current > 0 ? current - 1 : current));
+  const verifyOtpMutation = useMutation({
+    mutationFn: async ({ email, token }: { email: string; token: string }) => {
+      const response = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email',
+      });
+
+      if (response.error?.status === 401) {
+        throw new Error('The OTP code is incorrect');
+      }
+
+      return response.data;
+    },
+
+    retry: false,
+    onSuccess: () => {
+      // Move to the next step on success
+      setActive((current) => (current < 3 ? current + 1 : current));
+    },
+    onError: (error) => {
+      console.log(error.message);
+    },
+  });
+
+  const signUpMutation = useMutation({
+    mutationFn: async ({ email, password }: { email: string; password: string }) => {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    retry: false,
+    onSuccess: () => {
+      // Move to the next step on success
+      setActive((current) => (current < 3 ? current + 1 : current));
+    },
+    onError: (error) => {
+      console.log(error.message);
+    },
+  });
+
+  const modifyUserMutation = useMutation({
+    mutationFn: async ({
+      email,
+      firstName,
+      lastName,
+      tenantName,
+      tenantId,
+    }: {
+      email: string;
+      firstName: string;
+      lastName: string;
+      tenantName: string;
+      tenantId: string;
+    }) => {
+      const response = await fetch(`/api/users/${email}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          tenantName,
+          tenantId,
+        }),
+      });
+
+      if (!response.ok) throw new Error('ERROR! failed to modify user');
+    },
+
+    retry: false,
+    onSuccess: () => {
+      router.push('/dashboard');
+    },
+    onError: (error) => {
+      console.log(error.message);
+    },
+  });
+
+  const nextStep = async () => {
+    if (active === 0) {
+      if (form.validate().hasErrors) {
+        return;
+      }
+
+      // Check if form is valid before attempting to refetch
+      if (form.isValid('email') && form.isValid('password')) {
+        try {
+          const refetchResult = await userQuery.refetch();
+          if (refetchResult.isSuccess) {
+            // If user query was successful, exit the function to prevent further execution
+            return;
+          }
+        } catch (error) {
+          console.error('Refetch error:', error);
+        }
+
+        signUpMutation.mutate({ email: form.values.email, password: form.values.email });
+      }
+    }
+
+    if (active === 1) {
+      if (form.validate().hasErrors) {
+        return;
+      }
+
+      verifyOtpMutation.mutate({ email: form.values.email, token: form.values.pin });
+    }
+
+    if (active === 2) {
+      if (form.validate().hasErrors) {
+        return;
+      }
+
+      modifyUserMutation.mutate({
+        email: form.values.email,
+        firstName: form.values.firstName,
+        lastName: form.values.lastName,
+        tenantName: form.values.organisationName,
+        tenantId: form.values.organisationId,
+      });
+    }
+  };
 
   return (
     <Container size="sm" mt="xl">
@@ -90,6 +221,12 @@ export default function SignupPage() {
             autoFocus={form.values.email.length === 0}
             {...form.getInputProps('email')}
           />
+          <PasswordInput
+            mb="md"
+            label="Passord"
+            placeholder="Sterk passord"
+            {...form.getInputProps('password')}
+          />
         </Stepper.Step>
 
         <Stepper.Step label="Verifisering" description="Oppgi tilsendt kode">
@@ -97,6 +234,7 @@ export default function SignupPage() {
             <Title order={2}>Sjek inboxen din!</Title>
             <Text>Vennligst lim inn koden vi sendte til deg på e-post:</Text>
             <PinInput
+              length={6}
               type="number"
               ta="center"
               mt="md"
@@ -120,12 +258,7 @@ export default function SignupPage() {
             placeholder="Nordmann"
             {...form.getInputProps('lastName')}
           />
-          <PasswordInput
-            mb="md"
-            label="Passord"
-            placeholder="Sterk passord"
-            {...form.getInputProps('password')}
-          />
+
           <TextInput
             mb="md"
             label="Organisasjons navn"
@@ -157,21 +290,34 @@ export default function SignupPage() {
             </Flex>
           </Box>
         </Stepper.Step>
-        <Stepper.Completed>
-          Completed! Form values:
-          <Code block mt="xl">
-            {JSON.stringify(form.values, null, 2)}
-          </Code>
-        </Stepper.Completed>
       </Stepper>
 
+      {userQuery.isSuccess && (
+        <Alert variant="light" color="red" icon={<IconInfoCircle />}>
+          E-post addresse er allerede registrert!
+        </Alert>
+      )}
+
+      {verifyOtpMutation.isError && (
+        <Alert mt="md" variant="light" color="red" icon={<IconInfoCircle />}>
+          Koden er feil. Prøv igjen!
+        </Alert>
+      )}
+
       <Group justify="flex-end" mt="xl">
-        {active !== 0 && (
-          <Button variant="default" onClick={prevStep}>
-            Tilbake
+        {active !== 3 && (
+          <Button
+            loading={
+              userQuery.isLoading ||
+              signUpMutation.isPending ||
+              verifyOtpMutation.isPending ||
+              modifyUserMutation.isPending
+            }
+            onClick={nextStep}
+          >
+            {active === 2 ? 'Fullfør' : 'Neste'}
           </Button>
         )}
-        {active !== 3 && <Button onClick={nextStep}>Neste</Button>}
       </Group>
     </Container>
   );
