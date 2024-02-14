@@ -47,7 +47,7 @@ export default function SignupPage() {
 
       if (active === 1) {
         return {
-          pin: values.pin.trim().length < 4,
+          pin: values.pin.trim().length < 6,
         };
       }
 
@@ -95,7 +95,9 @@ export default function SignupPage() {
     },
 
     retry: false,
-    onSuccess: () => {
+    onSuccess: async (data) => {
+      data.session && (await supabase.auth.setSession(data.session));
+
       // Move to the next step on success
       setActive((current) => (current < 3 ? current + 1 : current));
     },
@@ -154,8 +156,8 @@ export default function SignupPage() {
     },
 
     retry: false,
-    onSuccess: () => {
-      router.push('/dashboard');
+    onSuccess: async () => {
+      router.push(`/${form.values.organisationId}/dashboard`);
     },
     onError: (error) => {
       console.log(error.message);
