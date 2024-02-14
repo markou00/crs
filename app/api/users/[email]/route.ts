@@ -21,10 +21,10 @@ export async function GET(req: NextRequest, { params }: { params: { email: strin
 
     return new NextResponse(JSON.stringify(user), {
       status: 200,
-      statusText: 'User created successfully',
+      statusText: 'User fetched successfully',
     });
   } catch (error) {
-    return new NextResponse(JSON.stringify({ error: 'Failed to create a user' }), {
+    return new NextResponse(JSON.stringify({ error: 'Failed to fetch the user' }), {
       status: 500,
     });
   }
