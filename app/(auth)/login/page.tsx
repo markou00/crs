@@ -47,7 +47,7 @@ export default function SignupPage() {
 
       if (active === 1) {
         return {
-          pin: values.pin.trim().length < 6,
+          pin: values.pin.trim().length < 4,
         };
       }
 
@@ -87,6 +87,9 @@ export default function SignupPage() {
         type: 'email',
       });
 
+      const test = response.data.session && (await supabase.auth.setSession(response.data.session));
+      console.log(test);
+
       if (response.error?.status === 401) {
         throw new Error('The OTP code is incorrect');
       }
@@ -95,9 +98,7 @@ export default function SignupPage() {
     },
 
     retry: false,
-    onSuccess: async (data) => {
-      data.session && (await supabase.auth.setSession(data.session));
-
+    onSuccess: () => {
       // Move to the next step on success
       setActive((current) => (current < 3 ? current + 1 : current));
     },
@@ -152,16 +153,13 @@ export default function SignupPage() {
         }),
       });
 
-      const { error } = await supabase.auth.updateUser({
-        data: { tenantId },
-      });
-
-      if (!response.ok || error) throw new Error('ERROR! failed to modify user');
+      if (!response.ok) throw new Error('ERROR! failed to modify user');
     },
 
     retry: false,
     onSuccess: async () => {
-      router.push(`/${form.values.organisationId}/dashboard`);
+      // router.push(`/${form.values.organisationId}/dashboard`);
+      router.push('/');
     },
     onError: (error) => {
       console.log(error.message);
@@ -273,7 +271,7 @@ export default function SignupPage() {
             onChange={(event) =>
               form.setValues({
                 organisationName: event.currentTarget.value,
-                organisationId: event.currentTarget.value.toLocaleLowerCase().replaceAll(' ', '-'),
+                organisationId: event.currentTarget.value.toLocaleLowerCase().replace(' ', '-'),
               })
             }
           />
