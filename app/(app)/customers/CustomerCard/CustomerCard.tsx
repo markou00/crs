@@ -3,10 +3,9 @@ import { Customer } from '../types';
 
 type CustomerCardProps = {
   customer: Customer;
-  onOpenModal: (customer: Customer) => void;
 };
 
-export function CustomerCard({ customer, onOpenModal }: CustomerCardProps) {
+export function CustomerCard({ customer }: CustomerCardProps) {
   return (
     <Card key={customer.id} withBorder style={{ marginBottom: 20, padding: '20px' }}>
       <Group justify="space-between" style={{ marginBottom: 5, marginTop: 5 }}>
@@ -19,9 +18,7 @@ export function CustomerCard({ customer, onOpenModal }: CustomerCardProps) {
             {customer.address}
           </Text>
         </div>
-        <Button onClick={() => onOpenModal(customer)} variant="subtle">
-          Mer info
-        </Button>
+        <Button variant="subtle">Mer info</Button>
       </Group>
     </Card>
   );

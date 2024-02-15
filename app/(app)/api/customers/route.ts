@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/prisma/client';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const customers = await prisma.customer.findMany();
     return new NextResponse(JSON.stringify(customers), {
@@ -21,11 +21,20 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const json = await request.json();
+  try {
+    const json = await request.json();
 
-  const created = await prisma.customer.create({
-    data: json,
-  });
+    const created = await prisma.customer.create({
+      data: json,
+    });
 
-  return new NextResponse(JSON.stringify(created), { status: 201 });
+    return new NextResponse(JSON.stringify(created), { status: 201 });
+  } catch (error) {
+    console.error('Failed to create customer:', error);
+    // Return a generic error message to the client
+    // Consider logging the error to a logging service for further investigation
+    return new NextResponse(JSON.stringify({ error: 'Failed to create customer' }), {
+      status: 500,
+    });
+  }
 }
