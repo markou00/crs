@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Card, Text, Button, Group } from '@mantine/core';
 import { Customer } from '../types';
 
@@ -18,7 +19,11 @@ export function CustomerCard({ customer }: CustomerCardProps) {
             {customer.address}
           </Text>
         </div>
-        <Button variant="subtle">Mer info</Button>
+        <Link href={`/customers/${customer.id}`} passHref>
+          <Button component="a" variant="subtle">
+            Mer info
+          </Button>
+        </Link>
       </Group>
     </Card>
   );
