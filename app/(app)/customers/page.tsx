@@ -5,20 +5,11 @@ import { IconUserPlus } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { CustomerCard } from './CustomerCard/CustomerCard';
 import { AddCustomerModal } from './AddCustomerModal/AddCustomerModal';
-// import { CustomerModal } from './CustomerModal/CustomerModal'; will probably be removed, but keeping it for now.
 import { Customer } from './types';
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
-  /* const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [modalOpened, setModalOpened] = useState(false); */
   const [addModalOpened, setAddModalOpened] = useState(false);
-
-  // Function to open the modal with the selected customer for viewing
-  /* const openModal = (customer: Customer) => {
-    setSelectedCustomer(customer);
-    setModalOpened(true);
-  }; */
 
   // Function to open the modal for creating a new customer
   const openCreateModal = () => {
@@ -62,14 +53,6 @@ export default function CustomersPage() {
           <CustomerCard key={customer.id} customer={customer} />
         ))}
       </div>
-
-      {/* Will probably be removed, but keeping it for now
-      <CustomerModal
-        customer={selectedCustomer}
-        opened={modalOpened}
-        onClose={() => setModalOpened(false)}
-      />
-      */}
 
       <AddCustomerModal
         opened={addModalOpened}
