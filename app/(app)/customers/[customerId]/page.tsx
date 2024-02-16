@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation'; // Import useRouter for navigation
 import { Customer } from './types';
 
 interface Params {
@@ -11,6 +12,7 @@ interface Params {
 export default function CustomerDetails({ params }: { params: Params }) {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [error, setError] = useState('');
+  const router = useRouter();
 
   useEffect(() => {
     const fetchCustomerData = async () => {
@@ -34,6 +36,26 @@ export default function CustomerDetails({ params }: { params: Params }) {
     }
   }, [params.customerId]);
 
+  const deleteCustomer = async () => {
+    if (window.confirm('Are you sure you want to delete this customer?')) {
+      try {
+        const response = await fetch(`/api/customers/${params.customerId}`, {
+          method: 'DELETE',
+        });
+        if (!response.ok) throw new Error('Failed to delete the customer');
+
+        // Optionally, redirect the user back to the customers list page or handle the UI update
+        router.push('/customers'); // Adjust the path as necessary
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unexpected error occurred while deleting the customer');
+        }
+      }
+    }
+  };
+
   if (error) return <div>An error occurred: {error}</div>;
   if (!customer) return <div>Loading...</div>;
 
@@ -47,7 +69,12 @@ export default function CustomerDetails({ params }: { params: Params }) {
       <p>Sted: {customer.city}</p>
       <p>Postnr: {customer.postalCode}</p>
       <p>Land: {customer.country}</p>
-      <Link href="/customers">Tilbake til kundesiden</Link>
+      <button type="button" onClick={deleteCustomer}>
+        Delete Customer
+      </button>
+      <p>
+        <Link href="/customers">Tilbake til kundesiden</Link>
+      </p>
     </div>
   );
 }

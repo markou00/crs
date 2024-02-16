@@ -16,14 +16,22 @@ export default function CustomersPage() {
     setAddModalOpened(true);
   };
 
-  // Fetch customers data from the API
+  // Fetch customers data from the API and sort them by name
   const fetchCustomers = async () => {
     try {
       const response = await fetch('/api/customers');
       const data: Customer[] = await response.json();
-      setCustomers(data);
+
+      // Sort the customers by name in ascending order
+      const sortedData = data.sort((a, b) => a.name.localeCompare(b.name));
+
+      setCustomers(sortedData);
     } catch (error) {
-      console.error('Failed to fetch customers:', error);
+      if (error instanceof Error) {
+        console.error('Failed to fetch customers:', error.message);
+      } else {
+        console.error('Failed to fetch customers');
+      }
     }
   };
 
