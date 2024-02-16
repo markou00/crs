@@ -1,8 +1,9 @@
+/* eslint-disable no-var */
+/* eslint-disable vars-on-top */
+
 import { PrismaClient } from '@prisma/client';
 
-const prismaClientSingleton = () => {
-  return new PrismaClient();
-};
+const prismaClientSingleton = () => new PrismaClient();
 
 declare global {
   var prisma: undefined | ReturnType<typeof prismaClientSingleton>;
