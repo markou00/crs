@@ -48,11 +48,7 @@ export default function CustomersPage() {
     <>
       <Group justify="space-between" style={{ marginBottom: '20px', marginRight: '50px' }}>
         <Title>Kunder</Title>
-        <Button
-          onClick={openCreateModal}
-          leftSection={<IconUserPlus size={16} />}
-          style={{ backgroundColor: '#85BC24', color: 'white' }}
-        >
+        <Button onClick={openCreateModal} leftSection={<IconUserPlus size={16} />}>
           Ny kunde
         </Button>
       </Group>

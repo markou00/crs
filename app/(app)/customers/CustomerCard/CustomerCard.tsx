@@ -11,9 +11,7 @@ export function CustomerCard({ customer }: CustomerCardProps) {
     <Card key={customer.id} withBorder style={{ marginBottom: 20, padding: '20px' }}>
       <Group justify="space-between" style={{ marginBottom: 5, marginTop: 5 }}>
         <div>
-          <Text size="sm" c="#85BC24">
-            {customer.type}
-          </Text>
+          <Text size="sm">{customer.type}</Text>
           <Text fw={700}>{customer.name}</Text>
           <Text c="dimmed" size="xs">
             {customer.address}
