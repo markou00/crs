@@ -27,50 +27,51 @@ export function Navbar() {
   });
 
   const pathname = usePathname();
+  const user = authUserData?.data?.data?.user;
 
   const data = [
     {
-      link: `/${authUserData?.data?.data?.user?.user_metadata?.tenantId}/dashboard`,
+      link: `/${user?.user_metadata?.tenantId}/dashboard`,
       label: 'Dashboard',
       icon: IconLayoutDashboard,
     },
     {
-      link: `/${authUserData?.data?.data?.user?.user_metadata?.tenantId}/customers`,
+      link: `/${user?.user_metadata?.tenantId}/customers`,
       label: 'Kunder',
       icon: IconUsers,
     },
     {
-      link: `/${authUserData?.data?.data?.user?.user_metadata?.tenantId}/employees`,
+      link: `/${user?.user_metadata?.tenantId}/employees`,
       label: 'Ansatte',
       icon: IconBriefcase,
     },
     {
-      link: `/${authUserData?.data?.data?.user?.user_metadata?.tenantId}/agreements`,
+      link: `/${user?.user_metadata?.tenantId}/agreements`,
       label: 'Avtaler',
       icon: IconClipboard,
     },
     {
-      link: `/${authUserData?.data?.data?.user?.user_metadata?.tenantId}/jobs`,
+      link: `/${user?.user_metadata?.tenantId}/jobs`,
       label: 'Oppdrag',
       icon: IconCheckbox,
     },
     {
-      link: `/${authUserData?.data?.data?.user?.user_metadata?.tenantId}/trucks`,
+      link: `/${user?.user_metadata?.tenantId}/trucks`,
       label: 'Biler',
       icon: IconTruck,
     },
     {
-      link: `/${authUserData?.data?.data?.user?.user_metadata?.tenantId}/dispatch`,
+      link: `/${user?.user_metadata?.tenantId}/dispatch`,
       label: 'Planlegging',
       icon: IconColumns3,
     },
     {
-      link: `/${authUserData?.data?.data?.user?.user_metadata?.tenantId}/containers`,
+      link: `/${user?.user_metadata?.tenantId}/containers`,
       label: 'Beholdere',
       icon: IconBox,
     },
     {
-      link: `/${authUserData?.data?.data?.user?.user_metadata?.tenantId}/settings`,
+      link: `/${user?.user_metadata?.tenantId}/settings`,
       label: 'Innstillinger',
       icon: IconSettings,
     },

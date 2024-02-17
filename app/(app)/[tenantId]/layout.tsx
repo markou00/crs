@@ -12,14 +12,20 @@ import { ReactNode } from 'react';
 import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query';
 
 import { Navbar } from '@/components/Navbar/Navbar';
-import { getAuthUser } from '@/lib/server/actions/user-actions';
+import { getAuthUser, getUser } from '@/lib/server/actions/user-actions';
 import { UserButton } from '@/components/Navbar/UserButton/UserButton';
 
 export default async function AppShellLayout({ children }: { children: ReactNode }) {
   const queryClient = new QueryClient();
+
   await queryClient.prefetchQuery({
     queryKey: ['auth-user'],
     queryFn: getAuthUser,
+  });
+
+  await queryClient.prefetchQuery({
+    queryKey: ['user'],
+    queryFn: () => getUser,
   });
 
   return (
