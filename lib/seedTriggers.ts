@@ -29,7 +29,7 @@ async function main() {
         create or replace function public.handle_user_delete()
         returns trigger as $$
         begin
-          delete from public."User" where id = old.id;
+          delete from auth.users where id = old.id;
           return old;
         end;
         $$ language plpgsql security definer;
