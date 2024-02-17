@@ -1,15 +1,9 @@
-'use client';
-
 import '@mantine/core/styles.css';
 
-import React from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MantineProvider, ColorSchemeScript } from '@mantine/core';
-import { theme } from '@/theme';
+import { ColorSchemeScript } from '@mantine/core';
+import Provider from '@/lib/Providers';
 
 export default function RootLayout({ children }: { children: any }) {
-  const queryClient = new QueryClient();
-
   return (
     <html lang="en">
       <head>
@@ -21,9 +15,7 @@ export default function RootLayout({ children }: { children: any }) {
         />
       </head>
       <body>
-        <QueryClientProvider client={queryClient}>
-          <MantineProvider theme={theme}>{children}</MantineProvider>
-        </QueryClientProvider>
+        <Provider>{children}</Provider>
       </body>
     </html>
   );
