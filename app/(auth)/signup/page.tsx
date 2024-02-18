@@ -188,7 +188,7 @@ export default function SignupPage() {
           console.error('Refetch error:', error);
         }
 
-        signUpMutation.mutate({ email: form.values.email, password: form.values.email });
+        signUpMutation.mutate({ email: form.values.email, password: form.values.password });
       }
     }
 
