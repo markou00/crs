@@ -1,5 +1,6 @@
 import { Modal, TextInput, Select, Button, Group } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { customerFormValidation } from '../utils/customerFormValidation';
 import { AddCustomerModalProps, CustomerFormValues } from './types';
 
 export function AddCustomerModal({ opened, onClose, onCustomerAdded }: AddCustomerModalProps) {
@@ -15,23 +16,7 @@ export function AddCustomerModal({ opened, onClose, onCustomerAdded }: AddCustom
       postalCode: '',
       country: '',
     },
-
-    validate: {
-      name: (value) => (value ? null : 'Navn er påkrevd'),
-      type: (value) => (value ? null : 'Type er påkrevd'),
-      contactName: (value) => (value ? null : 'Kontaktnavn er påkrevd'),
-      contactEmail: (value) => (/^\S+@\S+\.\S+$/.test(value) ? null : 'Ugyldig epost'),
-      contactPhone: (value) => {
-        // Allow an optional "+" at the start, followed by up to 15 digits
-        const regex = /^\+?\d{0,15}$/;
-        if (!regex.test(value)) return 'Ugyldig telefonnummer. Maks 15 tall.';
-        return null; // Return null if the value passes validation
-      },
-      address: (value) => (value ? null : 'Adresse er påkrevd'),
-      city: (value) => (value ? null : 'Sted er påkrevd'),
-      postalCode: (value) => (value ? null : 'Postnr er påkrevd'),
-      country: (value) => (value ? null : 'Land er påkrevd'),
-    },
+    validate: customerFormValidation,
   });
 
   function handleSubmit(values: CustomerFormValues) {
@@ -45,7 +30,6 @@ export function AddCustomerModal({ opened, onClose, onCustomerAdded }: AddCustom
           if (onCustomerAdded) onCustomerAdded();
           onClose();
         } else {
-          // Handle error, e.g., show error notification
           console.error('Failed to add customer');
         }
       })

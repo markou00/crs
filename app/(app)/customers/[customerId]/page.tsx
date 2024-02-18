@@ -3,39 +3,80 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Title, TextInput, Button, Group, Stack } from '@mantine/core';
+import { useForm } from '@mantine/form';
 import { Customer } from './types';
+import { customerFormValidation } from '../utils/customerFormValidation';
 
 interface Params {
   customerId: string;
 }
 
 export default function CustomerDetails({ params }: { params: Params }) {
-  const [customer, setCustomer] = useState<Customer | null>(null);
-  const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
-  const [error, setError] = useState('');
   const router = useRouter();
+  const [error, setError] = useState('');
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+
+  // Initialize the form with useForm hook, providing initial values and validation rules
+  const form = useForm({
+    initialValues: {
+      name: '',
+      contactName: '',
+      contactEmail: '',
+      contactPhone: '',
+      address: '',
+      city: '',
+      postalCode: '',
+      country: '',
+    },
+    validate: customerFormValidation, // Use shared validation logic
+  });
 
   useEffect(() => {
-    const fetchCustomerData = async () => {
-      try {
-        const response = await fetch(`/api/customers/${params.customerId}`);
-        if (!response.ok) throw new Error('Failed to fetch');
-
-        const data: Customer = await response.json();
-        setCustomer(data);
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('An unexpected error occurred');
+    if (!initialDataLoaded) {
+      const fetchCustomerData = async () => {
+        try {
+          const response = await fetch(`/api/customers/${params.customerId}`);
+          if (!response.ok) throw new Error('Failed to fetch');
+          const data: Customer = await response.json();
+          form.setValues(data); // Update form values with fetched customer data
+          setInitialDataLoaded(true); // Prevent further unnecessary updates
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'An unexpected error occurred');
         }
-      }
-    };
+      };
 
-    if (params?.customerId) {
-      fetchCustomerData();
+      if (params?.customerId) {
+        fetchCustomerData();
+      }
     }
-  }, [params.customerId]);
+  }, [params.customerId, form, initialDataLoaded]);
+
+  // Function to handle form submission
+  const saveChanges = async (returnToCustomers = false) => {
+    const isValid = form.validate();
+    if (!isValid.hasErrors) {
+      try {
+        const response = await fetch(`/api/customers/${params.customerId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form.values),
+        });
+        if (!response.ok) throw new Error('Failed to update the customer');
+        if (returnToCustomers) {
+          router.push('/customers');
+        } else {
+          const updatedCustomer = await response.json();
+          form.setValues(updatedCustomer);
+        }
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'An unexpected error occurred while updating the customer'
+        );
+      }
+    }
+  };
 
   const deleteCustomer = async () => {
     if (
@@ -49,8 +90,7 @@ export default function CustomerDetails({ params }: { params: Params }) {
         });
         if (!response.ok) throw new Error('Failed to delete the customer');
 
-        // Optionally, redirect the user back to the customers list page or handle the UI update
-        router.push('/customers'); // Adjust the path as necessary
+        router.push('/customers');
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
@@ -61,98 +101,28 @@ export default function CustomerDetails({ params }: { params: Params }) {
     }
   };
 
-  useEffect(() => {
-    setEditCustomer(customer); // Initialize editable customer state with fetched data
-  }, [customer]);
-
-  const handleInputChange = (field: keyof Customer, value: string) => {
-    setEditCustomer((prevState) => {
-      // Check if prevState is null to maintain type safety
-      if (prevState === null) return null;
-
-      // Correctly updates prevState with the new field value
-      return { ...prevState, [field]: value };
-    });
-  };
-
-  const saveChanges = async (returnToCustomers = false) => {
-    if (!editCustomer) return;
-    try {
-      const response = await fetch(`/api/customers/${params.customerId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editCustomer),
-      });
-      if (!response.ok) throw new Error('Failed to update the customer');
-
-      if (returnToCustomers) {
-        router.push('/customers');
-      } else {
-        const updatedCustomer = await response.json();
-        setCustomer(updatedCustomer);
-        setEditCustomer(updatedCustomer);
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An unexpected error occurred while updating the customer');
-      }
-    }
-  };
-
   if (error) return <div>An error occurred: {error}</div>;
-  if (!editCustomer) return <div>Loading...</div>;
+  if (!initialDataLoaded) return <div>Loading...</div>;
 
   return (
     <div>
       <Title>Kundeinformasjon</Title>
-      <Group pt={30} pb={30}>
-        <Stack align="flex-start" justify="flex-start">
-          <TextInput
-            label="Navn"
-            value={editCustomer.name || ''}
-            onChange={(event) => handleInputChange('name', event.currentTarget.value)}
-          />
-          <TextInput
-            label="Kontaktnavn"
-            value={editCustomer.contactName || ''}
-            onChange={(event) => handleInputChange('contactName', event.currentTarget.value)}
-          />
-          <TextInput
-            label="Epost"
-            value={editCustomer.contactEmail || ''}
-            onChange={(event) => handleInputChange('contactEmail', event.currentTarget.value)}
-          />
-          <TextInput
-            label="Telefon"
-            value={editCustomer.contactPhone || ''}
-            onChange={(event) => handleInputChange('contactPhone', event.currentTarget.value)}
-          />
-        </Stack>
-        <Stack align="flex-start" justify="flex-start">
-          <TextInput
-            label="Adresse"
-            value={editCustomer.address || ''}
-            onChange={(event) => handleInputChange('address', event.currentTarget.value)}
-          />
-          <TextInput
-            label="Sted"
-            value={editCustomer.city || ''}
-            onChange={(event) => handleInputChange('city', event.currentTarget.value)}
-          />
-          <TextInput
-            label="Postnr"
-            value={editCustomer.postalCode || ''}
-            onChange={(event) => handleInputChange('postalCode', event.currentTarget.value)}
-          />
-          <TextInput
-            label="Land"
-            value={editCustomer.country || ''}
-            onChange={(event) => handleInputChange('country', event.currentTarget.value)}
-          />
-        </Stack>
-      </Group>
+      <form onSubmit={form.onSubmit(() => saveChanges(false))}>
+        <Group pt={30} pb={30}>
+          <Stack>
+            <TextInput label="Navn" {...form.getInputProps('name')} />
+            <TextInput label="Kontaktnavn" {...form.getInputProps('contactName')} />
+            <TextInput label="Epost" {...form.getInputProps('contactEmail')} />
+            <TextInput label="Telefon" {...form.getInputProps('contactPhone')} />
+          </Stack>
+          <Stack>
+            <TextInput label="Adresse" {...form.getInputProps('address')} />
+            <TextInput label="Sted" {...form.getInputProps('city')} />
+            <TextInput label="Postnr" {...form.getInputProps('postalCode')} />
+            <TextInput label="Land" {...form.getInputProps('country')} />
+          </Stack>
+        </Group>
+      </form>
       <Group>
         <Stack>
           <Button variant="default" onClick={() => router.push('/customers')}>
@@ -163,8 +133,10 @@ export default function CustomerDetails({ params }: { params: Params }) {
           </Button>
         </Stack>
         <Stack>
-          <Button onClick={() => saveChanges()}>Lagre</Button>
-          <Button onClick={() => saveChanges(true)}>Lagre og gå til kundeoversikt</Button>
+          <Button type="button" onClick={() => saveChanges(true)}>
+            Lagre og gå til kundeoversikt
+          </Button>
+          <Button type="submit">Lagre</Button>
         </Stack>
       </Group>
     </div>
