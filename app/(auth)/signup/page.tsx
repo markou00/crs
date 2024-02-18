@@ -152,11 +152,13 @@ export default function SignupPage() {
         }),
       });
 
+      if (!response.ok) throw new Error(response.statusText);
+
       const { error } = await supabase.auth.updateUser({
         data: { tenantId },
       });
 
-      if (!response.ok || error) throw new Error('ERROR! failed to modify user');
+      if (error) throw new Error(error.message);
     },
 
     retry: false,
@@ -307,6 +309,12 @@ export default function SignupPage() {
       {verifyOtpMutation.isError && (
         <Alert mt="md" variant="light" color="red" icon={<IconInfoCircle />}>
           Koden er feil. Prøv igjen!
+        </Alert>
+      )}
+
+      {modifyUserMutation.isError && (
+        <Alert mt="md" variant="light" color="red" icon={<IconInfoCircle />}>
+          Organisasjons id eksisterer!
         </Alert>
       )}
 
