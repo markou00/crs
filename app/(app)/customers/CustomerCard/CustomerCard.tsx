@@ -18,9 +18,7 @@ export function CustomerCard({ customer }: CustomerCardProps) {
           </Text>
         </div>
         <Link href={`/customers/${customer.id}`} passHref>
-          <Button component="a" variant="subtle">
-            Mer info
-          </Button>
+          <Button variant="subtle">Mer info</Button>
         </Link>
       </Group>
     </Card>
