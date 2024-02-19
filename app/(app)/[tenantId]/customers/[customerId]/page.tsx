@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { Title, TextInput, Button, Group, Stack } from '@mantine/core';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useState } from 'react';
 import { useForm } from '@mantine/form';
-import { Customer } from './types';
+
 import { customerFormValidation } from '../utils/customerFormValidation';
 
 interface Params {
@@ -13,10 +15,8 @@ interface Params {
 
 export default function CustomerDetails({ params }: { params: Params }) {
   const router = useRouter();
-  const [error, setError] = useState('');
-  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  const [tenantId, setTenantId] = useState('');
 
-  // Initialize the form with useForm hook, providing initial values and validation rules
   const form = useForm({
     initialValues: {
       name: '',
@@ -28,86 +28,70 @@ export default function CustomerDetails({ params }: { params: Params }) {
       postalCode: '',
       country: '',
     },
-    validate: customerFormValidation, // Use shared validation logic
+    validate: customerFormValidation,
+  });
+  const supabase = createClientComponentClient();
+
+  const getCustomerQuery = useQuery({
+    queryKey: [params.customerId],
+    queryFn: async () => {
+      const user = await supabase.auth.getUser();
+      const _tenantId = user.data.user?.user_metadata.tenantId;
+      setTenantId(_tenantId);
+      const response = await fetch(`/api/${_tenantId}/customers/${params.customerId}`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      form.setValues(data);
+
+      return data;
+    },
   });
 
-  useEffect(() => {
-    if (!initialDataLoaded) {
-      const fetchCustomerData = async () => {
-        try {
-          const response = await fetch(`/api/customers/${params.customerId}`);
-          if (!response.ok) throw new Error('Failed to fetch');
-          const data: Customer = await response.json();
-          form.setValues(data); // Update form values with fetched customer data
-          setInitialDataLoaded(true); // Prevent further unnecessary updates
-        } catch (err) {
-          setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-        }
-      };
+  const updateCustomerMutation = useMutation({
+    mutationFn: async () => {
+      if (form.validate().hasErrors) throw new Error('The form has erros');
 
-      if (params?.customerId) {
-        fetchCustomerData();
+      const response = await fetch(`/api/${tenantId}/customers/${params.customerId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form.values),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
       }
-    }
-  }, [params.customerId, form, initialDataLoaded]);
+    },
+    retry: false,
+    onSuccess: () => router.back(),
+  });
 
-  // Function to handle form submission
-  const saveChanges = async (returnToCustomers = false) => {
-    const isValid = form.validate();
-    if (!isValid.hasErrors) {
-      try {
-        const response = await fetch(`/api/customers/${params.customerId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form.values),
-        });
-        if (!response.ok) throw new Error('Failed to update the customer');
-        if (returnToCustomers) {
-          router.push('/customers');
-        } else {
-          const updatedCustomer = await response.json();
-          form.setValues(updatedCustomer);
-        }
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : 'An unexpected error occurred while updating the customer'
-        );
-      }
-    }
-  };
-
-  const deleteCustomer = async () => {
-    if (
-      window.confirm(
-        'Er du sikker på at du vil slette denne kunden? Denne handlingen kan ikke angres.'
-      )
-    ) {
-      try {
-        const response = await fetch(`/api/customers/${params.customerId}`, {
+  const deleteCustomerMutation = useMutation({
+    mutationFn: async () => {
+      if (
+        window.confirm(
+          'Er du sikker på at du vil slette denne kunden? Denne handlingen kan ikke angres.'
+        )
+      ) {
+        const response = await fetch(`/api/${tenantId}/customers/${params.customerId}`, {
           method: 'DELETE',
         });
         if (!response.ok) throw new Error('Failed to delete the customer');
-
-        router.push('/customers');
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('An unexpected error occurred while deleting the customer');
-        }
       }
-    }
-  };
+    },
+    retry: false,
+    onSuccess: () => router.back(),
+  });
 
-  if (error) return <div>An error occurred: {error}</div>;
-  if (!initialDataLoaded) return <div>Loading...</div>;
-
+  if (getCustomerQuery.isError) {
+    return <div>An error occurred: {getCustomerQuery.error.message}</div>;
+  }
+  if (getCustomerQuery.isLoading) return <div>Loading...</div>;
   return (
     <div>
       <Title>Kundeinformasjon</Title>
-      <form onSubmit={form.onSubmit(() => saveChanges(false))}>
+      <form>
         <Group pt={30} pb={30}>
           <Stack>
             <TextInput label="Navn" {...form.getInputProps('name')} />
@@ -125,18 +109,17 @@ export default function CustomerDetails({ params }: { params: Params }) {
       </form>
       <Group>
         <Stack>
-          <Button variant="default" onClick={() => router.push('/customers')}>
+          <Button variant="default" onClick={() => router.back()}>
             Avbryt
           </Button>
-          <Button color="red" onClick={deleteCustomer}>
+          <Button color="red" onClick={() => deleteCustomerMutation.mutate()}>
             Slett kunde
           </Button>
         </Stack>
         <Stack>
-          <Button type="button" onClick={() => saveChanges(true)}>
-            Lagre og gå til kundeoversikt
+          <Button type="button" onClick={() => updateCustomerMutation.mutate()}>
+            Lagre
           </Button>
-          <Button type="submit">Lagre</Button>
         </Stack>
       </Group>
     </div>

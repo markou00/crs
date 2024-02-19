@@ -1,12 +1,14 @@
 import Link from 'next/link';
 import { Card, Text, Button, Group } from '@mantine/core';
+
 import { Customer } from '../types';
 
 type CustomerCardProps = {
   customer: Customer;
+  tenantId: string;
 };
 
-export function CustomerCard({ customer }: CustomerCardProps) {
+export function CustomerCard({ customer, tenantId }: CustomerCardProps) {
   return (
     <Card key={customer.id} withBorder style={{ marginBottom: 20, padding: '20px' }}>
       <Group justify="space-between" style={{ marginBottom: 5, marginTop: 5 }}>
@@ -17,7 +19,7 @@ export function CustomerCard({ customer }: CustomerCardProps) {
             {customer.address}
           </Text>
         </div>
-        <Link href={`/customers/${customer.id}`} passHref>
+        <Link href={`/${tenantId}/customers/${customer.id}`}>
           <Button variant="subtle">Mer info</Button>
         </Link>
       </Group>

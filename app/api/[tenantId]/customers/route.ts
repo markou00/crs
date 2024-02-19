@@ -1,9 +1,10 @@
 import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/prisma/client';
+import prisma from '@/lib/prisma';
 
-export async function GET() {
+export async function GET(req: NextRequest, { params }: { params: { tenantId: string } }) {
   try {
-    const customers = await prisma.customer.findMany();
+    const customers = await prisma.customer.findMany({ where: { tenantId: params.tenantId } });
+
     return new NextResponse(JSON.stringify(customers), {
       status: 200, // HTTP 200 OK
       headers: {

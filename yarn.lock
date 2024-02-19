@@ -7940,6 +7940,7 @@ __metadata:
     stylelint-config-standard-scss: "npm:^11.1.0"
     ts-jest: "npm:^29.1.1"
     ts-node: "npm:^10.9.2"
+    tsx: "npm:^4.7.1"
     typescript: "npm:5.2.2"
     zustand: "npm:^4.5.0"
   languageName: unknown

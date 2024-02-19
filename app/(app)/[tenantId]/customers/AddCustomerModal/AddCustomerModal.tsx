@@ -1,9 +1,16 @@
+import { useMutation } from '@tanstack/react-query';
 import { Modal, TextInput, Select, Button, Group } from '@mantine/core';
 import { useForm } from '@mantine/form';
+
 import { customerFormValidation } from '../utils/customerFormValidation';
 import { AddCustomerModalProps, CustomerFormValues } from './types';
 
-export function AddCustomerModal({ opened, onClose, onCustomerAdded }: AddCustomerModalProps) {
+export function AddCustomerModal({
+  opened,
+  onClose,
+  onCustomerAdded,
+  tenantId,
+}: AddCustomerModalProps) {
   const form = useForm<CustomerFormValues>({
     initialValues: {
       name: '',
@@ -19,28 +26,26 @@ export function AddCustomerModal({ opened, onClose, onCustomerAdded }: AddCustom
     validate: customerFormValidation,
   });
 
-  function handleSubmit(values: CustomerFormValues) {
-    fetch('/api/customers', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
-    })
-      .then((response) => {
-        if (response.ok) {
-          if (onCustomerAdded) onCustomerAdded();
-          onClose();
-        } else {
-          console.error('Failed to add customer');
-        }
-      })
-      .catch((error) => {
-        console.error('Failed to add customer:', error);
+  const createCustomerMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/${tenantId}/customers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form.values, tenantId }),
       });
-  }
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      if (onCustomerAdded) onCustomerAdded();
+      onClose();
+    },
+    retry: false,
+  });
 
   return (
     <Modal opened={opened} onClose={onClose} title="Legg til ny kunde">
-      <form onSubmit={form.onSubmit(handleSubmit)}>
+      <form onSubmit={form.onSubmit(() => createCustomerMutation.mutate())}>
         <TextInput label="Navn" {...form.getInputProps('name')} />
         <Select
           label="Type"
