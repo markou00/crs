@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { Title, TextInput, Button, Group, Stack } from '@mantine/core';
+import { Title, TextInput, Button, Flex, Box, Container, rem, Divider } from '@mantine/core';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useState } from 'react';
 import { useForm } from '@mantine/form';
@@ -89,39 +89,35 @@ export default function CustomerDetails({ params }: { params: Params }) {
   }
   if (getCustomerQuery.isLoading) return <div>Loading...</div>;
   return (
-    <div>
+    <Box>
       <Title>Kundeinformasjon</Title>
-      <form>
-        <Group pt={30} pb={30}>
-          <Stack>
-            <TextInput label="Navn" {...form.getInputProps('name')} />
-            <TextInput label="Kontaktnavn" {...form.getInputProps('contactName')} />
-            <TextInput label="Epost" {...form.getInputProps('contactEmail')} />
-            <TextInput label="Telefon" {...form.getInputProps('contactPhone')} />
-          </Stack>
-          <Stack>
-            <TextInput label="Adresse" {...form.getInputProps('address')} />
-            <TextInput label="Sted" {...form.getInputProps('city')} />
-            <TextInput label="Postnr" {...form.getInputProps('postalCode')} />
-            <TextInput label="Land" {...form.getInputProps('country')} />
-          </Stack>
-        </Group>
-      </form>
-      <Group>
-        <Stack>
-          <Button variant="default" onClick={() => router.back()}>
-            Avbryt
-          </Button>
-          <Button color="red" onClick={() => deleteCustomerMutation.mutate()}>
-            Slett kunde
-          </Button>
-        </Stack>
-        <Stack>
-          <Button type="button" onClick={() => updateCustomerMutation.mutate()}>
-            Lagre
-          </Button>
-        </Stack>
-      </Group>
-    </div>
+      <Divider m="xs" />
+      <Container maw={rem(1000)}>
+        <Flex direction="column" p="sm" gap="sm">
+          <TextInput label="Navn" {...form.getInputProps('name')} />
+          <TextInput label="Kontaktnavn" {...form.getInputProps('contactName')} />
+          <TextInput label="Epost" {...form.getInputProps('contactEmail')} />
+          <TextInput label="Telefon" {...form.getInputProps('contactPhone')} />
+
+          <TextInput label="Adresse" {...form.getInputProps('address')} />
+          <TextInput label="Sted" {...form.getInputProps('city')} />
+          <TextInput label="Postnr" {...form.getInputProps('postalCode')} />
+          <TextInput label="Land" {...form.getInputProps('country')} />
+
+          <Flex mt="sm" gap="sm" justify="flex-end">
+            <Button variant="default" onClick={() => router.back()}>
+              Avbryt
+            </Button>
+            <Button color="red" onClick={() => deleteCustomerMutation.mutate()}>
+              Slett
+            </Button>
+
+            <Button type="button" onClick={() => updateCustomerMutation.mutate()}>
+              Lagre
+            </Button>
+          </Flex>
+        </Flex>
+      </Container>
+    </Box>
   );
 }
