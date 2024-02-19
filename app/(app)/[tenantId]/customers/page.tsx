@@ -2,52 +2,44 @@
 
 import { Title, Button, Group, TextInput, rem } from '@mantine/core';
 import { IconSearch, IconUserPlus } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useState } from 'react';
+
 import { CustomerCard } from './CustomerCard/CustomerCard';
 import { AddCustomerModal } from './AddCustomerModal/AddCustomerModal';
 import { Customer } from './types';
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState<Customer[]>([]);
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [search, setSearch] = useState('');
+  const [tenantId, setTenantId] = useState('');
+  const supabase = createClientComponentClient();
+
+  const getCustomersQuery = useQuery<Customer[]>({
+    queryKey: ['customers'],
+    queryFn: async () => {
+      const user = await supabase.auth.getUser();
+      const _tenantId = user.data.user?.user_metadata.tenantId;
+      setTenantId(_tenantId);
+      const response = await fetch(`/api/${_tenantId}/customers`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json(); // returns Promise<Customer[]>
+    },
+  });
 
   // Function to open the modal for creating a new customer
   const openCreateModal = () => {
     setAddModalOpened(true);
   };
 
-  // Fetch customers data from the API and sort them by name
-  const fetchCustomers = async () => {
-    try {
-      const response = await fetch('/api/customers');
-      const data: Customer[] = await response.json();
-
-      // Sort the customers by name in ascending order
-      const sortedData = data.sort((a, b) => a.name.localeCompare(b.name));
-
-      setCustomers(sortedData);
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error('Failed to fetch customers:', error.message);
-      } else {
-        console.error('Failed to fetch customers');
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchCustomers();
-  }, []); // The empty array ensures this effect runs once on mount
-
-  // Callback function to be called after successful addition
-  const onCustomerAdded = () => {
-    fetchCustomers();
-  };
-
-  const filteredCustomers = customers.filter((customer) =>
+  const filteredCustomers = getCustomersQuery.data?.filter((customer) =>
     customer.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (getCustomersQuery.isLoading) return <Title>LOADING....</Title>;
 
   return (
     <>
@@ -66,15 +58,16 @@ export default function CustomersPage() {
         </Button>
       </Group>
       <div style={{ maxWidth: 800, margin: 'auto' }}>
-        {filteredCustomers.map((customer) => (
-          <CustomerCard key={customer.id} customer={customer} />
+        {filteredCustomers?.map((customer) => (
+          <CustomerCard key={customer.id} customer={customer} tenantId={tenantId} />
         ))}
       </div>
 
       <AddCustomerModal
         opened={addModalOpened}
+        tenantId={tenantId}
         onClose={() => setAddModalOpened(false)}
-        onCustomerAdded={onCustomerAdded}
+        onCustomerAdded={getCustomersQuery.refetch}
       />
     </>
   );

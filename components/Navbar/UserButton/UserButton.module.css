@@ -9,6 +9,7 @@
   }
 
   @media (max-width: $mantine-breakpoint-md) {
-    display: none;
+    width: auto;
+    padding: var(--mantine-spacing-xs);
   }
 }

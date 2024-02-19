@@ -1,12 +1,16 @@
 import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/prisma/client';
+import prisma from '@/lib/prisma';
 
 // Get a specific customer
-export async function GET(request: NextRequest, { params: { id } }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params: { tenantId, id } }: { params: { tenantId: string; id: string } }
+) {
   try {
     const customers = await prisma.customer.findUnique({
       where: {
         id: parseInt(id, 10),
+        tenantId,
       },
     });
     return new NextResponse(JSON.stringify(customers), {

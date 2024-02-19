@@ -10,23 +10,41 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  admin
+  user
+}
+
 model User {
-  id    Int    @id @default(autoincrement())
-  email String @unique
-  name  String
+  id        String  @id @db.Uuid
+  email     String  @unique
+  role      Role    @default(user)
+  firstName String?
+  lastName  String?
+  tenantId  String?
+  Tenant    Tenant? @relation(fields: [tenantId], references: [id])
+}
+
+model Tenant {
+  id       String     @id @unique
+  name     String
+  users    User[]
+  Customer Customer[]
 }
 
 model Customer {
-  id             Int      @id @default(autoincrement())
-  name           String
-  type           String
-  contactName    String
-  contactEmail   String   @unique
-  contactPhone   String?
-  address        String
-  city           String
-  postalCode     String
-  country        String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt 
+  id           Int      @id @default(autoincrement())
+  name         String
+  type         String
+  contactName  String
+  contactEmail String   @unique
+  contactPhone String?
+  address      String
+  city         String
+  postalCode   String
+  country      String
+  tenantId     String?
+  Tenant       Tenant?  @relation(fields: [tenantId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

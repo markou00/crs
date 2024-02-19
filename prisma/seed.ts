@@ -1,8 +1,39 @@
 import { PrismaClient } from '@prisma/client';
+import { createClient } from '@supabase/supabase-js';
 
 const prisma = new PrismaClient();
 
 async function main() {
+  const tenant = await prisma.tenant.create({
+    data: { id: 'CRS', name: 'Container Rental System' },
+  });
+  const tenantId = tenant.id;
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SECRET!
+  );
+
+  const user = await supabase.auth.admin.createUser({
+    email: 'hello@crs.com',
+    password: 'Group02@2024',
+    user_metadata: {
+      tenantId,
+    },
+    email_confirm: true,
+  });
+
+  await prisma.user.update({
+    where: { email: user.data.user?.email! },
+    data: {
+      id: user.data.user?.id!,
+      firstName: 'Admin',
+      lastName: 'User',
+      email: user.data.user?.email!,
+      tenantId: tenant.id,
+    },
+  });
+
   const customers = await prisma.customer.createMany({
     data: [
       {
@@ -15,6 +46,7 @@ async function main() {
         city: 'Ålesund',
         postalCode: '6001',
         country: 'Norge',
+        tenantId: tenant.id,
       },
       {
         name: 'Søppelselskapet',
@@ -26,6 +58,7 @@ async function main() {
         city: 'Bergen',
         postalCode: '5020',
         country: 'Norge',
+        tenantId: tenant.id,
       },
       {
         name: 'Ida Petrine Larsen',
@@ -37,6 +70,7 @@ async function main() {
         city: 'Molde',
         postalCode: '6410',
         country: 'Norge',
+        tenantId: tenant.id,
       },
       {
         name: 'Bjørn Goodigood',
@@ -48,6 +82,7 @@ async function main() {
         city: 'Volda',
         postalCode: '6100',
         country: 'Norge',
+        tenantId: tenant.id,
       },
       {
         name: 'Matsøppel AS',
@@ -59,6 +94,7 @@ async function main() {
         city: 'Sygna',
         postalCode: '4050',
         country: 'Norge',
+        tenantId: tenant.id,
       },
     ],
   });
