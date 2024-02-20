@@ -1,6 +1,6 @@
 {
   "name": "crs",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow yarn",
@@ -37,9 +37,9 @@
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "dependencies": {
-    "@mantine/core": "7.5.1",
-    "@mantine/form": "^7.5.2",
-    "@mantine/hooks": "7.5.1",
+    "@mantine/core": "7.5.3",
+    "@mantine/form": "^7.5.3",
+    "@mantine/hooks": "7.5.3",
     "@mantinex/mantine-logo": "^1.0.1",
     "@next/bundle-analyzer": "^14.0.1",
     "@prisma/client": "^5.9.1",
