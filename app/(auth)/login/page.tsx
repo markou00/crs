@@ -70,7 +70,7 @@ export default function LoginPage() {
         />
         <PasswordInput
           label="Passord"
-          placeholder="Din passord"
+          placeholder="Ditt passord"
           required
           mt="md"
           {...form.getInputProps('password')}
