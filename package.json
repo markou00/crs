@@ -6,7 +6,7 @@
     "preinstall": "npx only-allow yarn",
     "prepare": "husky install",
     "dev": "next dev",
-    "build": "next build",
+    "build": "npx prisma generate && next build",
     "analyze": "ANALYZE=true next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
