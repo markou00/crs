@@ -84,3 +84,31 @@ export async function inviteUser(email: string) {
     return { error };
   }
 }
+
+export async function confirmInvitation(
+  email: string,
+  firstName: string,
+  lastName: string,
+  newPassword: string
+) {
+  try {
+    const user = await prisma.user.update({
+      where: { email },
+      data: {
+        firstName,
+        lastName,
+      },
+    });
+
+    const supabase = createServerActionClient({ cookies });
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) throw new Error("Couldn't change user's password!");
+
+    return { user };
+  } catch (error) {
+    return { error };
+  }
+}
