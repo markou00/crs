@@ -1,63 +1,52 @@
 'use client';
 
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
 import { IconEdit, IconEye, IconTrash } from '@tabler/icons-react';
-import { Group, Box, ActionIcon } from '@mantine/core';
+import { Group, ActionIcon } from '@mantine/core';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-// Define a type for the records
-type RecordType = {
+// Define the type for an employee record
+type EmployeeType = {
+  id: number;
   name: string;
   status: string;
   email: string;
-  car: string;
+  car: string; // Adjust based on actual data structure
 };
-
-// Define a type for the actions
-type ActionType = 'view' | 'edit' | 'delete';
 
 // Define a type for the showModal parameter
 type ShowModalParams = {
-  company: RecordType;
-  action: ActionType;
+  employee: EmployeeType;
+  action: 'view' | 'edit' | 'delete';
 };
 
 export default function EmployeesPage() {
-  // Updated dummy data for the table
-  const records: RecordType[] = [
-    { name: 'John Doe', status: 'online', email: 'john.doe@example.com', car: 'EL 12345' },
-    { name: 'Jane Smith', status: 'offline', email: 'jane.smith@example.com', car: 'EK 67890' },
-    {
-      name: 'William Johnson',
-      status: 'online',
-      email: 'william.johnson@example.com',
-      car: 'BT 54321',
+  const [tenantId, setTenantId] = useState('');
+  const supabase = createClientComponentClient();
+
+  // Fetch employees data
+  const getEmployeesQuery = useQuery<EmployeeType[]>({
+    queryKey: ['employees', tenantId], // Include tenantId in the query key
+    queryFn: async () => {
+      const user = await supabase.auth.getUser();
+      const _tenantId = user.data.user?.user_metadata.tenantId;
+      setTenantId(_tenantId);
+      const response = await fetch(`/api/${_tenantId}/employees`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
     },
-    {
-      name: 'Emma Williams',
-      status: 'offline',
-      email: 'emma.williams@example.com',
-      car: 'CV 98765',
-    },
-    { name: 'Olivia Brown', status: 'online', email: 'olivia.brown@example.com', car: 'DN 13579' },
-    { name: 'James Davis', status: 'offline', email: 'james.davis@example.com', car: 'DP 24680' },
-    {
-      name: 'Isabella Miller',
-      status: 'online',
-      email: 'isabella.miller@example.com',
-      car: 'UF 11223',
-    },
-    {
-      name: 'Michael Wilson',
-      status: 'offline',
-      email: 'michael.wilson@example.com',
-      car: 'HR 33445',
-    },
-  ];
+  });
 
   // Dummy function to show modal - replace this with your actual modal logic
-  const showModal = ({ company, action }: ShowModalParams) => {
-    console.log(`Showing ${action} modal for company`, company);
+  const showModal = ({ employee, action }: ShowModalParams) => {
+    console.log(`Showing ${action} modal for employee`, employee);
   };
+
+  if (getEmployeesQuery.isLoading) return <div>Loading...</div>;
 
   return (
     <DataTable
@@ -72,15 +61,15 @@ export default function EmployeesPage() {
         { accessor: 'car', title: 'Bil' },
         {
           accessor: 'actions',
-          title: <Box mr={6} />,
-          textAlign: 'left',
-          render: (company: RecordType) => (
+          title: '',
+          textAlign: 'right',
+          render: (employee: EmployeeType) => (
             <Group gap={4} justify="right" wrap="nowrap">
               <ActionIcon
                 size="sm"
                 variant="subtle"
                 color="green"
-                onClick={() => showModal({ company, action: 'view' })}
+                onClick={() => showModal({ employee, action: 'view' })}
               >
                 <IconEye size={16} />
               </ActionIcon>
@@ -88,7 +77,7 @@ export default function EmployeesPage() {
                 size="sm"
                 variant="subtle"
                 color="blue"
-                onClick={() => showModal({ company, action: 'edit' })}
+                onClick={() => showModal({ employee, action: 'edit' })}
               >
                 <IconEdit size={16} />
               </ActionIcon>
@@ -96,7 +85,7 @@ export default function EmployeesPage() {
                 size="sm"
                 variant="subtle"
                 color="red"
-                onClick={() => showModal({ company, action: 'delete' })}
+                onClick={() => showModal({ employee, action: 'delete' })}
               >
                 <IconTrash size={16} />
               </ActionIcon>
@@ -104,7 +93,7 @@ export default function EmployeesPage() {
           ),
         },
       ]}
-      records={records}
+      records={getEmployeesQuery.data ?? []}
     />
   );
 }
