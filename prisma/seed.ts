@@ -142,6 +142,53 @@ async function main() {
     ],
   });
   console.log('Created customers:', customers.count);
+
+  const cars = await prisma.car.createMany({
+    data: [
+      { regnr: 'EL12345', status: 'Available' },
+      { regnr: 'EK67890', status: 'Available' },
+      { regnr: 'BT54321', status: 'In Use' },
+      { regnr: 'CV98765', status: 'Maintenance' },
+    ],
+  });
+  console.log('Created cars:', cars.count);
+
+  // Create employees and associate them with cars
+  // Note: This assumes that each car is associated with one employee
+  const employees = await prisma.employee.createMany({
+    data: [
+      {
+        name: 'John Doe',
+        status: 'Active',
+        email: 'john.doe@example.com',
+        picture: 'https://effigy.im/a/brantly.eth.svg',
+        carId: 1,
+      },
+      {
+        name: 'Jane Smith',
+        status: 'Active',
+        email: 'jane.smith@example.com',
+        picture: 'https://effigy.im/a/huh.eth.png	',
+        carId: 2,
+      },
+      {
+        name: 'William Johnson',
+        status: 'Inactive',
+        email: 'william.johnson@example.com',
+        picture: 'https://effigy.im/a/galligan.eth.png',
+        carId: 3,
+      },
+      {
+        name: 'Emma Williams',
+        status: 'Active',
+        email: 'emma.williams@example.com',
+        picture: 'https://effigy.im/a/harper.eth.png',
+        carId: 4,
+      },
+    ],
+  });
+  console.log('Created employees:', employees.count);
+
   process.exit();
 }
 
