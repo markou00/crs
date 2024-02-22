@@ -145,10 +145,10 @@ async function main() {
 
   const cars = await prisma.car.createMany({
     data: [
-      { regnr: 'EL12345', status: 'Available' },
-      { regnr: 'EK67890', status: 'Available' },
-      { regnr: 'BT54321', status: 'In Use' },
-      { regnr: 'CV98765', status: 'Maintenance' },
+      { regnr: 'EL12345', status: 'Available', tenantId: tenant.id },
+      { regnr: 'EK67890', status: 'Available', tenantId: tenant.id },
+      { regnr: 'BT54321', status: 'In Use', tenantId: tenant.id },
+      { regnr: 'CV98765', status: 'Maintenance', tenantId: tenant.id },
     ],
   });
   console.log('Created cars:', cars.count);
@@ -163,13 +163,15 @@ async function main() {
         email: 'john.doe@example.com',
         picture: 'https://effigy.im/a/brantly.eth.svg',
         carId: 1,
+        tenantId: tenant.id,
       },
       {
         name: 'Jane Smith',
         status: 'Active',
         email: 'jane.smith@example.com',
-        picture: 'https://effigy.im/a/huh.eth.png	',
+        picture: 'https://effigy.im/a/huh.eth.png',
         carId: 2,
+        tenantId: tenant.id,
       },
       {
         name: 'William Johnson',
@@ -177,6 +179,7 @@ async function main() {
         email: 'william.johnson@example.com',
         picture: 'https://effigy.im/a/galligan.eth.png',
         carId: 3,
+        tenantId: tenant.id,
       },
       {
         name: 'Emma Williams',
@@ -184,6 +187,7 @@ async function main() {
         email: 'emma.williams@example.com',
         picture: 'https://effigy.im/a/harper.eth.png',
         carId: 4,
+        tenantId: tenant.id,
       },
     ],
   });

@@ -30,6 +30,8 @@ model Tenant {
   name     String
   users    User[]
   Customer Customer[]
+  Employee Employee[]
+  Car Car[]
 }
 
 model Customer {
@@ -57,6 +59,8 @@ model Employee {
   picture  String
   carId    Int?   @unique
   Car      Car?   @relation(fields: [carId], references: [id])
+  tenantId     String?
+  Tenant       Tenant?  @relation(fields: [tenantId], references: [id])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -66,6 +70,8 @@ model Car {
   regnr     String   @unique
   status    String
   Employee  Employee?
+  tenantId     String?
+  Tenant       Tenant?  @relation(fields: [tenantId], references: [id])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
