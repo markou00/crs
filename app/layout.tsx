@@ -3,6 +3,10 @@ import '@mantine/core/styles.css';
 import { ColorSchemeScript } from '@mantine/core';
 import Provider from '@/lib/Providers';
 
+import '@mantine/core/styles.layer.css';
+import 'mantine-datatable/styles.layer.css';
+import './layout.css';
+
 export default function RootLayout({ children }: { children: any }) {
   return (
     <html lang="en">

@@ -11,6 +11,9 @@ import {
 import { ReactNode } from 'react';
 import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query';
 
+import '@mantine/core/styles.layer.css';
+import 'mantine-datatable/styles.layer.css';
+
 import { Navbar } from '@/components/Navbar/Navbar';
 import { getAuthUser, getUser } from '@/lib/server/actions/user-actions';
 import { UserButton } from '@/components/Navbar/UserButton/UserButton';
