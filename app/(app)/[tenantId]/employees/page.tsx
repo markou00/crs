@@ -1,22 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
 import { IconEdit, IconEye, IconTrash } from '@tabler/icons-react';
 import { Group, ActionIcon } from '@mantine/core';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-// Define the type for an employee record
 type EmployeeType = {
   id: number;
   name: string;
   status: string;
   email: string;
-  car: string; // Adjust based on actual data structure
+  Car: { regnr: string } | null;
 };
 
-// Define a type for the showModal parameter
 type ShowModalParams = {
   employee: EmployeeType;
   action: 'view' | 'edit' | 'delete';
@@ -26,22 +24,33 @@ export default function EmployeesPage() {
   const [tenantId, setTenantId] = useState('');
   const supabase = createClientComponentClient();
 
-  // Fetch employees data
-  const getEmployeesQuery = useQuery<EmployeeType[]>({
-    queryKey: ['employees', tenantId], // Include tenantId in the query key
-    queryFn: async () => {
+  useEffect(() => {
+    async function fetchTenantId() {
       const user = await supabase.auth.getUser();
-      const _tenantId = user.data.user?.user_metadata.tenantId;
-      setTenantId(_tenantId);
-      const response = await fetch(`/api/${_tenantId}/employees`);
+      if (user.data.user?.user_metadata.tenantId) {
+        setTenantId(user.data.user.user_metadata.tenantId);
+      }
+    }
+
+    fetchTenantId();
+  }, [supabase]);
+
+  const getEmployeesQuery = useQuery<EmployeeType[]>({
+    queryKey: ['employees', tenantId],
+    queryFn: async () => {
+      const response = await fetch(`/api/${tenantId}/employees`);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-      return response.json();
+      const data: EmployeeType[] = await response.json();
+      return data.map((employee) => ({
+        ...employee,
+        car: employee.Car?.regnr || 'No Car',
+      }));
     },
+    enabled: !!tenantId,
   });
 
-  // Dummy function to show modal - replace this with your actual modal logic
   const showModal = ({ employee, action }: ShowModalParams) => {
     console.log(`Showing ${action} modal for employee`, employee);
   };
@@ -58,7 +67,7 @@ export default function EmployeesPage() {
         { accessor: 'name', title: 'Navn' },
         { accessor: 'status', title: 'Status' },
         { accessor: 'email', title: 'Epost' },
-        { accessor: 'car', title: 'Bil' },
+        { accessor: 'car', title: 'Bil', render: (row) => row.Car?.regnr || 'No Car' },
         {
           accessor: 'actions',
           title: '',

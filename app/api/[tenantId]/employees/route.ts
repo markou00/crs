@@ -3,9 +3,19 @@ import prisma from '@/lib/prisma';
 
 export async function GET(req: NextRequest, { params }: { params: { tenantId: string } }) {
   try {
-    const employees = await prisma.employee.findMany({ where: { tenantId: params.tenantId } });
+    const employees = await prisma.employee.findMany({
+      where: { tenantId: params.tenantId },
+      include: {
+        Car: true,
+      },
+    });
 
-    return new NextResponse(JSON.stringify(employees), {
+    const response = employees.map((employee) => ({
+      ...employee,
+      car: employee.Car?.regnr || 'Ingen bil',
+    }));
+
+    return new NextResponse(JSON.stringify(response), {
       status: 200, // HTTP 200 OK
       headers: {
         'Content-Type': 'application/json',
