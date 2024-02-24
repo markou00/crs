@@ -158,10 +158,11 @@ async function main() {
   const employees = await prisma.employee.createMany({
     data: [
       {
-        name: 'John Doe',
+        name: 'James Piledriver',
         status: 'Active',
-        email: 'john.doe@example.com',
-        picture: 'https://effigy.im/a/brantly.eth.svg',
+        email: 'james.piledriver@example.com',
+        picture:
+          'https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=2598&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         carId: 1,
         tenantId: tenant.id,
       },
@@ -169,7 +170,8 @@ async function main() {
         name: 'Jane Smith',
         status: 'Active',
         email: 'jane.smith@example.com',
-        picture: 'https://effigy.im/a/huh.eth.png',
+        picture:
+          'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=2576&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         carId: 2,
         tenantId: tenant.id,
       },
@@ -177,7 +179,8 @@ async function main() {
         name: 'William Johnson',
         status: 'Inactive',
         email: 'william.johnson@example.com',
-        picture: 'https://effigy.im/a/galligan.eth.png',
+        picture:
+          'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         carId: 3,
         tenantId: tenant.id,
       },
@@ -185,7 +188,8 @@ async function main() {
         name: 'Emma Williams',
         status: 'Active',
         email: 'emma.williams@example.com',
-        picture: 'https://effigy.im/a/harper.eth.png',
+        picture:
+          'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         carId: 4,
         tenantId: tenant.id,
       },

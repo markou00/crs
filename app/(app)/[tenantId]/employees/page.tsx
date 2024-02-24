@@ -6,12 +6,14 @@ import { DataTable } from 'mantine-datatable';
 import { IconEdit, IconEye, IconTrash } from '@tabler/icons-react';
 import { Group, ActionIcon } from '@mantine/core';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { EmployeePicture } from '../../../../components/Employees/EmployeePicture';
 
 type EmployeeType = {
   id: number;
   name: string;
   status: string;
   email: string;
+  picture: string;
   Car: { regnr: string } | null;
 };
 
@@ -23,6 +25,7 @@ type ShowModalParams = {
 export default function EmployeesPage() {
   const [tenantId, setTenantId] = useState('');
   const supabase = createClientComponentClient();
+  const [selectedRecords, setSelectedRecords] = useState<EmployeeType[]>([]);
 
   useEffect(() => {
     async function fetchTenantId() {
@@ -59,12 +62,24 @@ export default function EmployeesPage() {
 
   return (
     <DataTable
+      borderRadius="md"
       pinFirstColumn
       withTableBorder
       striped
       highlightOnHover
+      selectedRecords={selectedRecords}
+      onSelectedRecordsChange={setSelectedRecords}
       columns={[
-        { accessor: 'name', title: 'Navn' },
+        {
+          accessor: 'name',
+          title: 'Navn',
+          render: (employee: EmployeeType) => (
+            <Group>
+              <EmployeePicture imageSrc={employee.picture} />
+              {employee.name}
+            </Group>
+          ),
+        },
         { accessor: 'status', title: 'Status' },
         { accessor: 'email', title: 'Epost' },
         { accessor: 'car', title: 'Bil', render: (row) => row.Car?.regnr || 'No Car' },
