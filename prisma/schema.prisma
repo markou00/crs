@@ -57,7 +57,7 @@ model Employee {
   status   String
   email    String @unique
   phone    String @unique
-  picture  String
+  picture  String?
   carId    Int?   @unique
   Car      Car?   @relation(fields: [carId], references: [id])
   tenantId     String?

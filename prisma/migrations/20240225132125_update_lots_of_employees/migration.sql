@@ -47,7 +47,7 @@ CREATE TABLE "Employee" (
     "status" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
-    "picture" TEXT NOT NULL,
+    "picture" TEXT,
     "carId" INTEGER,
     "tenantId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
