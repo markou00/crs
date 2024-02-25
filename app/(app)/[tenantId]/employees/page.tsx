@@ -14,6 +14,7 @@ type EmployeeType = {
   name: string;
   status: string;
   email: string;
+  phone: string;
   picture: string;
   Car: { regnr: string } | null;
 };
@@ -90,8 +91,9 @@ export default function EmployeesPage() {
               </Group>
             ),
           },
+          { accessor: 'phone', title: 'Telefon' },
           { accessor: 'status', title: 'Status' },
-          { accessor: 'car', title: 'Bil', render: (row) => row.Car?.regnr || 'No Car' },
+          { accessor: 'car', title: 'Bil', render: (row) => row.Car?.regnr || 'Ingen bil' },
           {
             accessor: 'actions',
             title: '',

@@ -46,6 +46,7 @@ CREATE TABLE "Employee" (
     "name" TEXT NOT NULL,
     "status" TEXT NOT NULL,
     "email" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
     "picture" TEXT NOT NULL,
     "carId" INTEGER,
     "tenantId" TEXT,
@@ -78,6 +79,9 @@ CREATE UNIQUE INDEX "Customer_contactEmail_key" ON "Customer"("contactEmail");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Employee_email_key" ON "Employee"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Employee_phone_key" ON "Employee"("phone");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Employee_carId_key" ON "Employee"("carId");

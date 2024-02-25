@@ -161,6 +161,7 @@ async function main() {
         name: 'James Piledriver',
         status: 'Active',
         email: 'james.piledriver@example.com',
+        phone: '99000011',
         picture:
           'https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=2598&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         carId: 1,
@@ -170,6 +171,7 @@ async function main() {
         name: 'Jane Smith',
         status: 'Active',
         email: 'jane.smith@example.com',
+        phone: '99433111',
         picture:
           'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=2576&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         carId: 2,
@@ -179,15 +181,16 @@ async function main() {
         name: 'William Johnson',
         status: 'Inactive',
         email: 'william.johnson@example.com',
+        phone: '99434321',
         picture:
           'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        carId: 3,
         tenantId: tenant.id,
       },
       {
         name: 'Emma Williams',
         status: 'Active',
         email: 'emma.williams@example.com',
+        phone: '91183111',
         picture:
           'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         carId: 4,
