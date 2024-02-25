@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
-import { IconEdit, IconEye, IconTrash } from '@tabler/icons-react';
+import { IconEdit, IconTrash } from '@tabler/icons-react';
 import { Group, ActionIcon, Paper, Text, Stack } from '@mantine/core';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { EmployeePicture } from '../../../../components/Employees/EmployeePicture';
 import { TableHeader } from './TableHeader/TableHeader';
+import { AddEmployeeModal } from './AddEmployeeModal/AddEmployeeModal';
 
 type EmployeeType = {
   id: number;
@@ -25,6 +26,7 @@ type ShowModalParams = {
 };
 
 export default function EmployeesPage() {
+  const [addModalOpened, setAddModalOpened] = useState(false);
   const [tenantId, setTenantId] = useState('');
   const supabase = createClientComponentClient();
   const [selectedRecords, setSelectedRecords] = useState<EmployeeType[]>([]);
@@ -60,13 +62,17 @@ export default function EmployeesPage() {
     console.log(`Showing ${action} modal for employee`, employee);
   };
 
+  const openCreateModal = () => {
+    setAddModalOpened(true);
+  };
+
   const userCount = getEmployeesQuery.data?.length || 0;
 
   if (getEmployeesQuery.isLoading) return <div>Loading...</div>;
 
   return (
     <Paper style={{ overflow: 'hidden', borderRadius: '8px' }} m="0" pb="md" pt="xs">
-      <TableHeader userCount={userCount} />
+      <TableHeader userCount={userCount} onClick={() => openCreateModal()} />
       <DataTable
         borderRadius="md"
         withTableBorder
@@ -103,14 +109,6 @@ export default function EmployeesPage() {
                 <ActionIcon
                   size="sm"
                   variant="subtle"
-                  color="green"
-                  onClick={() => showModal({ employee, action: 'view' })}
-                >
-                  <IconEye size={16} />
-                </ActionIcon>
-                <ActionIcon
-                  size="sm"
-                  variant="subtle"
                   color="blue"
                   onClick={() => showModal({ employee, action: 'edit' })}
                 >
@@ -129,6 +127,12 @@ export default function EmployeesPage() {
           },
         ]}
         records={getEmployeesQuery.data ?? []}
+      />
+      <AddEmployeeModal
+        opened={addModalOpened}
+        tenantId={tenantId}
+        onClose={() => setAddModalOpened(false)}
+        onEmployeeAdded={getEmployeesQuery.refetch}
       />
     </Paper>
   );
