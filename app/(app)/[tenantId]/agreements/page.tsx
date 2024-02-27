@@ -1,9 +1,20 @@
 'use client';
 
-import { Box, Title } from '@mantine/core';
+import { Box, Text, Title } from '@mantine/core';
+import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
 
+import { getAgreements } from '@/lib/server/actions/agreements-actions';
+
 export default function AgreementsPage() {
+  const getAgreementsQuery = useQuery({
+    queryKey: ['agreements'],
+    queryFn: () => getAgreements(),
+  });
+
+  if (getAgreementsQuery.error) return <Text>ERROR....</Text>;
+  if (getAgreementsQuery.isLoading) return <Text>LOADING...</Text>;
+
   return (
     <>
       <Title mb="md">Avtaler</Title>
@@ -13,29 +24,15 @@ export default function AgreementsPage() {
         withColumnBorders
         striped
         highlightOnHover
-        records={[
-          { id: 1, type: 'utleie', customer: 'Joe Biden', recurrent: true, endDate: '01.01.2024' },
-          { id: 1, type: 'utleie', customer: 'Joe Biden', recurrent: true, endDate: '01.01.2024' },
-          { id: 1, type: 'utleie', customer: 'Joe Biden', recurrent: true, endDate: '01.01.2024' },
-          { id: 1, type: 'utleie', customer: 'Joe Biden', recurrent: true, endDate: '01.01.2024' },
-          { id: 1, type: 'utleie', customer: 'Joe Biden', recurrent: true, endDate: '01.01.2024' },
-          { id: 1, type: 'utleie', customer: 'Joe Biden', recurrent: true, endDate: '01.01.2024' },
-          { id: 1, type: 'utleie', customer: 'Joe Biden', recurrent: true, endDate: '01.01.2024' },
-        ]}
+        records={getAgreementsQuery.data?.agreements}
         columns={[
           {
             accessor: 'id',
           },
           { accessor: 'type' },
           {
-            accessor: 'customer',
+            accessor: 'customerId',
             title: 'Kunde',
-            // this column has custom cell data rendering
-            // render: ({ party }) => (
-            //   <Box fw={700} c={party === 'Democratic' ? 'blue' : 'red'}>
-            //     {party.slice(0, 3).toUpperCase()}
-            //   </Box>
-            // ),
           },
           {
             accessor: 'recurrent',
@@ -45,15 +42,9 @@ export default function AgreementsPage() {
           {
             accessor: 'endDate',
             title: 'Slutt dato',
+            render: ({ endDate }) => <Box fw={700}>{endDate.toISOString()}</Box>,
           },
         ]}
-        // onRowClick={({ record: { name, party, bornIn } }) =>
-        //   console.log({
-        //     title: `Clicked on ${name}`,
-        //     message: `You clicked on ${name}, a ${party.toLowerCase()} president born in ${bornIn}`,
-        //     withBorder: true,
-        //   })
-        // }
       />
     </>
   );
