@@ -1,4 +1,4 @@
-import { Text, Box, Group, Button } from '@mantine/core';
+import { Text, Box, Group, Button, Stack } from '@mantine/core';
 import { IconUserPlus } from '@tabler/icons-react';
 
 interface TableHeaderProps {
@@ -9,21 +9,30 @@ interface TableHeaderProps {
 export function TableHeader({ userCount, onClick }: TableHeaderProps) {
   return (
     <Box pb="md">
-      <Group justify="space-between">
-        <Group>
-          <Text fw={700} size="lg">
-            Ansatte
-          </Text>
+      <Stack>
+        <Stack>
+          <Group justify="space-between">
+            <Group>
+              <Text fw={700} size="lg">
+                Ansatte
+              </Text>
+              <Text size="xs">
+                ({userCount} {userCount === 1 ? 'bruker' : 'brukere'})
+              </Text>
+            </Group>
+            <Group>
+              <Button leftSection={<IconUserPlus size={16} />} onClick={onClick}>
+                Ny ansatt
+              </Button>
+            </Group>
+          </Group>
+        </Stack>
+        <Stack>
           <Text size="xs">
-            ({userCount} {userCount === 1 ? 'bruker' : 'brukere'})
+            Bruk ikonene i første rad for å filtrere basert på navn, status og bil.
           </Text>
-        </Group>
-        <Group>
-          <Button leftSection={<IconUserPlus size={16} />} onClick={onClick}>
-            Ny ansatt
-          </Button>
-        </Group>
-      </Group>
+        </Stack>
+      </Stack>
     </Box>
   );
 }

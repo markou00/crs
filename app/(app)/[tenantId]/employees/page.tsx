@@ -50,11 +50,13 @@ export default function EmployeesPage() {
   const [records, setRecords] = useState(initialRecords);
 
   const [nameQuery, setNameQuery] = useState('');
+  const [regnrQuery, setRegnrQuery] = useState('');
   const [debouncedNameQuery] = useDebouncedValue(nameQuery, 200);
+  const [debouncedRegnrQuery] = useDebouncedValue(regnrQuery, 200);
 
   useEffect(() => {
     setRecords(
-      initialRecords?.filter(({ name }) => {
+      initialRecords?.filter(({ name, Car }) => {
         if (
           debouncedNameQuery !== '' &&
           !`${name}`.toLowerCase().includes(debouncedNameQuery.trim().toLowerCase())
@@ -62,10 +64,18 @@ export default function EmployeesPage() {
           return false;
         }
 
+        if (
+          debouncedRegnrQuery !== '' &&
+          (Car == null ||
+            !`${Car.regnr}`.toLowerCase().includes(debouncedRegnrQuery.trim().toLowerCase()))
+        ) {
+          return false;
+        }
+
         return true;
       })
     );
-  }, [debouncedNameQuery]);
+  }, [debouncedNameQuery, debouncedRegnrQuery]);
 
   const showModal = ({ employee, action }: ShowModalParams) => {
     console.log(`Showing ${action} modal for employee`, employee);
@@ -86,6 +96,7 @@ export default function EmployeesPage() {
       <DataTable
         borderRadius="md"
         withTableBorder
+        withColumnBorders
         pinFirstColumn
         striped
         highlightOnHover
@@ -131,7 +142,32 @@ export default function EmployeesPage() {
           },
           { accessor: 'phone', title: 'Telefon' },
           { accessor: 'status', title: 'Status' },
-          { accessor: 'car', title: 'Bil', render: (row) => row.Car?.regnr || 'Ingen bil' },
+          {
+            accessor: 'car',
+            title: 'Bil',
+            render: (employee) => employee.Car?.regnr || 'Ingen bil',
+            filter: (
+              <TextInput
+                label="Bilnummer"
+                description="Vis ansatte basert på bilnummer"
+                placeholder="Søk etter bil..."
+                leftSection={<IconSearch size={16} />}
+                rightSection={
+                  <ActionIcon
+                    size="sm"
+                    variant="transparent"
+                    color="dimmed"
+                    onClick={() => setRegnrQuery('')}
+                  >
+                    <IconX size={14} />
+                  </ActionIcon>
+                }
+                value={regnrQuery}
+                onChange={(e) => setRegnrQuery(e.currentTarget.value)}
+              />
+            ),
+            filtering: regnrQuery !== '',
+          },
           {
             accessor: 'actions',
             title: '',
