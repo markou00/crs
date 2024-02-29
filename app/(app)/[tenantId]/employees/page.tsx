@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
-import { IconEdit, IconTrash } from '@tabler/icons-react';
-import { Group, ActionIcon, Paper, Text, Stack } from '@mantine/core';
+import { IconEdit, IconTrash, IconSearch, IconX } from '@tabler/icons-react';
+import { Group, ActionIcon, Paper, Text, Stack, TextInput } from '@mantine/core';
+import { useDebouncedValue } from '@mantine/hooks';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { EmployeePicture } from '../../../../components/Employees/EmployeePicture';
 import { TableHeader } from './TableHeader/TableHeader';
@@ -58,6 +59,28 @@ export default function EmployeesPage() {
     enabled: !!tenantId,
   });
 
+  const initialRecords = getEmployeesQuery.data ?? [];
+
+  const [records, setRecords] = useState(initialRecords);
+
+  const [nameQuery, setNameQuery] = useState('');
+  const [debouncedNameQuery] = useDebouncedValue(nameQuery, 200);
+
+  useEffect(() => {
+    setRecords(
+      initialRecords?.filter(({ name }) => {
+        if (
+          debouncedNameQuery !== '' &&
+          !`${name}`.toLowerCase().includes(debouncedNameQuery.trim().toLowerCase())
+        ) {
+          return false;
+        }
+
+        return true;
+      })
+    );
+  }, [debouncedNameQuery]);
+
   const showModal = ({ employee, action }: ShowModalParams) => {
     console.log(`Showing ${action} modal for employee`, employee);
   };
@@ -66,8 +89,9 @@ export default function EmployeesPage() {
     setAddModalOpened(true);
   };
 
-  const userCount = getEmployeesQuery.data?.length || 0;
+  const userCount = records.length || 0;
 
+  if (getEmployeesQuery.error) return <Text>ERROR....</Text>;
   if (getEmployeesQuery.isLoading) return <div>Loading...</div>;
 
   return (
@@ -81,6 +105,7 @@ export default function EmployeesPage() {
         highlightOnHover
         selectedRecords={selectedRecords}
         onSelectedRecordsChange={setSelectedRecords}
+        records={records}
         columns={[
           {
             accessor: 'name',
@@ -96,6 +121,27 @@ export default function EmployeesPage() {
                 </Stack>
               </Group>
             ),
+            filter: (
+              <TextInput
+                label="Ansatte"
+                description="Vis ansatte som har det spesifiserte navnet"
+                placeholder="Søk etter ansatte..."
+                leftSection={<IconSearch size={16} />}
+                rightSection={
+                  <ActionIcon
+                    size="sm"
+                    variant="transparent"
+                    c="dimmed"
+                    onClick={() => setNameQuery('')}
+                  >
+                    <IconX size={14} />
+                  </ActionIcon>
+                }
+                value={nameQuery}
+                onChange={(e) => setNameQuery(e.currentTarget.value)}
+              />
+            ),
+            filtering: nameQuery !== '',
           },
           { accessor: 'phone', title: 'Telefon' },
           { accessor: 'status', title: 'Status' },
@@ -126,7 +172,6 @@ export default function EmployeesPage() {
             ),
           },
         ]}
-        records={getEmployeesQuery.data ?? []}
       />
       <AddEmployeeModal
         opened={addModalOpened}
