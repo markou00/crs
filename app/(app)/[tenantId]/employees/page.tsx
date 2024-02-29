@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
 import { IconEdit, IconTrash, IconSearch, IconX } from '@tabler/icons-react';
-import { Group, ActionIcon, Paper, Text, Stack, TextInput } from '@mantine/core';
+import { Group, ActionIcon, Paper, Text, Stack, TextInput, MultiSelect } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { EmployeePicture } from '../../../../components/Employees/EmployeePicture';
@@ -53,10 +53,11 @@ export default function EmployeesPage() {
   const [regnrQuery, setRegnrQuery] = useState('');
   const [debouncedNameQuery] = useDebouncedValue(nameQuery, 200);
   const [debouncedRegnrQuery] = useDebouncedValue(regnrQuery, 200);
+  const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
 
   useEffect(() => {
     setRecords(
-      initialRecords?.filter(({ name, Car }) => {
+      initialRecords?.filter(({ name, Car, status }) => {
         if (
           debouncedNameQuery !== '' &&
           !`${name}`.toLowerCase().includes(debouncedNameQuery.trim().toLowerCase())
@@ -72,10 +73,12 @@ export default function EmployeesPage() {
           return false;
         }
 
+        if (selectedStatus.length && !selectedStatus.some((d) => d === status)) return false;
+
         return true;
       })
     );
-  }, [debouncedNameQuery, debouncedRegnrQuery]);
+  }, [debouncedNameQuery, debouncedRegnrQuery, selectedStatus]);
 
   const showModal = ({ employee, action }: ShowModalParams) => {
     console.log(`Showing ${action} modal for employee`, employee);
@@ -141,15 +144,33 @@ export default function EmployeesPage() {
             filtering: nameQuery !== '',
           },
           { accessor: 'phone', title: 'Telefon' },
-          { accessor: 'status', title: 'Status' },
+          {
+            accessor: 'status',
+            title: 'Status',
+            render: (employee) => employee.status,
+            filter: (
+              <MultiSelect
+                label="Status"
+                placeholder="Filtrer etter status"
+                data={[
+                  { value: 'Active', label: 'Active' },
+                  { value: 'Inactive', label: 'Inactive' },
+                ]}
+                value={selectedStatus}
+                onChange={setSelectedStatus}
+                clearable
+              />
+            ),
+            filtering: selectedStatus.length > 0,
+          },
           {
             accessor: 'car',
             title: 'Bil',
             render: (employee) => employee.Car?.regnr || 'Ingen bil',
             filter: (
               <TextInput
-                label="Bilnummer"
-                description="Vis ansatte basert på bilnummer"
+                label="Registreringsnummer"
+                description="Vis ansatte basert på bil"
                 placeholder="Søk etter bil..."
                 leftSection={<IconSearch size={16} />}
                 rightSection={
