@@ -10,21 +10,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { EmployeePicture } from '../../../../components/Employees/EmployeePicture';
 import { TableHeader } from './TableHeader/TableHeader';
 import { AddEmployeeModal } from './AddEmployeeModal/AddEmployeeModal';
-
-type EmployeeType = {
-  id: number;
-  name: string;
-  status: string;
-  email: string;
-  phone: string;
-  picture: string;
-  Car: { regnr: string } | null;
-};
-
-type ShowModalParams = {
-  employee: EmployeeType;
-  action: 'view' | 'edit' | 'delete';
-};
+import { EmployeeType, ShowModalParams } from './types';
 
 export default function EmployeesPage() {
   const [addModalOpened, setAddModalOpened] = useState(false);
