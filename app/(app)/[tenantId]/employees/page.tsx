@@ -16,7 +16,6 @@ export default function EmployeesPage() {
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [tenantId, setTenantId] = useState('');
   const supabase = createClientComponentClient();
-  const [selectedRecords, setSelectedRecords] = useState<EmployeeType[]>([]);
 
   useEffect(() => {
     async function fetchTenantId() {
@@ -48,12 +47,15 @@ export default function EmployeesPage() {
   const initialRecords = getEmployeesQuery.data ?? [];
 
   const [records, setRecords] = useState(initialRecords);
-
   const [nameQuery, setNameQuery] = useState('');
   const [regnrQuery, setRegnrQuery] = useState('');
   const [debouncedNameQuery] = useDebouncedValue(nameQuery, 200);
   const [debouncedRegnrQuery] = useDebouncedValue(regnrQuery, 200);
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
+
+  useEffect(() => {
+    setRecords(getEmployeesQuery.data ?? []);
+  }, [getEmployeesQuery.data]);
 
   useEffect(() => {
     setRecords(
@@ -90,8 +92,8 @@ export default function EmployeesPage() {
 
   const userCount = records.length || 0;
 
-  if (getEmployeesQuery.error) return <Text>ERROR....</Text>;
-  if (getEmployeesQuery.isLoading) return <div>Loading...</div>;
+  if (getEmployeesQuery.error) return <Text>Error...</Text>;
+  if (getEmployeesQuery.isLoading) return <Text>Loading...</Text>;
 
   return (
     <Paper style={{ overflow: 'hidden', borderRadius: '8px' }} m="0" pb="md" pt="xs">
@@ -103,8 +105,6 @@ export default function EmployeesPage() {
         pinFirstColumn
         striped
         highlightOnHover
-        selectedRecords={selectedRecords}
-        onSelectedRecordsChange={setSelectedRecords}
         records={records}
         columns={[
           {
@@ -169,8 +169,8 @@ export default function EmployeesPage() {
             render: (employee) => employee.Car?.regnr || 'Ingen bil',
             filter: (
               <TextInput
-                label="Registreringsnummer"
-                description="Vis ansatte basert på bil"
+                label="Bil"
+                description="Vis ansatte basert på regnr"
                 placeholder="Søk etter bil..."
                 leftSection={<IconSearch size={16} />}
                 rightSection={
@@ -191,7 +191,7 @@ export default function EmployeesPage() {
           },
           {
             accessor: 'actions',
-            title: '',
+            title: 'Rediger/slett',
             textAlign: 'right',
             render: (employee: EmployeeType) => (
               <Group gap={4} justify="right" wrap="nowrap">
