@@ -4,7 +4,11 @@ import prisma from '@/lib/prisma';
 
 export async function getAgreements() {
   try {
-    const agreements = await prisma.agreement.findMany();
+    const agreements = await prisma.agreement.findMany({
+      include: {
+        customer: true,
+      },
+    });
 
     return { agreements };
   } catch (error) {
