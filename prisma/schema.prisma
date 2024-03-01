@@ -52,14 +52,13 @@ model Customer {
 }
 
 model Agreement {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   type       String
-  customer   Customer @relation(fields: [customerId], references: [id])
-  recurrent  Boolean
-  endDate    DateTime
+  customer   Customer  @relation(fields: [customerId], references: [id])
+  endDate    DateTime?
   tenantId   String
-  Tenant     Tenant   @relation(fields: [tenantId], references: [id])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  Tenant     Tenant    @relation(fields: [tenantId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
   customerId Int
 }
