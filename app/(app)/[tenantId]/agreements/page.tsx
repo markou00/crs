@@ -79,16 +79,14 @@ export default function AgreementsPage() {
           {
             accessor: 'customerId',
             title: 'Kunde',
-          },
-          {
-            accessor: 'recurrent',
-            title: 'løpende',
-            render: ({ recurrent }) => <Box fw={700}>{recurrent ? 'Ja' : 'Nei'}</Box>,
+            render: ({ customer }) => <Box>{customer.name}</Box>,
           },
           {
             accessor: 'endDate',
             title: 'Slutt dato',
-            render: ({ endDate }) => <Box fw={700}>{endDate.toISOString()}</Box>,
+            render: ({ endDate }) => (
+              <Box fw={700}>{endDate ? endDate.toLocaleDateString('NO') : 'Løpende'}</Box>
+            ),
           },
         ]}
       />
