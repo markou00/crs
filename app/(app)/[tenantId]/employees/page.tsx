@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
 import { IconEdit, IconTrash, IconSearch, IconX } from '@tabler/icons-react';
 import { Group, ActionIcon, Paper, Text, Stack, TextInput, MultiSelect } from '@mantine/core';
@@ -43,6 +43,35 @@ export default function EmployeesPage() {
     },
     enabled: !!tenantId,
   });
+
+  const queryClient = useQueryClient();
+
+  const deleteEmployeeMutation = useMutation({
+    mutationFn: async (employeeId: number) => {
+      await fetch(`/api/${tenantId}/employees/${employeeId}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      // Optionally: Show success notification here
+      queryClient.invalidateQueries({
+        queryKey: ['employees'],
+      });
+    },
+    onError: (error) => {
+      // Optionally: Show error notification here
+      console.error('Error deleting employee:', error);
+    },
+  });
+
+  const handleDelete = (employeeId: number) => {
+    // Confirm before deleting
+    if (
+      window.confirm('Er du sikker på at du vil slette denne ansatte? Handlingen kan ikke angres.')
+    ) {
+      deleteEmployeeMutation.mutate(employeeId);
+    }
+  };
 
   const initialRecords = getEmployeesQuery.data ?? [];
 
@@ -207,7 +236,7 @@ export default function EmployeesPage() {
                   size="sm"
                   variant="subtle"
                   color="red"
-                  onClick={() => showModal({ employee, action: 'delete' })}
+                  onClick={() => handleDelete(employee.id)}
                 >
                   <IconTrash size={16} />
                 </ActionIcon>
