@@ -77,9 +77,17 @@ export default function AgreementsPage() {
           },
           { accessor: 'type' },
           {
+            accessor: 'Container',
+            title: 'Container',
+            render: ({ container }) => <Box>{container?.name}</Box>,
+          },
+          {
             accessor: 'customerId',
             title: 'Kunde',
             render: ({ customer }) => <Box>{customer.name}</Box>,
+          },
+          {
+            accessor: 'status',
           },
           {
             accessor: 'endDate',

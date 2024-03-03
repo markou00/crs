@@ -31,6 +31,7 @@ model Tenant {
   users     User[]
   Customer  Customer[]
   Agreement Agreement[]
+  Container Container[]
 }
 
 model Customer {
@@ -44,21 +45,34 @@ model Customer {
   city         String
   postalCode   String
   country      String
-  tenantId     String?
-  Tenant       Tenant?     @relation(fields: [tenantId], references: [id])
+  tenantId     String
+  Tenant       Tenant      @relation(fields: [tenantId], references: [id])
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   Agreement    Agreement[]
 }
 
 model Agreement {
-  id         Int       @id @default(autoincrement())
-  type       String
-  customer   Customer  @relation(fields: [customerId], references: [id])
-  endDate    DateTime?
-  tenantId   String
-  Tenant     Tenant    @relation(fields: [tenantId], references: [id])
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  customerId Int
+  id          Int        @id @default(autoincrement())
+  type        String
+  status      String
+  customer    Customer   @relation(fields: [customerId], references: [id])
+  endDate     DateTime?
+  tenantId    String
+  Tenant      Tenant     @relation(fields: [tenantId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  customerId  Int
+  container   Container? @relation(fields: [containerId], references: [id])
+  containerId Int?
+}
+
+model Container {
+  id        Int         @id @default(autoincrement())
+  name      String
+  tenantId  String
+  Tenant    Tenant      @relation(fields: [tenantId], references: [id])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  Agreement Agreement[]
 }

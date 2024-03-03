@@ -7,6 +7,7 @@ export async function getAgreements() {
     const agreements = await prisma.agreement.findMany({
       include: {
         customer: true,
+        container: true,
       },
     });
 
