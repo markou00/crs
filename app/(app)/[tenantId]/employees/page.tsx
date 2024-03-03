@@ -5,17 +5,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
 import { IconEdit, IconTrash, IconSearch, IconX } from '@tabler/icons-react';
 import { Group, ActionIcon, Paper, Text, Stack, TextInput, MultiSelect } from '@mantine/core';
-import { useDebouncedValue } from '@mantine/hooks';
+import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { EmployeePicture } from '../../../../components/Employees/EmployeePicture';
 import { TableHeader } from './TableHeader/TableHeader';
 import { AddEmployeeModal } from './AddEmployeeModal/AddEmployeeModal';
-import { EmployeeType, ShowModalParams } from './types';
+import { EditEmployeeDrawer } from './EditEmployeeDrawer/EditEmployeeDrawer';
+import { EmployeeType } from './types';
 
 export default function EmployeesPage() {
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [tenantId, setTenantId] = useState('');
   const supabase = createClientComponentClient();
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
+  const [opened, { open, close }] = useDisclosure(false);
 
   useEffect(() => {
     async function fetchTenantId() {
@@ -47,7 +50,7 @@ export default function EmployeesPage() {
   const queryClient = useQueryClient();
 
   const deleteEmployeeMutation = useMutation({
-    mutationFn: async (employeeId: number) => {
+    mutationFn: async (employeeId: string) => {
       await fetch(`/api/${tenantId}/employees/${employeeId}`, {
         method: 'DELETE',
       });
@@ -64,7 +67,7 @@ export default function EmployeesPage() {
     },
   });
 
-  const handleDelete = (employeeId: number) => {
+  const handleDelete = (employeeId: string) => {
     // Confirm before deleting
     if (
       window.confirm('Er du sikker på at du vil slette denne ansatte? Handlingen kan ikke angres.')
@@ -74,7 +77,6 @@ export default function EmployeesPage() {
   };
 
   const initialRecords = getEmployeesQuery.data ?? [];
-
   const [records, setRecords] = useState(initialRecords);
   const [nameQuery, setNameQuery] = useState('');
   const [regnrQuery, setRegnrQuery] = useState('');
@@ -110,10 +112,6 @@ export default function EmployeesPage() {
       })
     );
   }, [debouncedNameQuery, debouncedRegnrQuery, selectedStatus]);
-
-  const showModal = ({ employee, action }: ShowModalParams) => {
-    console.log(`Showing ${action} modal for employee`, employee);
-  };
 
   const openCreateModal = () => {
     setAddModalOpened(true);
@@ -228,7 +226,10 @@ export default function EmployeesPage() {
                   size="sm"
                   variant="subtle"
                   color="blue"
-                  onClick={() => showModal({ employee, action: 'edit' })}
+                  onClick={() => {
+                    setSelectedEmployeeId(employee.id);
+                    open();
+                  }}
                 >
                   <IconEdit size={16} />
                 </ActionIcon>
@@ -245,6 +246,7 @@ export default function EmployeesPage() {
           },
         ]}
       />
+      <EditEmployeeDrawer employeeId={selectedEmployeeId} opened={opened} onClose={close} />
       <AddEmployeeModal
         opened={addModalOpened}
         tenantId={tenantId}

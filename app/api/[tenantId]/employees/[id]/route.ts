@@ -73,18 +73,13 @@ export async function PUT(
 }
 
 // update en employee
-export async function PATCH(
-  request: NextRequest,
-  { params: { id, tenantId } }: { params: { id: string; tenantId: string } }
-) {
+export async function PATCH(request: NextRequest, { params: { id } }: { params: { id: string } }) {
   try {
     const json = await request.json();
 
-    // Assuming `json` contains only the fields that need to be updated
     const updated = await prisma.employee.update({
       where: {
         id: parseInt(id, 10),
-        tenantId,
       },
       data: json,
     });
