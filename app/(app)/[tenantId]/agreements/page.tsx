@@ -1,11 +1,22 @@
 'use client';
 
-import { ActionIcon, Box, Text, TextInput, Title } from '@mantine/core';
+import {
+  ActionIcon,
+  Box,
+  Center,
+  Drawer,
+  Group,
+  ScrollArea,
+  Text,
+  TextInput,
+  Title,
+} from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
 import { useEffect, useState } from 'react';
-import { IconSearch, IconX } from '@tabler/icons-react';
-import { useDebouncedValue } from '@mantine/hooks';
+import { IconEdit, IconSearch, IconTrash, IconX, IconClick } from '@tabler/icons-react';
+import { Agreement } from '@prisma/client';
+import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 
 import { getAgreements } from '@/lib/server/actions/agreements-actions';
 
@@ -15,9 +26,15 @@ export default function AgreementsPage() {
     queryFn: () => getAgreements(),
   });
 
+  const [opened, { open, close }] = useDisclosure(false);
+  const content = Array(100)
+    .fill(0)
+    .map((_, index) => <p key={index}>Drawer with scroll</p>);
+
   const initialRecords = getAgreementsQuery.data?.agreements;
 
   const [records, setRecords] = useState(initialRecords);
+  const [currentRecord, setCurrentRecord] = useState<Agreement>();
 
   const [idQuery, setIdQuery] = useState('');
   const [debouncedIdQuery] = useDebouncedValue(idQuery, 200);
@@ -43,6 +60,24 @@ export default function AgreementsPage() {
   return (
     <>
       <Title mb="md">Avtaler</Title>
+
+      <Drawer.Root
+        radius="md"
+        position="right"
+        opened={opened}
+        onClose={close}
+        scrollAreaComponent={ScrollArea.Autosize}
+      >
+        <Drawer.Overlay />
+        <Drawer.Content>
+          <Drawer.Header>
+            <Drawer.Title>Avtale #{currentRecord?.id}</Drawer.Title>
+            <Drawer.CloseButton />
+          </Drawer.Header>
+          <Drawer.Body>{content}</Drawer.Body>
+        </Drawer.Content>
+      </Drawer.Root>
+
       <DataTable
         withTableBorder
         borderRadius="sm"
@@ -94,6 +129,33 @@ export default function AgreementsPage() {
             title: 'Slutt dato',
             render: ({ endDate }) => (
               <Box fw={700}>{endDate ? endDate.toLocaleDateString('NO') : 'Løpende'}</Box>
+            ),
+          },
+          {
+            accessor: 'actions',
+            title: (
+              <Center>
+                <IconClick size={16} />
+              </Center>
+            ),
+            width: '0%', // 👈 use minimal width
+            render: (record) => (
+              <Group gap={4} justify="right" wrap="nowrap">
+                <ActionIcon
+                  size="sm"
+                  variant="subtle"
+                  color="blue"
+                  onClick={() => {
+                    setCurrentRecord(record);
+                    open();
+                  }}
+                >
+                  <IconEdit size={16} />
+                </ActionIcon>
+                <ActionIcon size="sm" variant="subtle" color="red">
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Group>
             ),
           },
         ]}
