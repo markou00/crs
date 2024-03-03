@@ -6,6 +6,7 @@ import {
   Center,
   Drawer,
   Group,
+  MultiSelect,
   ScrollArea,
   Text,
   TextInput,
@@ -13,7 +14,7 @@ import {
 } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { IconEdit, IconSearch, IconTrash, IconX, IconClick } from '@tabler/icons-react';
 import { Agreement } from '@prisma/client';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
@@ -42,9 +43,12 @@ export default function AgreementsPage() {
   const [customerQuery, setCustomerQuery] = useState('');
   const [debouncedCustomerQuery] = useDebouncedValue(customerQuery, 200);
 
+  const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
+  const statuses = useMemo(() => Array.from(new Set(records?.map((e) => e.status))), [records]);
+
   useEffect(() => {
     setRecords(
-      initialRecords?.filter(({ id, customer }) => {
+      initialRecords?.filter(({ id, customer, status }) => {
         if (
           debouncedIdQuery !== '' &&
           !`${id}`.toLowerCase().includes(debouncedIdQuery.trim().toLowerCase())
@@ -59,10 +63,12 @@ export default function AgreementsPage() {
           return false;
         }
 
+        if (selectedStatus.length && !selectedStatus.some((s) => s === status)) return false;
+
         return true;
       })
     );
-  }, [debouncedIdQuery, debouncedCustomerQuery]);
+  }, [debouncedIdQuery, debouncedCustomerQuery, selectedStatus]);
 
   if (getAgreementsQuery.error) return <Text>ERROR....</Text>;
   if (getAgreementsQuery.isLoading) return <Text>LOADING...</Text>;
@@ -154,6 +160,19 @@ export default function AgreementsPage() {
           },
           {
             accessor: 'status',
+            filter: (
+              <MultiSelect
+                label="Status"
+                description="Vis alle status"
+                data={statuses}
+                value={selectedStatus}
+                placeholder="Søk etter status…"
+                onChange={setSelectedStatus}
+                leftSection={<IconSearch size={16} />}
+                clearable
+              />
+            ),
+            filtering: selectedStatus.length > 0,
           },
           {
             accessor: 'endDate',
