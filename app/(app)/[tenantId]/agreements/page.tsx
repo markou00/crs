@@ -5,21 +5,30 @@ import {
   Box,
   Center,
   Drawer,
+  Flex,
   Group,
   MultiSelect,
   ScrollArea,
+  Select,
   Text,
   TextInput,
+  Textarea,
   Title,
 } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
 import { useEffect, useMemo, useState } from 'react';
 import { IconEdit, IconSearch, IconTrash, IconX, IconClick } from '@tabler/icons-react';
-import { Agreement } from '@prisma/client';
+import { Agreement, Container, Customer } from '@prisma/client';
+import { DateInput } from '@mantine/dates';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 
 import { getAgreements } from '@/lib/server/actions/agreements-actions';
+
+type AgreementDetails = Agreement & {
+  customer: Customer;
+  container: Container | null;
+};
 
 export default function AgreementsPage() {
   const getAgreementsQuery = useQuery({
@@ -28,14 +37,11 @@ export default function AgreementsPage() {
   });
 
   const [opened, { open, close }] = useDisclosure(false);
-  const content = Array(100)
-    .fill(0)
-    .map((_, index) => <p key={index}>Drawer with scroll</p>);
 
   const initialRecords = getAgreementsQuery.data?.agreements;
 
   const [records, setRecords] = useState(initialRecords);
-  const [currentRecord, setCurrentRecord] = useState<Agreement>();
+  const [currentRecord, setCurrentRecord] = useState<AgreementDetails>();
 
   const [idQuery, setIdQuery] = useState('');
   const [debouncedIdQuery] = useDebouncedValue(idQuery, 200);
@@ -87,10 +93,45 @@ export default function AgreementsPage() {
         <Drawer.Overlay />
         <Drawer.Content>
           <Drawer.Header>
-            <Drawer.Title>Avtale #{currentRecord?.id}</Drawer.Title>
+            <Drawer.Title>Avtale detaljer</Drawer.Title>
             <Drawer.CloseButton />
           </Drawer.Header>
-          <Drawer.Body>{content}</Drawer.Body>
+          <Drawer.Body>
+            <Flex direction="column" gap="md">
+              <TextInput label="Avtale nr." value={currentRecord?.id} disabled />
+              <TextInput label="Type" value={currentRecord?.type} disabled />
+              <TextInput label="Kunde" value={currentRecord?.customer?.name} disabled />
+              <Select
+                comboboxProps={{ withinPortal: true }}
+                data={['Opprettet', 'Tildelt', 'Utført', 'Godkjent']}
+                value={currentRecord?.status}
+                label="Status"
+              />
+              <Select
+                comboboxProps={{ withinPortal: true }}
+                data={['M100 Matavfall', 'R120 Restavfall', 'G160 Glassavfall']}
+                value={currentRecord?.container?.name}
+                label="Status"
+              />
+              <DateInput
+                value={currentRecord?.validFrom}
+                valueFormat="DD.MM.YYYY"
+                label="Gyldig fra"
+              />
+              <DateInput
+                value={currentRecord?.validTo}
+                valueFormat="DD.MM.YYYY"
+                label="Gyldig til"
+              />
+              <Textarea
+                label="Kommentar"
+                value={currentRecord?.comment || ''}
+                autosize
+                minRows={4}
+              />
+              {/* //TODO: Display oppdrag here */}
+            </Flex>
+          </Drawer.Body>
         </Drawer.Content>
       </Drawer.Root>
 
@@ -176,9 +217,9 @@ export default function AgreementsPage() {
           },
           {
             accessor: 'endDate',
-            title: 'Slutt dato',
-            render: ({ endDate }) => (
-              <Box fw={700}>{endDate ? endDate.toLocaleDateString('NO') : 'Løpende'}</Box>
+            title: 'Gyldig til',
+            render: ({ validTo }) => (
+              <Box fw={700}>{validTo ? validTo.toLocaleDateString('NO') : 'Løpende'}</Box>
             ),
           },
           {
