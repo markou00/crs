@@ -39,9 +39,12 @@ export default function AgreementsPage() {
   const [idQuery, setIdQuery] = useState('');
   const [debouncedIdQuery] = useDebouncedValue(idQuery, 200);
 
+  const [customerQuery, setCustomerQuery] = useState('');
+  const [debouncedCustomerQuery] = useDebouncedValue(customerQuery, 200);
+
   useEffect(() => {
     setRecords(
-      initialRecords?.filter(({ id }) => {
+      initialRecords?.filter(({ id, customer }) => {
         if (
           debouncedIdQuery !== '' &&
           !`${id}`.toLowerCase().includes(debouncedIdQuery.trim().toLowerCase())
@@ -49,10 +52,17 @@ export default function AgreementsPage() {
           return false;
         }
 
+        if (
+          debouncedCustomerQuery !== '' &&
+          !`${customer.name}`.toLowerCase().includes(debouncedCustomerQuery.trim().toLowerCase())
+        ) {
+          return false;
+        }
+
         return true;
       })
     );
-  }, [debouncedIdQuery]);
+  }, [debouncedIdQuery, debouncedCustomerQuery]);
 
   if (getAgreementsQuery.error) return <Text>ERROR....</Text>;
   if (getAgreementsQuery.isLoading) return <Text>LOADING...</Text>;
@@ -120,6 +130,27 @@ export default function AgreementsPage() {
             accessor: 'customerId',
             title: 'Kunde',
             render: ({ customer }) => <Box>{customer.name}</Box>,
+            filter: (
+              <TextInput
+                label="Id"
+                description="Show agreements whose id include the specified id"
+                placeholder="Search agreements..."
+                leftSection={<IconSearch size={16} />}
+                rightSection={
+                  <ActionIcon
+                    size="sm"
+                    variant="transparent"
+                    c="dimmed"
+                    onClick={() => setIdQuery('')}
+                  >
+                    <IconX size={14} />
+                  </ActionIcon>
+                }
+                value={customerQuery}
+                onChange={(e) => setCustomerQuery(e.currentTarget.value)}
+              />
+            ),
+            filtering: customerQuery !== '',
           },
           {
             accessor: 'status',
