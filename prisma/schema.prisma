@@ -57,7 +57,9 @@ model Agreement {
   type        String
   status      String
   customer    Customer   @relation(fields: [customerId], references: [id])
-  endDate     DateTime?
+  validFrom   DateTime
+  validTo     DateTime?
+  comment     String?
   tenantId    String
   Tenant      Tenant     @relation(fields: [tenantId], references: [id])
   createdAt   DateTime   @default(now())
