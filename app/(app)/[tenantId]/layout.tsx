@@ -15,6 +15,8 @@ import { Navbar } from '@/components/Navbar/Navbar';
 import { getAuthUser, getUser } from '@/lib/server/actions/user-actions';
 import { UserButton } from '@/components/Navbar/UserButton/UserButton';
 import { getAgreements } from '@/lib/server/actions/agreements-actions';
+import { getCustomers } from '@/lib/server/actions/customer-actions';
+import { getContainers } from '@/lib/server/actions/containers-actions';
 
 export default async function AppShellLayout({ children }: { children: ReactNode }) {
   const queryClient = new QueryClient();
@@ -32,6 +34,16 @@ export default async function AppShellLayout({ children }: { children: ReactNode
   await queryClient.prefetchQuery({
     queryKey: ['agreements'],
     queryFn: getAgreements,
+  });
+
+  await queryClient.prefetchQuery({
+    queryKey: ['customers'],
+    queryFn: getCustomers,
+  });
+
+  await queryClient.prefetchQuery({
+    queryKey: ['containers'],
+    queryFn: getContainers,
   });
 
   return (

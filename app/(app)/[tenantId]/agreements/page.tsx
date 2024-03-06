@@ -1,3 +1,5 @@
+/* eslint-disable radix */
+
 'use client';
 
 import {
@@ -9,6 +11,7 @@ import {
   Drawer,
   Flex,
   Group,
+  Modal,
   MultiSelect,
   ScrollArea,
   Select,
@@ -25,7 +28,13 @@ import { Agreement, Container, Customer } from '@prisma/client';
 import { DateInput } from '@mantine/dates';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 
-import { editAgreement, getAgreements } from '@/lib/server/actions/agreements-actions';
+import {
+  addAgreement,
+  editAgreement,
+  getAgreements,
+} from '@/lib/server/actions/agreements-actions';
+import { getCustomers } from '@/lib/server/actions/customer-actions';
+import { getContainers } from '@/lib/server/actions/containers-actions';
 
 type AgreementDetails = Agreement & {
   customer: Customer;
@@ -37,7 +46,22 @@ export default function AgreementsPage() {
     queryKey: ['agreements'],
     queryFn: () => getAgreements(),
   });
+
+  const getCustomersQuery = useQuery({
+    queryKey: ['customers'],
+    queryFn: () => getCustomers(),
+  });
+
+  const getContainersQuery = useQuery({
+    queryKey: ['containers'],
+    queryFn: () => getContainers(),
+  });
+
+  const customers = getCustomersQuery.data?.customers;
+  const containers = getContainersQuery.data?.containers;
+
   const [opened, { open, close }] = useDisclosure(false);
+  const [openedModal, { open: openModal, close: closeModal }] = useDisclosure(false);
 
   const [records, setRecords] = useState(getAgreementsQuery.data?.agreements);
   const [currentRecord, setCurrentRecord] = useState<AgreementDetails>();
@@ -59,6 +83,45 @@ export default function AgreementsPage() {
 
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
   const statuses = useMemo(() => Array.from(new Set(records?.map((e) => e.status))), [records]);
+
+  const [newType, setNewType] = useState('');
+  const [newStatus, setNewStatus] = useState('');
+  const [newCustomer, setNewCustomer] = useState<ComboboxItem | null>();
+  const [newContainer, setNewContainer] = useState<ComboboxItem | null>();
+  const [newValidFrom, setNewValidFrom] = useState<Date>();
+  const [newValidTo, setNewValidTo] = useState<Date>();
+  const [newComment, setNewComment] = useState('');
+
+  const createAgreementMutation = useMutation({
+    mutationFn: async () => {
+      const { newAgreement, error } = await addAgreement({
+        type: newType,
+        status: newStatus,
+        customerId: newCustomer?.value ? parseInt(newCustomer?.value) : undefined,
+        containerId: newContainer?.value ? parseInt(newContainer?.value) : undefined,
+        validFrom: newValidFrom,
+        validTo: newValidTo,
+        comment: newComment,
+      });
+
+      if (error) throw new Error("Couldn't create the agreement!");
+
+      return newAgreement;
+    },
+    retry: false,
+    onSuccess: async () => {
+      const { data } = await getAgreementsQuery.refetch();
+      setRecords(data?.agreements);
+      closeModal();
+      setNewType('');
+      setNewStatus('');
+      setNewCustomer(null);
+      setNewContainer(null);
+      setNewValidFrom(undefined);
+      setNewValidTo(undefined);
+      setNewComment('');
+    },
+  });
 
   useEffect(() => {
     setRecords(
@@ -115,8 +178,93 @@ export default function AgreementsPage() {
 
   return (
     <>
-      <Title mb="md">Avtaler</Title>
+      <Group justify="space-between" mb="md">
+        <Title>Avtaler</Title>
+        <Button onClick={openModal}>Ny avtale</Button>
+      </Group>
 
+      <Modal
+        opened={openedModal}
+        onClose={() => {
+          closeModal();
+          setNewType('');
+          setNewStatus('');
+          setNewCustomer(null);
+          setNewContainer(null);
+          setNewValidFrom(undefined);
+          setNewValidTo(undefined);
+          setNewComment('');
+        }}
+        title="Opprett ny avtale"
+      >
+        <Flex direction="column" gap="md">
+          <TextInput
+            label="Type"
+            value={newType}
+            onChange={(event) => setNewType(event.currentTarget.value)}
+          />
+          <Select
+            comboboxProps={{ withinPortal: true }}
+            data={customers?.map((customer) => ({
+              value: customer.id.toString(),
+              label: customer.name,
+            }))}
+            value={newCustomer?.value ? newCustomer.value : null}
+            onChange={(_value, option) => {
+              setNewCustomer({ value: option.value, label: option.label });
+            }}
+            label="Kunde"
+          />
+          <Select
+            comboboxProps={{ withinPortal: true }}
+            data={['Opprettet', 'Tildelt', 'Utført', 'Godkjent']}
+            value={newStatus}
+            onChange={(_value, option) => setNewStatus(option.label)}
+            label="Status"
+          />
+          <Select
+            comboboxProps={{ withinPortal: true }}
+            data={containers?.map((container) => ({
+              value: container.id.toString(),
+              label: container.name,
+            }))}
+            value={newContainer ? newContainer.value : null}
+            onChange={(_value, option) => {
+              setNewContainer({ value: option.value, label: option.label });
+            }}
+            label="Container"
+          />
+          <DateInput
+            value={newValidFrom}
+            // @ts-ignore
+            onChange={setNewValidFrom}
+            valueFormat="DD.MM.YYYY"
+            label="Gyldig fra"
+          />
+          <DateInput
+            value={newValidTo}
+            // @ts-ignore
+            onChange={setNewValidTo}
+            valueFormat="DD.MM.YYYY"
+            label="Gyldig til"
+          />
+          <Textarea
+            label="Kommentar"
+            value={newComment || ''}
+            autosize
+            minRows={4}
+            onChange={(event) => setNewComment(event.currentTarget.value)}
+          />
+          <Flex justify="end">
+            <Button
+              onClick={() => createAgreementMutation.mutate()}
+              loading={createAgreementMutation.isPending}
+            >
+              Opprett
+            </Button>
+          </Flex>
+        </Flex>
+      </Modal>
       <Drawer.Root
         radius="md"
         position="right"
@@ -144,11 +292,10 @@ export default function AgreementsPage() {
               />
               <Select
                 comboboxProps={{ withinPortal: true }}
-                data={[
-                  { value: '2', label: 'M100 Matavfall' },
-                  { value: '3', label: 'R120 Restavfall' },
-                  { value: '4', label: 'G160 Glassavfall' },
-                ]}
+                data={containers?.map((container) => ({
+                  value: container.id.toString(),
+                  label: container.name,
+                }))}
                 value={currentRecordContainer ? currentRecordContainer.value : null}
                 onChange={(_value, option) => {
                   setCurrentRecordContainer({ value: option.value, label: option.label });

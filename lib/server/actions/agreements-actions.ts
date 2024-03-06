@@ -39,3 +39,29 @@ export async function editAgreement(agreement: Partial<Agreement>) {
     return { error };
   }
 }
+
+export async function addAgreement(agreement: Partial<Agreement>) {
+  try {
+    const supabase = createServerActionClient({ cookies });
+
+    const authUser = await supabase.auth.getUser();
+    const tenantId = authUser.data.user?.user_metadata.tenantId;
+
+    const newAgreement = await prisma.agreement.create({
+      data: {
+        tenantId,
+        type: agreement.type!,
+        status: agreement.status!,
+        validFrom: agreement.validFrom!,
+        customerId: agreement.customerId!,
+        validTo: agreement.validTo || null,
+        comment: agreement.comment || null,
+        containerId: agreement.containerId || null,
+      },
+    });
+
+    return { newAgreement };
+  } catch (error) {
+    return { error };
+  }
+}
