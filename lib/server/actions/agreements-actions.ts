@@ -65,3 +65,15 @@ export async function addAgreement(agreement: Partial<Agreement>) {
     return { error };
   }
 }
+
+export async function deleteAgreement(id: number) {
+  try {
+    const deletedAgreement = await prisma.agreement.delete({
+      where: { id },
+    });
+
+    return { deletedAgreement };
+  } catch (error) {
+    return { error };
+  }
+}

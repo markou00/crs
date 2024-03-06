@@ -30,6 +30,7 @@ import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 
 import {
   addAgreement,
+  deleteAgreement,
   editAgreement,
   getAgreements,
 } from '@/lib/server/actions/agreements-actions';
@@ -162,6 +163,24 @@ export default function AgreementsPage() {
       if (error) throw new Error("Couldn't modify the agreement");
 
       return modifiedAgreement;
+    },
+    retry: false,
+
+    onSuccess: async () => {
+      const { data } = await getAgreementsQuery.refetch();
+      setRecords(data?.agreements);
+      close();
+    },
+    onError: (error: any) => console.log(error.message),
+  });
+
+  const deleteAgreementMutation = useMutation({
+    mutationFn: async ({ id }: { id: number }) => {
+      const { deletedAgreement, error } = await deleteAgreement(id);
+
+      if (error) throw new Error("Couldn't delete the agreement");
+
+      return deletedAgreement;
     },
     retry: false,
 
@@ -454,8 +473,16 @@ export default function AgreementsPage() {
                 >
                   <IconEdit size={16} />
                 </ActionIcon>
-                <ActionIcon size="sm" variant="subtle" color="red">
-                  <IconTrash size={16} />
+                <ActionIcon
+                  size="sm"
+                  variant="subtle"
+                  color="red"
+                  loading={deleteAgreementMutation.isPending}
+                >
+                  <IconTrash
+                    size={16}
+                    onClick={() => deleteAgreementMutation.mutate({ id: record.id })}
+                  />
                 </ActionIcon>
               </Group>
             ),
