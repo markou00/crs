@@ -3,7 +3,9 @@
 import {
   ActionIcon,
   Box,
+  Button,
   Center,
+  ComboboxItem,
   Drawer,
   Flex,
   Group,
@@ -15,7 +17,7 @@ import {
   Textarea,
   Title,
 } from '@mantine/core';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
 import { useEffect, useMemo, useState } from 'react';
 import { IconEdit, IconSearch, IconTrash, IconX, IconClick } from '@tabler/icons-react';
@@ -23,7 +25,7 @@ import { Agreement, Container, Customer } from '@prisma/client';
 import { DateInput } from '@mantine/dates';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 
-import { getAgreements } from '@/lib/server/actions/agreements-actions';
+import { editAgreement, getAgreements } from '@/lib/server/actions/agreements-actions';
 
 type AgreementDetails = Agreement & {
   customer: Customer;
@@ -35,13 +37,19 @@ export default function AgreementsPage() {
     queryKey: ['agreements'],
     queryFn: () => getAgreements(),
   });
-
   const [opened, { open, close }] = useDisclosure(false);
 
-  const initialRecords = getAgreementsQuery.data?.agreements;
-
-  const [records, setRecords] = useState(initialRecords);
+  const [records, setRecords] = useState(getAgreementsQuery.data?.agreements);
   const [currentRecord, setCurrentRecord] = useState<AgreementDetails>();
+
+  const [currentRecordStatus, setCurrentRecordStatus] = useState(currentRecord?.status);
+  const [currentRecordContainer, setCurrentRecordContainer] = useState<ComboboxItem | null>({
+    value: currentRecord?.container?.id.toString() || '',
+    label: currentRecord?.container?.name || '',
+  });
+  const [currentRecordValidFrom, setCurrentRecordValidFrom] = useState(currentRecord?.validFrom);
+  const [currentRecordValidTo, setCurrentRecordValidTo] = useState(currentRecord?.validTo);
+  const [currentRecordComment, setCurrentRecordComment] = useState(currentRecord?.comment);
 
   const [idQuery, setIdQuery] = useState('');
   const [debouncedIdQuery] = useDebouncedValue(idQuery, 200);
@@ -54,7 +62,7 @@ export default function AgreementsPage() {
 
   useEffect(() => {
     setRecords(
-      initialRecords?.filter(({ id, customer, status }) => {
+      getAgreementsQuery.data?.agreements?.filter(({ id, customer, status }) => {
         if (
           debouncedIdQuery !== '' &&
           !`${id}`.toLowerCase().includes(debouncedIdQuery.trim().toLowerCase())
@@ -75,6 +83,32 @@ export default function AgreementsPage() {
       })
     );
   }, [debouncedIdQuery, debouncedCustomerQuery, selectedStatus]);
+
+  const editAgreementMutation = useMutation({
+    mutationFn: async () => {
+      const { modifiedAgreement, error } = await editAgreement({
+        id: currentRecord?.id,
+        status: currentRecordStatus,
+        // eslint-disable-next-line radix
+        containerId: currentRecordContainer?.value ? parseInt(currentRecordContainer?.value) : null,
+        validFrom: currentRecordValidFrom,
+        validTo: currentRecordValidTo,
+        comment: currentRecordComment,
+      });
+
+      if (error) throw new Error("Couldn't modify the agreement");
+
+      return modifiedAgreement;
+    },
+    retry: false,
+
+    onSuccess: async () => {
+      const { data } = await getAgreementsQuery.refetch();
+      setRecords(data?.agreements);
+      close();
+    },
+    onError: (error: any) => console.log(error.message),
+  });
 
   if (getAgreementsQuery.error) return <Text>ERROR....</Text>;
   if (getAgreementsQuery.isLoading) return <Text>LOADING...</Text>;
@@ -104,32 +138,52 @@ export default function AgreementsPage() {
               <Select
                 comboboxProps={{ withinPortal: true }}
                 data={['Opprettet', 'Tildelt', 'Utført', 'Godkjent']}
-                value={currentRecord?.status}
+                value={currentRecordStatus}
+                onChange={(_value, option) => setCurrentRecordStatus(option.label)}
                 label="Status"
               />
               <Select
                 comboboxProps={{ withinPortal: true }}
-                data={['M100 Matavfall', 'R120 Restavfall', 'G160 Glassavfall']}
-                value={currentRecord?.container?.name}
-                label="Status"
+                data={[
+                  { value: '2', label: 'M100 Matavfall' },
+                  { value: '3', label: 'R120 Restavfall' },
+                  { value: '4', label: 'G160 Glassavfall' },
+                ]}
+                value={currentRecordContainer ? currentRecordContainer.value : null}
+                onChange={(_value, option) => {
+                  setCurrentRecordContainer({ value: option.value, label: option.label });
+                }}
+                label="Container"
               />
               <DateInput
-                value={currentRecord?.validFrom}
+                value={currentRecordValidFrom}
+                // @ts-ignore
+                onChange={setCurrentRecordValidFrom}
                 valueFormat="DD.MM.YYYY"
                 label="Gyldig fra"
               />
               <DateInput
-                value={currentRecord?.validTo}
+                value={currentRecordValidTo}
+                onChange={setCurrentRecordValidTo}
                 valueFormat="DD.MM.YYYY"
                 label="Gyldig til"
               />
               <Textarea
                 label="Kommentar"
-                value={currentRecord?.comment || ''}
+                value={currentRecordComment || ''}
                 autosize
                 minRows={4}
+                onChange={(event) => setCurrentRecordComment(event.currentTarget.value)}
               />
               {/* //TODO: Display oppdrag here */}
+              <Flex justify="end">
+                <Button
+                  onClick={() => editAgreementMutation.mutate()}
+                  loading={editAgreementMutation.isPending}
+                >
+                  Bekreft
+                </Button>
+              </Flex>
             </Flex>
           </Drawer.Body>
         </Drawer.Content>
@@ -238,6 +292,16 @@ export default function AgreementsPage() {
                   color="blue"
                   onClick={() => {
                     setCurrentRecord(record);
+                    setCurrentRecordStatus(record.status);
+
+                    setCurrentRecordContainer({
+                      value: record.container?.id.toString() || '',
+                      label: record.container?.name || '',
+                    });
+                    setCurrentRecordValidFrom(record.validFrom);
+                    setCurrentRecordValidTo(record.validTo);
+                    setCurrentRecordComment(record.comment);
+
                     open();
                   }}
                 >
