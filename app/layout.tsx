@@ -1,4 +1,7 @@
-import '@mantine/core/styles.css';
+import '@mantine/core/styles.layer.css';
+import '@mantine/dates/styles.css';
+import 'mantine-datatable/styles.layer.css';
+import './layout.css';
 
 import { ColorSchemeScript } from '@mantine/core';
 import Provider from '@/lib/Providers';

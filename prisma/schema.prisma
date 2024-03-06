@@ -26,25 +26,55 @@ model User {
 }
 
 model Tenant {
-  id       String     @id @unique
-  name     String
-  users    User[]
-  Customer Customer[]
+  id        String      @id @unique
+  name      String
+  users     User[]
+  Customer  Customer[]
+  Agreement Agreement[]
+  Container Container[]
 }
 
 model Customer {
-  id           Int      @id @default(autoincrement())
+  id           Int         @id @default(autoincrement())
   name         String
   type         String
   contactName  String
-  contactEmail String   @unique
+  contactEmail String      @unique
   contactPhone String?
   address      String
   city         String
   postalCode   String
   country      String
-  tenantId     String?
-  Tenant       Tenant?  @relation(fields: [tenantId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  tenantId     String
+  Tenant       Tenant      @relation(fields: [tenantId], references: [id])
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  Agreement    Agreement[]
+}
+
+model Agreement {
+  id          Int        @id @default(autoincrement())
+  type        String
+  status      String
+  customer    Customer   @relation(fields: [customerId], references: [id])
+  validFrom   DateTime
+  validTo     DateTime?
+  comment     String?
+  tenantId    String
+  Tenant      Tenant     @relation(fields: [tenantId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  customerId  Int
+  container   Container? @relation(fields: [containerId], references: [id])
+  containerId Int?
+}
+
+model Container {
+  id        Int         @id @default(autoincrement())
+  name      String
+  tenantId  String
+  Tenant    Tenant      @relation(fields: [tenantId], references: [id])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  Agreement Agreement[]
 }
