@@ -1,25 +1,26 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 
+// Fetch a single employee
 export async function GET(
   request: NextRequest,
   { params: { tenantId, id } }: { params: { tenantId: string; id: string } }
 ) {
   try {
-    const customers = await prisma.customer.findUnique({
+    const employee = await prisma.employee.findUnique({
       where: {
         id: parseInt(id, 10),
         tenantId,
       },
     });
-    return new NextResponse(JSON.stringify(customers), {
+    return new NextResponse(JSON.stringify(employee), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
       },
     });
   } catch (error) {
-    return new NextResponse(JSON.stringify({ error: 'Failed to fetch customer data' }), {
+    return new NextResponse(JSON.stringify({ error: 'Failed to fetch employee data' }), {
       status: 500,
       headers: {
         'Content-Type': 'application/json',
@@ -28,13 +29,18 @@ export async function GET(
   }
 }
 
-export async function PUT(request: NextRequest, { params: { id } }: { params: { id: string } }) {
+// Replace an employee
+export async function PUT(
+  request: NextRequest,
+  { params: { id, tenantId } }: { params: { id: string; tenantId: string } }
+) {
   try {
     const json = await request.json();
 
-    const updated = await prisma.customer.update({
+    const updated = await prisma.employee.update({
       where: {
         id: parseInt(id, 10),
+        tenantId,
       },
       data: json,
     });
@@ -46,11 +52,11 @@ export async function PUT(request: NextRequest, { params: { id } }: { params: { 
       },
     });
   } catch (error) {
-    let errorMessage = 'An error occurred while updating the customer.';
+    let errorMessage = 'An error occurred while updating the employee.';
     let statusCode = 500;
 
     if (error instanceof Error && error.name === 'NotFoundError') {
-      errorMessage = 'Customer not found.';
+      errorMessage = 'Employee not found.';
       statusCode = 404;
     } else if (error instanceof Error && error.name === 'PrismaClientValidationError') {
       errorMessage = 'Validation error.';
@@ -66,11 +72,12 @@ export async function PUT(request: NextRequest, { params: { id } }: { params: { 
   }
 }
 
+// update en employee
 export async function PATCH(request: NextRequest, { params: { id } }: { params: { id: string } }) {
   try {
     const json = await request.json();
 
-    const updated = await prisma.customer.update({
+    const updated = await prisma.employee.update({
       where: {
         id: parseInt(id, 10),
       },
@@ -84,11 +91,11 @@ export async function PATCH(request: NextRequest, { params: { id } }: { params: 
       },
     });
   } catch (error) {
-    let errorMessage = 'An error occurred while updating the customer.';
+    let errorMessage = 'An error occurred while updating the employee.';
     let statusCode = 500;
 
     if (error instanceof Error && error.message.includes('RecordNotFound')) {
-      errorMessage = 'Customer not found.';
+      errorMessage = 'Employee not found.';
       statusCode = 404;
     } else if (error instanceof Error && error.message.includes('ValidationError')) {
       errorMessage = 'Validation error.';
@@ -104,11 +111,16 @@ export async function PATCH(request: NextRequest, { params: { id } }: { params: 
   }
 }
 
-export async function DELETE(request: NextRequest, { params: { id } }: { params: { id: string } }) {
+// Delete an employee
+export async function DELETE(
+  request: NextRequest,
+  { params: { id, tenantId } }: { params: { id: string; tenantId: string } }
+) {
   try {
-    const deleted = await prisma.customer.delete({
+    const deleted = await prisma.employee.delete({
       where: {
         id: parseInt(id, 10),
+        tenantId,
       },
     });
 
@@ -119,14 +131,14 @@ export async function DELETE(request: NextRequest, { params: { id } }: { params:
       },
     });
   } catch (error) {
-    let errorMessage = 'An error occurred while deleting the customer.';
+    let errorMessage = 'An error occurred while deleting the employee.';
     let statusCode = 500;
 
-    if (error instanceof Error && error.message.includes('RecordNotFound')) {
-      errorMessage = 'Customer not found.';
+    if (error instanceof Error && error.name === 'RecordNotFound') {
+      errorMessage = 'Employee not found.';
       statusCode = 404;
-    } else if (error instanceof Error && error.message.includes('ForeignKeyConstraintViolation')) {
-      errorMessage = 'Cannot delete the customer because it is referenced by other records.';
+    } else if (error instanceof Error && error.name === 'ForeignKeyConstraintViolation') {
+      errorMessage = 'Cannot delete the employee because it is referenced by other records.';
       statusCode = 409;
     }
 

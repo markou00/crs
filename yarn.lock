@@ -2697,6 +2697,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mantine/dates@npm:^7.6.1":
+  version: 7.6.1
+  resolution: "@mantine/dates@npm:7.6.1"
+  dependencies:
+    clsx: "npm:2.1.0"
+  peerDependencies:
+    "@mantine/core": 7.6.1
+    "@mantine/hooks": 7.6.1
+    dayjs: ">=1.0.0"
+    react: ^18.2.0
+    react-dom: ^18.2.0
+  checksum: cc9613c361527ab7a84b302cb83110126009982195acef3e25f34e2c548e0f9ac057160ece557401f40430afe83c81fb380bec915405e17604588f32e5563d5d
+  languageName: node
+  linkType: hard
+
 "@mantine/form@npm:^7.5.3":
   version: 7.5.3
   resolution: "@mantine/form@npm:7.5.3"
@@ -5456,6 +5471,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/nodemailer@npm:^6":
+  version: 6.4.14
+  resolution: "@types/nodemailer@npm:6.4.14"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: b5958843576cde76dc532aa7b726182fef8b466fa9fcaf1aa03f89f02e896bec4e28b593ffa1a289a46bd0b7fdf34da0640ab7ef8f0811948016f58f77e16307
+  languageName: node
+  linkType: hard
+
 "@types/normalize-package-data@npm:^2.4.0":
   version: 2.4.2
   resolution: "@types/normalize-package-data@npm:2.4.2"
@@ -7470,6 +7494,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"clsx@npm:2.1.0, clsx@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "clsx@npm:2.1.0"
+  checksum: c09c00ad14f638366ca814097e6cab533dfa1972a358da5b557be487168acbb25b4c1395e89ffa842a8a61ba87a462d2b4885bc9d4f8410b598f3cb339599cdb
+  languageName: node
+  linkType: hard
+
 "co@npm:^4.6.0":
   version: 4.6.0
   resolution: "co@npm:4.6.0"
@@ -7884,6 +7915,7 @@ __metadata:
     "@commitlint/cli": "npm:^18.6.0"
     "@commitlint/config-conventional": "npm:^18.6.0"
     "@mantine/core": "npm:7.5.3"
+    "@mantine/dates": "npm:^7.6.1"
     "@mantine/form": "npm:^7.5.3"
     "@mantine/hooks": "npm:7.5.3"
     "@mantinex/mantine-logo": "npm:^1.0.1"
@@ -7906,10 +7938,13 @@ __metadata:
     "@testing-library/user-event": "npm:^14.5.1"
     "@types/jest": "npm:^29.5.7"
     "@types/node": "npm:^20.8.10"
+    "@types/nodemailer": "npm:^6"
     "@types/react": "npm:18.2.34"
     "@typescript-eslint/eslint-plugin": "npm:^6.9.1"
     "@typescript-eslint/parser": "npm:^6.9.1"
     babel-loader: "npm:^9.1.3"
+    clsx: "npm:^2.1.0"
+    dayjs: "npm:^1.11.10"
     dotenv: "npm:^16.4.3"
     eslint: "npm:^8.53.0"
     eslint-config-airbnb: "npm:19.0.4"
@@ -7925,7 +7960,9 @@ __metadata:
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
     lint-staged: "npm:^15.2.2"
+    mantine-datatable: "npm:^7.5.1"
     next: "npm:14.0.1"
+    nodemailer: "npm:^6.9.9"
     postcss: "npm:^8.4.31"
     postcss-preset-mantine: "npm:1.13.0"
     postcss-simple-vars: "npm:^7.0.1"
@@ -8095,6 +8132,13 @@ __metadata:
     whatwg-mimetype: "npm:^3.0.0"
     whatwg-url: "npm:^11.0.0"
   checksum: 051c3aaaf3e961904f136aab095fcf6dff4db23a7fc759dd8ba7b3e6ba03fc07ef608086caad8ab910d864bd3b5e57d0d2f544725653d77c96a2c971567045f4
+  languageName: node
+  linkType: hard
+
+"dayjs@npm:^1.11.10":
+  version: 1.11.10
+  resolution: "dayjs@npm:1.11.10"
+  checksum: 4de9af50639d47df87f2e15fa36bb07e0f9ed1e9c52c6caa1482788ee9a384d668f1dbd00c54f82aaab163db07d61d2899384b8254da3a9184fc6deca080e2fe
   languageName: node
   linkType: hard
 
@@ -12568,6 +12612,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mantine-datatable@npm:^7.5.1":
+  version: 7.5.1
+  resolution: "mantine-datatable@npm:7.5.1"
+  peerDependencies:
+    "@mantine/core": ">=7"
+    "@mantine/hooks": ">=7"
+    clsx: ">=2"
+    react: ">=18.2"
+  checksum: d3cd3a9da9e34661ac67b3b7f08b52a3f612c185c17a1cb5b45100f6b0b05f15da38172cba044a811442c4c2e54b21fb0cb471fdcc43449f6ca6a170942fba09
+  languageName: node
+  linkType: hard
+
 "map-obj@npm:^1.0.0":
   version: 1.0.1
   resolution: "map-obj@npm:1.0.1"
@@ -13225,6 +13281,13 @@ __metadata:
   version: 2.0.13
   resolution: "node-releases@npm:2.0.13"
   checksum: 2fb44bf70fc949d27f3a48a7fd1a9d1d603ddad4ccd091f26b3fb8b1da976605d919330d7388ccd55ca2ade0dc8b2e12841ba19ef249c8bb29bf82532d401af7
+  languageName: node
+  linkType: hard
+
+"nodemailer@npm:^6.9.9":
+  version: 6.9.9
+  resolution: "nodemailer@npm:6.9.9"
+  checksum: ba72da4ca8a003921c86f3d132d64d9bb86c1a3d79d248664b3de28f6a7a621f0476273ad7cf3ecc48d3b78a66ae4ec62b7c4c8ab6f07d9ca26d4bad4d08802e
   languageName: node
   linkType: hard
 

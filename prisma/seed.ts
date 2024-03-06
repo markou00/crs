@@ -1,9 +1,52 @@
 import { PrismaClient } from '@prisma/client';
 import { createClient } from '@supabase/supabase-js';
+import postgres from 'postgres';
+
+import 'dotenv/config';
+
+const dbUrl = process.env.DATABASE_URL;
+
+if (!dbUrl) {
+  throw new Error("Couldn't find db url");
+}
+
+const sql = postgres(dbUrl);
 
 const prisma = new PrismaClient();
 
 async function main() {
+  await sql`
+        create or replace function public.handle_new_user()
+        returns trigger as $$
+        begin
+            insert into public."User" (id, email)
+            values (new.id, new.email);
+            return new;
+        end;
+        $$ language plpgsql security definer;
+        `;
+  await sql`
+        create or replace trigger on_auth_user_created
+            after insert on auth.users
+            for each row execute procedure public.handle_new_user();
+      `;
+
+  await sql`
+        create or replace function public.handle_user_delete()
+        returns trigger as $$
+        begin
+          delete from auth.users where id = old.id;
+          return old;
+        end;
+        $$ language plpgsql security definer;
+      `;
+
+  await sql`
+        create or replace trigger on_user_deleted 
+          after delete on public."User"
+          for each row execute procedure public.handle_user_delete();
+      `;
+
   const tenant = await prisma.tenant.create({
     data: { id: 'CRS', name: 'Container Rental System' },
   });
@@ -99,6 +142,65 @@ async function main() {
     ],
   });
   console.log('Created customers:', customers.count);
+
+  const cars = await prisma.car.createMany({
+    data: [
+      { regnr: 'EL12345', status: 'Available', tenantId: tenant.id },
+      { regnr: 'EK67890', status: 'Available', tenantId: tenant.id },
+      { regnr: 'BT54321', status: 'In Use', tenantId: tenant.id },
+      { regnr: 'CV98765', status: 'Maintenance', tenantId: tenant.id },
+    ],
+  });
+  console.log('Created cars:', cars.count);
+
+  // Create employees and associate them with cars
+  // Note: This assumes that each car is associated with one employee
+  const employees = await prisma.employee.createMany({
+    data: [
+      {
+        name: 'James McDonald',
+        status: 'Active',
+        email: 'james.mcd@example.com',
+        phone: '99000011',
+        picture:
+          'https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=2598&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        carId: 1,
+        tenantId: tenant.id,
+      },
+      {
+        name: 'Jane Smith',
+        status: 'Active',
+        email: 'jane.smith@example.com',
+        phone: '99433111',
+        picture:
+          'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=2576&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        carId: 2,
+        tenantId: tenant.id,
+      },
+      {
+        name: 'William Johnson',
+        status: 'Inactive',
+        email: 'william.johnson@example.com',
+        phone: '99434321',
+        picture:
+          'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        tenantId: tenant.id,
+      },
+      {
+        name: 'Emma Williams',
+        status: 'Active',
+        email: 'emma.williams@example.com',
+        phone: '91183111',
+        picture:
+          'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        carId: 4,
+        tenantId: tenant.id,
+      },
+    ],
+  });
+  console.log('Created employees:', employees.count);
+
+  process.exit();
 }
 
 main()

@@ -26,25 +26,84 @@ model User {
 }
 
 model Tenant {
-  id       String     @id @unique
-  name     String
-  users    User[]
-  Customer Customer[]
+  id        String      @id @unique
+  name      String
+  users     User[]
+  Customer  Customer[]
+  Agreement Agreement[]
+  Container Container[]
+  Employee Employee[]
+  Car Car[]
 }
 
 model Customer {
-  id           Int      @id @default(autoincrement())
+  id           Int         @id @default(autoincrement())
   name         String
   type         String
   contactName  String
-  contactEmail String   @unique
+  contactEmail String      @unique
   contactPhone String?
   address      String
   city         String
   postalCode   String
   country      String
+  tenantId     String
+  Tenant       Tenant      @relation(fields: [tenantId], references: [id])
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  Agreement    Agreement[]
+}
+
+model Agreement {
+  id          Int        @id @default(autoincrement())
+  type        String
+  status      String
+  customer    Customer   @relation(fields: [customerId], references: [id])
+  validFrom   DateTime
+  validTo     DateTime?
+  comment     String?
+  tenantId    String
+  Tenant      Tenant     @relation(fields: [tenantId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  customerId  Int
+  container   Container? @relation(fields: [containerId], references: [id])
+  containerId Int?
+}
+
+model Container {
+  id        Int         @id @default(autoincrement())
+  name      String
+  tenantId  String
+  Tenant    Tenant      @relation(fields: [tenantId], references: [id])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  Agreement Agreement[]
+}
+
+model Employee {
+  id       Int    @id @default(autoincrement())
+  name     String
+  status   String
+  email    String @unique
+  phone    String @unique
+  picture  String?
+  carId    Int?   @unique
+  Car      Car?   @relation(fields: [carId], references: [id])
   tenantId     String?
   Tenant       Tenant?  @relation(fields: [tenantId], references: [id])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+model Car {
+  id        Int      @id @default(autoincrement())
+  regnr     String   @unique
+  status    String
+  Employee  Employee?
+  tenantId     String?
+  Tenant       Tenant?  @relation(fields: [tenantId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
