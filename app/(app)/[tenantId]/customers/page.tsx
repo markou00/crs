@@ -1,6 +1,6 @@
 'use client';
 
-import { Title, Button, Group, TextInput, rem } from '@mantine/core';
+import { Title, Text, Button, Group, TextInput, rem } from '@mantine/core';
 import { IconSearch, IconUserPlus } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -39,7 +39,8 @@ export default function CustomersPage() {
     customer.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (getCustomersQuery.isLoading) return <Title>LOADING....</Title>;
+  if (getCustomersQuery.error) return <Text>Error...</Text>;
+  if (getCustomersQuery.isLoading) return <Text>Loading...</Text>;
 
   return (
     <>

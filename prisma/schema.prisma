@@ -32,6 +32,8 @@ model Tenant {
   Customer  Customer[]
   Agreement Agreement[]
   Container Container[]
+  Employee Employee[]
+  Car Car[]
 }
 
 model Customer {
@@ -78,3 +80,30 @@ model Container {
   updatedAt DateTime    @updatedAt
   Agreement Agreement[]
 }
+
+model Employee {
+  id       Int    @id @default(autoincrement())
+  name     String
+  status   String
+  email    String @unique
+  phone    String @unique
+  picture  String?
+  carId    Int?   @unique
+  Car      Car?   @relation(fields: [carId], references: [id])
+  tenantId     String?
+  Tenant       Tenant?  @relation(fields: [tenantId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Car {
+  id        Int      @id @default(autoincrement())
+  regnr     String   @unique
+  status    String
+  Employee  Employee?
+  tenantId     String?
+  Tenant       Tenant?  @relation(fields: [tenantId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
