@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { Card, Text, Button, Group } from '@mantine/core';
-
-import { Customer } from '../types';
+import { Customer } from '@prisma/client';
 
 type CustomerCardProps = {
   customer: Customer;

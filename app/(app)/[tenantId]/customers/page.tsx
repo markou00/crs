@@ -8,7 +8,7 @@ import { useState } from 'react';
 
 import { CustomerCard } from './CustomerCard/CustomerCard';
 import { AddCustomerModal } from './AddCustomerModal/AddCustomerModal';
-import { Customer } from './types';
+import { getCustomers } from '@/lib/server/actions/customer-actions';
 
 export default function CustomersPage() {
   const [addModalOpened, setAddModalOpened] = useState(false);
@@ -16,17 +16,17 @@ export default function CustomersPage() {
   const [tenantId, setTenantId] = useState('');
   const supabase = createClientComponentClient();
 
-  const getCustomersQuery = useQuery<Customer[]>({
+  const getCustomersQuery = useQuery({
     queryKey: ['customers'],
     queryFn: async () => {
+      const { customers, error } = await getCustomers();
       const user = await supabase.auth.getUser();
       const _tenantId = user.data.user?.user_metadata.tenantId;
       setTenantId(_tenantId);
-      const response = await fetch(`/api/${_tenantId}/customers`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json(); // returns Promise<Customer[]>
+
+      if (error) throw new Error("Couldn't fetch customers");
+
+      return { customers };
     },
   });
 
@@ -35,7 +35,7 @@ export default function CustomersPage() {
     setAddModalOpened(true);
   };
 
-  const filteredCustomers = getCustomersQuery.data?.filter((customer) =>
+  const filteredCustomers = getCustomersQuery.data?.customers?.filter((customer) =>
     customer.name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -60,7 +60,7 @@ export default function CustomersPage() {
       </Group>
       <div style={{ maxWidth: 800, margin: 'auto' }}>
         {filteredCustomers?.map((customer) => (
-          <CustomerCard key={customer.id} customer={customer} tenantId={tenantId} />
+          <CustomerCard key={customer.id} customer={customer} tenantId={customer.tenantId} />
         ))}
       </div>
 
