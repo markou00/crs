@@ -57,19 +57,16 @@ export default function EmployeesPage() {
       });
     },
     onSuccess: () => {
-      // Optionally: Show success notification here
       queryClient.invalidateQueries({
         queryKey: ['employees'],
       });
     },
     onError: (error) => {
-      // Optionally: Show error notification here
       console.error('Error deleting employee:', error);
     },
   });
 
   const handleDelete = (employeeId: string) => {
-    // Confirm before deleting
     if (
       window.confirm('Er du sikker på at du vil slette denne sjåføren? Handlingen kan ikke angres.')
     ) {
