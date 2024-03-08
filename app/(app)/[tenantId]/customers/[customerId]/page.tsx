@@ -93,7 +93,7 @@ export default function CustomerDetails({ params }: { params: Params }) {
       <Title>Kundeinformasjon</Title>
       <Divider m="xs" />
       <Container maw={rem(1000)}>
-        <Flex direction="column" p="sm" gap="sm">
+        <Flex direction="column" p="sm" gap="md">
           <TextInput label="Navn" {...form.getInputProps('name')} />
           <TextInput label="Kontaktnavn" {...form.getInputProps('contactName')} />
           <TextInput label="Epost" {...form.getInputProps('contactEmail')} />

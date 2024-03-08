@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Drawer, Button, TextInput, Group, Container, Select, Text, rem } from '@mantine/core';
+import { Drawer, Button, TextInput, Group, Flex, Select, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { employeeFormValidation } from '../utils/employeeFormValidation';
@@ -92,29 +92,31 @@ export function EditEmployeeDrawer({ employeeId, opened, onClose }: EditEmployee
         padding="xl"
         size="lg"
       >
-        <Container maw={rem(1000)}>
-          <TextInput label="Name" {...form.getInputProps('name')} />
-          <TextInput label="Email" {...form.getInputProps('email')} />
-          <TextInput label="Phone" {...form.getInputProps('phone')} />
-          <Select
-            label="Status"
-            {...form.getInputProps('status')}
-            data={[
-              { value: 'Active', label: 'Active' },
-              { value: 'Inactive', label: 'Inactive' },
-            ]}
-          />
-          <TextInput label="Bilde-URL" {...form.getInputProps('picture')} />
+        <Drawer.Body>
+          <Flex direction="column" gap="md">
+            <TextInput label="Name" {...form.getInputProps('name')} />
+            <TextInput label="Email" {...form.getInputProps('email')} />
+            <TextInput label="Phone" {...form.getInputProps('phone')} />
+            <Select
+              label="Status"
+              {...form.getInputProps('status')}
+              data={[
+                { value: 'Active', label: 'Active' },
+                { value: 'Inactive', label: 'Inactive' },
+              ]}
+            />
+            <TextInput label="Bilde-URL" {...form.getInputProps('picture')} />
 
-          <Group justify="flex-end" mt="md">
-            <Button variant="default" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="button" onClick={() => updateEmployeeMutation.mutate()}>
-              Lagre
-            </Button>
-          </Group>
-        </Container>
+            <Group justify="flex-end" mt="md">
+              <Button variant="default" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="button" onClick={() => updateEmployeeMutation.mutate()}>
+                Lagre
+              </Button>
+            </Group>
+          </Flex>
+        </Drawer.Body>
       </Drawer>
     </>
   );
