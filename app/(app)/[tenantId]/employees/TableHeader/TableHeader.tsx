@@ -29,7 +29,7 @@ export function TableHeader({ userCount, onClick }: TableHeaderProps) {
         </Stack>
         <Stack>
           <Text size="xs">
-            Bruk ikonene i første rad for å filtrere basert på navn, status og bil.
+            Bruk ikonene i første rad for å filtrere eller sortere basert på navn, status og bil.
           </Text>
         </Stack>
       </Stack>

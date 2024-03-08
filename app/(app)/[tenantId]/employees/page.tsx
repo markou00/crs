@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { DataTable } from 'mantine-datatable';
+import { DataTable, type DataTableSortStatus } from 'mantine-datatable';
+import sortBy from 'lodash/sortBy';
 import { IconEdit, IconTrash, IconSearch, IconX } from '@tabler/icons-react';
 import { Group, ActionIcon, Paper, Text, Stack, TextInput, MultiSelect } from '@mantine/core';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
@@ -83,6 +84,10 @@ export default function EmployeesPage() {
   const [debouncedNameQuery] = useDebouncedValue(nameQuery, 200);
   const [debouncedRegnrQuery] = useDebouncedValue(regnrQuery, 200);
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
+  const [sortStatus, setSortStatus] = useState<DataTableSortStatus<EmployeeType>>({
+    columnAccessor: 'name',
+    direction: 'asc',
+  });
 
   useEffect(() => {
     setRecords(getEmployeesQuery.data ?? []);
@@ -117,6 +122,11 @@ export default function EmployeesPage() {
     setAddModalOpened(true);
   };
 
+  useEffect(() => {
+    const data = sortBy(records, sortStatus.columnAccessor) as EmployeeType[];
+    setRecords(sortStatus.direction === 'desc' ? data.reverse() : data);
+  }, [sortStatus]);
+
   const userCount = records.length || 0;
 
   if (getEmployeesQuery.error) return <Text>Error...</Text>;
@@ -137,6 +147,7 @@ export default function EmployeesPage() {
           {
             accessor: 'name',
             title: 'Navn',
+            sortable: true,
             render: (employee: EmployeeType) => (
               <Group>
                 <EmployeePicture imageSrc={employee.picture} />
@@ -170,11 +181,12 @@ export default function EmployeesPage() {
             ),
             filtering: nameQuery !== '',
           },
-          { accessor: 'phone', title: 'Telefon' },
+          { accessor: 'phone', title: 'Telefon', sortable: true },
           {
             accessor: 'status',
             title: 'Status',
             render: (employee) => employee.status,
+            sortable: true,
             filter: (
               <MultiSelect
                 label="Status"
@@ -193,6 +205,7 @@ export default function EmployeesPage() {
           {
             accessor: 'car',
             title: 'Bil',
+            sortable: true,
             render: (employee) => employee.Car?.regnr || 'Ingen bil',
             filter: (
               <TextInput
@@ -245,6 +258,8 @@ export default function EmployeesPage() {
             ),
           },
         ]}
+        sortStatus={sortStatus}
+        onSortStatusChange={setSortStatus}
       />
       <EditEmployeeDrawer employeeId={selectedEmployeeId} opened={opened} onClose={close} />
       <AddEmployeeModal
