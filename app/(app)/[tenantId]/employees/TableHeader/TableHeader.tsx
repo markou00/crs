@@ -14,15 +14,15 @@ export function TableHeader({ userCount, onClick }: TableHeaderProps) {
           <Group justify="space-between">
             <Group>
               <Text fw={700} size="lg">
-                Ansatte
+                Sjåfører
               </Text>
               <Text size="xs">
-                ({userCount} {userCount === 1 ? 'bruker' : 'brukere'})
+                ({userCount} {userCount === 1 ? 'sjåfør' : 'sjåfører'})
               </Text>
             </Group>
             <Group>
               <Button leftSection={<IconUserPlus size={16} />} onClick={onClick}>
-                Ny ansatt
+                Ny sjåfør
               </Button>
             </Group>
           </Group>

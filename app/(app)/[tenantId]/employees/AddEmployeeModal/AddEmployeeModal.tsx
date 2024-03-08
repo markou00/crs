@@ -40,7 +40,7 @@ export function AddEmployeeModal({
   });
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Legg til ny ansatt">
+    <Modal opened={opened} onClose={onClose} title="Legg til ny sjåfør">
       <form onSubmit={form.onSubmit(() => createEmployeeMutation.mutate())}>
         <TextInput label="Navn" {...form.getInputProps('name')} />
         <TextInput label="Epost" {...form.getInputProps('email')} />

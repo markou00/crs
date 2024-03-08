@@ -87,7 +87,7 @@ export function EditEmployeeDrawer({ employeeId, opened, onClose }: EditEmployee
       <Drawer
         opened={opened}
         onClose={onClose}
-        title="Rediger ansatt"
+        title="Rediger sjåfør"
         position="right"
         padding="xl"
         size="lg"

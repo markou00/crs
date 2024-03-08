@@ -70,7 +70,7 @@ export default function EmployeesPage() {
   const handleDelete = (employeeId: string) => {
     // Confirm before deleting
     if (
-      window.confirm('Er du sikker på at du vil slette denne ansatte? Handlingen kan ikke angres.')
+      window.confirm('Er du sikker på at du vil slette denne sjåføren? Handlingen kan ikke angres.')
     ) {
       deleteEmployeeMutation.mutate(employeeId);
     }

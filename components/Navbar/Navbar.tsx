@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   IconSettings,
   IconUsers,
-  IconBriefcase,
+  IconSteeringWheel,
   IconClipboard,
   IconCheckbox,
   IconTruck,
@@ -42,8 +42,8 @@ export function Navbar() {
     },
     {
       link: `/${user?.user_metadata?.tenantId}/employees`,
-      label: 'Ansatte',
-      icon: IconBriefcase,
+      label: 'Sjåfører',
+      icon: IconSteeringWheel,
     },
     {
       link: `/${user?.user_metadata?.tenantId}/agreements`,
