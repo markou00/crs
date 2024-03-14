@@ -145,10 +145,15 @@ async function main() {
 
   const cars = await prisma.car.createMany({
     data: [
-      { regnr: 'EL12345', status: 'Available', tenantId: tenant.id },
-      { regnr: 'EK67890', status: 'Available', tenantId: tenant.id },
-      { regnr: 'BT54321', status: 'In Use', tenantId: tenant.id },
-      { regnr: 'CV98765', status: 'Maintenance', tenantId: tenant.id },
+      {
+        regnr: 'EL12345',
+        model: 'Freightliner Cascadia',
+        status: 'Available',
+        tenantId: tenant.id,
+      },
+      { regnr: 'EK67890', model: 'Volvo FH', status: 'In use', tenantId: tenant.id },
+      { regnr: 'BT54321', model: 'Volvo FH', status: 'Available', tenantId: tenant.id },
+      { regnr: 'CV98765', model: 'Kenworth T680', status: 'Maintenance', tenantId: tenant.id },
     ],
   });
   console.log('Created cars:', cars.count);

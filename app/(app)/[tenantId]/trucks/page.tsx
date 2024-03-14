@@ -77,8 +77,10 @@ export default function CarsPage() {
   const [records, setRecords] = useState(initialRecords);
   const [nameQuery, setNameQuery] = useState('');
   const [regnrQuery, setRegnrQuery] = useState('');
+  const [modelQuery, setModelQuery] = useState('');
   const [debouncedNameQuery] = useDebouncedValue(nameQuery, 200);
   const [debouncedRegnrQuery] = useDebouncedValue(regnrQuery, 200);
+  const [debouncedModelQuery] = useDebouncedValue(modelQuery, 200);
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
   const [sortStatus, setSortStatus] = useState<DataTableSortStatus<CarType>>({
     columnAccessor: 'regnr',
@@ -91,10 +93,17 @@ export default function CarsPage() {
 
   useEffect(() => {
     setRecords(
-      initialRecords?.filter(({ regnr, Employee, status }) => {
+      initialRecords?.filter(({ regnr, model, Employee, status }) => {
         if (
           debouncedRegnrQuery !== '' &&
           !`${regnr}`.toLowerCase().includes(debouncedRegnrQuery.trim().toLowerCase())
+        ) {
+          return false;
+        }
+
+        if (
+          debouncedModelQuery !== '' &&
+          !`${model}`.toLowerCase().includes(debouncedModelQuery.trim().toLowerCase())
         ) {
           return false;
         }
@@ -112,7 +121,7 @@ export default function CarsPage() {
         return true;
       })
     );
-  }, [debouncedRegnrQuery, debouncedNameQuery, selectedStatus]);
+  }, [debouncedRegnrQuery, debouncedModelQuery, debouncedNameQuery, selectedStatus]);
 
   const openCreateModal = () => {
     setAddModalOpened(true);
@@ -166,6 +175,33 @@ export default function CarsPage() {
               />
             ),
             filtering: regnrQuery !== '',
+          },
+          {
+            accessor: 'model',
+            title: 'Modell',
+            render: (car) => car.model,
+            sortable: true,
+            filter: (
+              <TextInput
+                label="Modell"
+                description="Vis biler som har denne modellen"
+                placeholder="Søk etter modell..."
+                leftSection={<IconSearch size={16} />}
+                rightSection={
+                  <ActionIcon
+                    size="sm"
+                    variant="transparent"
+                    c="dimmed"
+                    onClick={() => setModelQuery('')}
+                  >
+                    <IconX size={14} />
+                  </ActionIcon>
+                }
+                value={modelQuery}
+                onChange={(e) => setModelQuery(e.currentTarget.value)}
+              />
+            ),
+            filtering: modelQuery !== '',
           },
           {
             accessor: 'status',

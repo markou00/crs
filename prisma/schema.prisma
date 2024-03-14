@@ -99,6 +99,7 @@ model Employee {
 model Car {
   id        Int      @id @default(autoincrement())
   regnr     String   @unique
+  model     String
   status    String
   Employee  Employee?
   tenantId     String?
