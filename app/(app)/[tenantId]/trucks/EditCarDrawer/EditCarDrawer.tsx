@@ -21,6 +21,7 @@ export function EditCarDrawer({ carId, opened, onClose }: EditCarDrawerProps) {
   const form = useForm({
     initialValues: {
       regnr: '',
+      model: '',
       status: '',
     },
     validate: carFormValidation,
@@ -89,6 +90,7 @@ export function EditCarDrawer({ carId, opened, onClose }: EditCarDrawerProps) {
         <Drawer.Body>
           <Flex direction="column" gap="md">
             <TextInput label="Regnr" {...form.getInputProps('regnr')} />
+            <TextInput label="Modell" {...form.getInputProps('model')} />
             <Select
               label="Status"
               {...form.getInputProps('status')}
