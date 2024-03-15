@@ -4,8 +4,17 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DataTable, type DataTableSortStatus } from 'mantine-datatable';
 import sortBy from 'lodash/sortBy';
-import { IconEdit, IconTrash, IconSearch, IconX } from '@tabler/icons-react';
-import { Group, ActionIcon, Paper, Text, Stack, TextInput, MultiSelect } from '@mantine/core';
+import { IconEdit, IconTrash, IconSearch, IconX, IconTruck } from '@tabler/icons-react';
+import {
+  Group,
+  ActionIcon,
+  Button,
+  Paper,
+  Text,
+  Stack,
+  TextInput,
+  MultiSelect,
+} from '@mantine/core';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { EmployeePicture } from '../../../../components/Employees/EmployeePicture';
@@ -74,6 +83,60 @@ export default function EmployeesPage() {
     }
   };
 
+  const deleteTruckRelationMutation = useMutation({
+    mutationFn: async (employeeId: string) => {
+      await fetch(`/api/${tenantId}/employees/${employeeId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ carId: null }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['employees'],
+      });
+    },
+    onError: (error) => {
+      console.error('Error deleting car relation:', error);
+    },
+  });
+
+  const handleDeleteTruckRelation = (employeeId: string) => {
+    if (window.confirm('Er du sikker på at du vil fjerne relasjonen til denne bilen?')) {
+      deleteTruckRelationMutation.mutate(employeeId);
+    }
+  };
+
+  type MutationArgs = {
+    employeeId: string;
+    carRelationId: string;
+  };
+
+  const createTruckRelationMutation = useMutation<void, Error, MutationArgs>({
+    mutationFn: async ({ employeeId, carRelationId }) => {
+      await fetch(`/api/${tenantId}/employees/${employeeId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ carId: carRelationId }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['employees'],
+      });
+    },
+    onError: (error) => {
+      console.error('Error creating car relation:', error);
+    },
+  });
+
+  const handleCreateTruckRelation = (relationEmployeeId: string, relationCarId: string) => {
+    createTruckRelationMutation.mutate({
+      employeeId: relationEmployeeId,
+      carRelationId: relationCarId,
+    });
+  };
+
   const initialRecords = getEmployeesQuery.data ?? [];
   const [records, setRecords] = useState(initialRecords);
   const [nameQuery, setNameQuery] = useState('');
@@ -133,7 +196,7 @@ export default function EmployeesPage() {
     <Paper style={{ overflow: 'hidden', borderRadius: '8px' }} m="0" pb="md" pt="xs">
       <TableHeader userCount={userCount} onClick={() => openCreateModal()} />
       <DataTable
-        borderRadius="md"
+        borderRadius="sm"
         withTableBorder
         withColumnBorders
         pinFirstColumn
@@ -144,6 +207,7 @@ export default function EmployeesPage() {
           {
             accessor: 'name',
             title: 'Navn',
+            width: '30%',
             sortable: true,
             render: (employee: EmployeeType) => (
               <Group>
@@ -178,10 +242,11 @@ export default function EmployeesPage() {
             ),
             filtering: nameQuery !== '',
           },
-          { accessor: 'phone', title: 'Telefon', sortable: true },
+          { accessor: 'phone', title: 'Telefon', width: '20%', sortable: true },
           {
             accessor: 'status',
             title: 'Status',
+            width: '20%',
             render: (employee) => employee.status,
             sortable: true,
             filter: (
@@ -202,8 +267,40 @@ export default function EmployeesPage() {
           {
             accessor: 'car',
             title: 'Bil',
+            width: '8%',
             sortable: true,
-            render: (employee) => employee.Car?.regnr || 'Ingen bil',
+            render: (employee) => (
+              <div>
+                {employee.Car ? (
+                  <>
+                    <Group gap="xs" justify="center">
+                      <Text style={{ width: '60px' }} ta="right">
+                        {employee.Car.regnr}
+                      </Text>
+                      <ActionIcon
+                        size="sm"
+                        variant="subtle"
+                        color="red"
+                        onClick={() => handleDeleteTruckRelation(employee.id)}
+                      >
+                        <IconTruck size={16} />
+                      </ActionIcon>
+                    </Group>
+                  </>
+                ) : (
+                  <Group justify="center">
+                    <Button
+                      size="xs"
+                      color="green"
+                      rightSection={<IconTruck size={16} />}
+                      onClick={() => handleCreateTruckRelation(employee.id)}
+                    >
+                      Tildel
+                    </Button>
+                  </Group>
+                )}
+              </div>
+            ),
             filter: (
               <TextInput
                 label="Bil"
@@ -229,9 +326,10 @@ export default function EmployeesPage() {
           {
             accessor: 'actions',
             title: 'Rediger/slett',
-            textAlign: 'right',
+            textAlign: 'center',
+            width: '0%',
             render: (employee: EmployeeType) => (
-              <Group gap={4} justify="right" wrap="nowrap">
+              <Group gap={4} justify="center" wrap="nowrap">
                 <ActionIcon
                   size="sm"
                   variant="subtle"

@@ -141,7 +141,7 @@ export default function CarsPage() {
     <Paper style={{ overflow: 'hidden', borderRadius: '8px' }} m="0" pb="md" pt="xs">
       <TableHeader userCount={userCount} onClick={() => openCreateModal()} />
       <DataTable
-        borderRadius="md"
+        borderRadius="sm"
         withTableBorder
         withColumnBorders
         pinFirstColumn
@@ -254,9 +254,10 @@ export default function CarsPage() {
           {
             accessor: 'actions',
             title: 'Rediger/slett',
-            textAlign: 'right',
+            textAlign: 'center',
+            width: '0%',
             render: (car: CarType) => (
-              <Group gap={4} justify="right" wrap="nowrap">
+              <Group gap={4} justify="center" wrap="nowrap">
                 <ActionIcon
                   size="sm"
                   variant="subtle"
