@@ -39,9 +39,9 @@ export function EditCarDrawer({ carId, opened, onClose }: EditCarDrawerProps) {
       }
       const fullData = await response.json();
       const data = {
-        regnr: fullData.regnr,
-        model: fullData.model,
-        status: fullData.status,
+        regnr: fullData.regnr || '',
+        model: fullData.model || '',
+        status: fullData.status || '',
       };
       form.setValues(data);
 
@@ -96,9 +96,10 @@ export function EditCarDrawer({ carId, opened, onClose }: EditCarDrawerProps) {
               label="Status"
               {...form.getInputProps('status')}
               data={[
-                { value: 'Available', label: 'Available' },
-                { value: 'In Use', label: 'In Use' },
-                { value: 'Maintenance', label: 'Maintenance' },
+                { value: 'Operativ', label: 'Operativ' },
+                { value: 'Skadet', label: 'Skadet' },
+                { value: 'Til reparasjon', label: 'Til reparasjon' },
+                { value: 'Vedlikehold', label: 'Vedlikehold' },
               ]}
             />
 

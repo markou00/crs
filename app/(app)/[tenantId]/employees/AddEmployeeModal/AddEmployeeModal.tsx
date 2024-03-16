@@ -50,8 +50,11 @@ export function AddEmployeeModal({
             label="Status"
             placeholder="Velg status"
             data={[
-              { value: 'Active', label: 'Active' },
-              { value: 'Inactive', label: 'Inactive' },
+              { value: 'Tilgjengelig', label: 'Tilgjengelig' },
+              { value: 'Utilgjengelig', label: 'Utilgjengelig' },
+              { value: 'På ferie', label: 'På ferie' },
+              { value: 'Permittert', label: 'Permittert' },
+              { value: 'Sykemeldt', label: 'Sykemeldt' },
             ]}
             {...form.getInputProps('status')}
           />

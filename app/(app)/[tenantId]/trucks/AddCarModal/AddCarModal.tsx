@@ -9,6 +9,7 @@ export function AddCarModal({ opened, onClose, onCarAdded, tenantId }: AddCarMod
   const form = useForm<CarFormValues>({
     initialValues: {
       regnr: '',
+      model: '',
       status: '',
     },
     validate: carFormValidation,
@@ -36,13 +37,15 @@ export function AddCarModal({ opened, onClose, onCarAdded, tenantId }: AddCarMod
       <form onSubmit={form.onSubmit(() => createCarMutation.mutate())}>
         <Flex direction="column" gap="md">
           <TextInput label="Regnr" {...form.getInputProps('regnr')} />
+          <TextInput label="Modell" {...form.getInputProps('model')} />
           <Select
-            label="Status"
-            placeholder="Velg status"
+            label="Tilstand"
+            placeholder="Velg tilsand"
             data={[
-              { value: 'Available', label: 'Available' },
-              { value: 'In Use', label: 'In Use' },
-              { value: 'Maintenance', label: 'Maintenance' },
+              { value: 'Operativ', label: 'Operativ' },
+              { value: 'Skadet', label: 'Skadet' },
+              { value: 'Til reparasjon', label: 'Til reparasjon' },
+              { value: 'Vedlikehold', label: 'Vedlikehold' },
             ]}
             {...form.getInputProps('status')}
           />

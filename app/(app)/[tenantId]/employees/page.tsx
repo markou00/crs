@@ -132,13 +132,6 @@ export default function EmployeesPage() {
     },
   });
 
-  //const handleCreateTruckRelation = (connectThisEmployeeId: string, connectThisCarId: string) => {
-  // createTruckRelationMutation.mutate({
-  //  employeeId: connectThisEmployeeId,
-  //  carRelationId: connectThisCarId,
-  //});
-  //};
-
   const initialRecords = getEmployeesQuery.data ?? [];
   const [records, setRecords] = useState(initialRecords);
   const [nameQuery, setNameQuery] = useState('');
@@ -283,8 +276,11 @@ export default function EmployeesPage() {
                 label="Status"
                 placeholder="Filtrer etter status"
                 data={[
-                  { value: 'Active', label: 'Active' },
-                  { value: 'Inactive', label: 'Inactive' },
+                  { value: 'Tilgjengelig', label: 'Tilgjengelig' },
+                  { value: 'Utilgjengelig', label: 'Utilgjengelig' },
+                  { value: 'På ferie', label: 'På ferie' },
+                  { value: 'Permittert', label: 'Permittert' },
+                  { value: 'Sykemeldt', label: 'Sykemeldt' },
                 ]}
                 value={selectedStatus}
                 onChange={setSelectedStatus}

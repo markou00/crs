@@ -41,10 +41,10 @@ export function EditEmployeeDrawer({ employeeId, opened, onClose }: EditEmployee
       }
       const fullData = await response.json();
       const data = {
-        name: fullData.name,
-        email: fullData.email,
-        phone: fullData.phone,
-        status: fullData.status,
+        name: fullData.name || '',
+        email: fullData.email || '',
+        phone: fullData.phone || '',
+        status: fullData.status || '',
         picture: fullData.picture || '',
       };
       form.setValues(data);
@@ -101,8 +101,11 @@ export function EditEmployeeDrawer({ employeeId, opened, onClose }: EditEmployee
               label="Status"
               {...form.getInputProps('status')}
               data={[
-                { value: 'Active', label: 'Active' },
-                { value: 'Inactive', label: 'Inactive' },
+                { value: 'Tilgjengelig', label: 'Tilgjengelig' },
+                { value: 'Utilgjengelig', label: 'Utilgjengelig' },
+                { value: 'På ferie', label: 'På ferie' },
+                { value: 'Permittert', label: 'Permittert' },
+                { value: 'Sykemeldt', label: 'Sykemeldt' },
               ]}
             />
             <TextInput label="Bilde-URL" {...form.getInputProps('picture')} />

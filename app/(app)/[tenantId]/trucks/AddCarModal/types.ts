@@ -7,5 +7,6 @@ export interface AddCarModalProps {
 
 export interface CarFormValues {
   regnr: string;
+  model: string;
   status: string;
 }

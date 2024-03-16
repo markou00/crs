@@ -37,12 +37,12 @@ export function CreateCarRelationModal({
     })) || [];
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Velg en tilgjengelig bil:">
+    <Modal opened={opened} onClose={onClose} title="Tildeling av bil">
       {isLoading && <Text>Laster tilgjengelige biler...</Text>}
       {error && <Text>Noe gikk galt: {error.message}</Text>}
       {selectData.length > 0 ? (
         <Select
-          label="Tilgjengelige biler"
+          label="Tilgjengelige biler:"
           placeholder="Velg en bil"
           data={selectData}
           onChange={handleSelect}

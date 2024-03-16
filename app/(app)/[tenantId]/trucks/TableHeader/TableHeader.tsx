@@ -28,9 +28,7 @@ export function TableHeader({ userCount, onClick }: TableHeaderProps) {
           </Group>
         </Stack>
         <Stack>
-          <Text size="xs">
-            Bruk ikonene i første rad for å filtrere eller sortere basert på regnr og status.
-          </Text>
+          <Text size="xs">Bruk ikonene i første rad til filtrering/sortering.</Text>
         </Stack>
       </Stack>
     </Box>

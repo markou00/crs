@@ -205,17 +205,18 @@ export default function CarsPage() {
           },
           {
             accessor: 'status',
-            title: 'Status',
+            title: 'Tilstand',
             render: (car) => car.status,
             sortable: true,
             filter: (
               <MultiSelect
-                label="Status"
-                placeholder="Filtrer etter status"
+                label="Tilstand"
+                placeholder="Filtrer etter tilstand"
                 data={[
-                  { value: 'Available', label: 'Available' },
-                  { value: 'In Use', label: 'In Use' },
-                  { value: 'Maintenance', label: 'Maintenance' },
+                  { value: 'Operativ', label: 'Operativ' },
+                  { value: 'Skadet', label: 'Skadet' },
+                  { value: 'Til reparasjon', label: 'Til reparasjon' },
+                  { value: 'Vedlikehold', label: 'Vedlikehold' },
                 ]}
                 value={selectedStatus}
                 onChange={setSelectedStatus}
