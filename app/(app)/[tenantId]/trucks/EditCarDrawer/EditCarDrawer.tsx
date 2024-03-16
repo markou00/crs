@@ -40,6 +40,7 @@ export function EditCarDrawer({ carId, opened, onClose }: EditCarDrawerProps) {
       const fullData = await response.json();
       const data = {
         regnr: fullData.regnr,
+        model: fullData.model,
         status: fullData.status,
       };
       form.setValues(data);

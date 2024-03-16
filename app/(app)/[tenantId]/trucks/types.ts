@@ -3,6 +3,5 @@ export type CarType = {
   regnr: string;
   model: string;
   status: string;
-  picture: string;
   Employee: { name: string } | null;
 };

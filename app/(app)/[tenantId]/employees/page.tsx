@@ -21,6 +21,7 @@ import { EmployeePicture } from '../../../../components/Employees/EmployeePictur
 import { TableHeader } from './TableHeader/TableHeader';
 import { AddEmployeeModal } from './AddEmployeeModal/AddEmployeeModal';
 import { EditEmployeeDrawer } from './EditEmployeeDrawer/EditEmployeeDrawer';
+import { CreateCarRelationModal } from './CreateCarRelationModal/CreateCarRelationModal';
 import { EmployeeType } from './types';
 
 export default function EmployeesPage() {
@@ -29,6 +30,9 @@ export default function EmployeesPage() {
   const supabase = createClientComponentClient();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [opened, { open, close }] = useDisclosure(false);
+  const [showCarRelationModal, setShowCarRelationModal] = useState(false);
+  const [selectedEmployeeForCar, setSelectedEmployeeForCar] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     async function fetchTenantId() {
@@ -56,8 +60,6 @@ export default function EmployeesPage() {
     },
     enabled: !!tenantId,
   });
-
-  const queryClient = useQueryClient();
 
   const deleteEmployeeMutation = useMutation({
     mutationFn: async (employeeId: string) => {
@@ -92,9 +94,8 @@ export default function EmployeesPage() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['employees'],
-      });
+      queryClient.invalidateQueries({ queryKey: ['employees', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['availableCars', tenantId] });
     },
     onError: (error) => {
       console.error('Error deleting car relation:', error);
@@ -114,28 +115,29 @@ export default function EmployeesPage() {
 
   const createTruckRelationMutation = useMutation<void, Error, MutationArgs>({
     mutationFn: async ({ employeeId, carRelationId }) => {
+      const carIdInt = parseInt(carRelationId, 10);
+
       await fetch(`/api/${tenantId}/employees/${employeeId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ carId: carRelationId }),
+        body: JSON.stringify({ carId: carIdInt }),
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['employees'],
-      });
+      queryClient.invalidateQueries({ queryKey: ['employees', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['availableCars', tenantId] });
     },
     onError: (error) => {
       console.error('Error creating car relation:', error);
     },
   });
 
-  const handleCreateTruckRelation = (relationEmployeeId: string, relationCarId: string) => {
-    createTruckRelationMutation.mutate({
-      employeeId: relationEmployeeId,
-      carRelationId: relationCarId,
-    });
-  };
+  //const handleCreateTruckRelation = (connectThisEmployeeId: string, connectThisCarId: string) => {
+  // createTruckRelationMutation.mutate({
+  //  employeeId: connectThisEmployeeId,
+  //  carRelationId: connectThisCarId,
+  //});
+  //};
 
   const initialRecords = getEmployeesQuery.data ?? [];
   const [records, setRecords] = useState(initialRecords);
@@ -180,6 +182,33 @@ export default function EmployeesPage() {
 
   const openCreateModal = () => {
     setAddModalOpened(true);
+  };
+
+  const handleOpenCarRelationModal = (employeeId: string) => {
+    setSelectedEmployeeForCar(employeeId);
+    setShowCarRelationModal(true);
+  };
+
+  const handleCarSelected = (carId: string) => {
+    if (selectedEmployeeForCar && carId) {
+      createTruckRelationMutation.mutate(
+        {
+          employeeId: selectedEmployeeForCar,
+          carRelationId: carId,
+        },
+        {
+          onSuccess: () => {
+            console.log('Relasjon mellom sjåfør og bil er oppdatert.');
+          },
+          onError: (error) => {
+            console.error('Det oppstod en feil ved oppdatering av relasjonen:', error);
+          },
+        }
+      );
+      setShowCarRelationModal(false);
+    } else {
+      console.error('Mangler nødvendig informasjon for å tildele bil til sjåfør.');
+    }
   };
 
   useEffect(() => {
@@ -293,7 +322,7 @@ export default function EmployeesPage() {
                       size="xs"
                       color="green"
                       rightSection={<IconTruck size={16} />}
-                      onClick={() => handleCreateTruckRelation(employee.id)}
+                      onClick={() => handleOpenCarRelationModal(employee.id)}
                     >
                       Tildel
                     </Button>
@@ -362,6 +391,12 @@ export default function EmployeesPage() {
         tenantId={tenantId}
         onClose={() => setAddModalOpened(false)}
         onEmployeeAdded={getEmployeesQuery.refetch}
+      />
+      <CreateCarRelationModal
+        opened={showCarRelationModal}
+        onClose={() => setShowCarRelationModal(false)}
+        onCarSelect={handleCarSelected}
+        tenantId={tenantId}
       />
     </Paper>
   );
