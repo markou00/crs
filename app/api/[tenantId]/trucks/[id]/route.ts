@@ -1,7 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 
-// Fetch a single car
 export async function GET(
   request: NextRequest,
   { params: { tenantId, id } }: { params: { tenantId: string; id: string } }
@@ -29,7 +28,6 @@ export async function GET(
   }
 }
 
-// Replace a car
 export async function PUT(
   request: NextRequest,
   { params: { id, tenantId } }: { params: { id: string; tenantId: string } }
@@ -72,7 +70,6 @@ export async function PUT(
   }
 }
 
-// update a car
 export async function PATCH(request: NextRequest, { params: { id } }: { params: { id: string } }) {
   try {
     const json = await request.json();
@@ -111,7 +108,6 @@ export async function PATCH(request: NextRequest, { params: { id } }: { params: 
   }
 }
 
-// Delete a car
 export async function DELETE(
   request: NextRequest,
   { params: { id, tenantId } }: { params: { id: string; tenantId: string } }
