@@ -62,21 +62,20 @@ model Customer {
 }
 
 model Agreement {
-  id          Int        @id @default(autoincrement())
-  type        String
-  status      String
-  customer    Customer   @relation(fields: [customerId], references: [id])
-  validFrom   DateTime
-  validTo     DateTime?
-  comment     String?
-  tenantId    String
-  Tenant      Tenant     @relation(fields: [tenantId], references: [id])
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  customerId  Int
-  containerId Int?       @unique
-  Container   Container?
-  job         Job[]
+  id            Int       @id @default(autoincrement())
+  type          String
+  status        String
+  containerName String
+  customer      Customer  @relation(fields: [customerId], references: [id])
+  validFrom     DateTime
+  validTo       DateTime?
+  comment       String?
+  tenantId      String
+  Tenant        Tenant    @relation(fields: [tenantId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  customerId    Int
+  job           Job[]
 }
 
 model Container {
@@ -87,13 +86,12 @@ model Container {
   type        String
   status      ContainerStatus @default(available)
   availableAt DateTime        @default(now())
-  agreement   Agreement?      @relation(fields: [agreementId], references: [id])
   tenantId    String
   Tenant      Tenant          @relation(fields: [tenantId], references: [id])
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
-  agreementId Int?            @unique
   job         Job?
+  jobId       Int?
 }
 
 model Employee {

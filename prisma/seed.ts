@@ -160,6 +160,7 @@ async function main() {
       {
         status: 'Tildelt',
         type: 'Utleie',
+        containerName: '100 Matavfall',
         validFrom: new Date(Date.now()),
         customerId: customerRecords.at(0)?.id!,
         comment: 'Test comment',
@@ -168,6 +169,7 @@ async function main() {
       {
         status: 'Opprettet',
         type: 'Tømming',
+        containerName: '120 Restavfall',
         validFrom: new Date(Date.now()),
         customerId: customerRecords.at(1)?.id!,
         validTo: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
@@ -177,7 +179,17 @@ async function main() {
   });
   console.log('Created agreements:', agreements.count);
 
-  const agreementRecords = await prisma.agreement.findMany();
+  const jobs = await prisma.job.createMany({
+    data: [
+      {
+        status: 'Opprettet',
+        type: 'Tømming',
+        customerId: customerRecords.at(1)?.id!,
+        tenantId: tenant.id,
+      },
+    ],
+  });
+  console.log('Created jobs:', jobs.count);
 
   const containers = await prisma.container.createMany({
     data: [
@@ -194,7 +206,6 @@ async function main() {
         type: 'Restavfall',
         name: '120 Restavfall',
         status: ContainerStatus.unavailable,
-        agreementId: agreementRecords.at(1)?.id!,
         availableAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
         tenantId: tenant.id,
       },
@@ -202,16 +213,19 @@ async function main() {
   });
   console.log('Created containers:', containers.count);
 
-  const containerRecord = await prisma.container.findMany();
-
-  await prisma.agreement.update({
-    where: { id: agreementRecords.at(0)?.id! },
-    data: { containerId: containerRecord?.at(0)?.id! },
+  const job = await prisma.job.findFirst();
+  const containerRecord = await prisma.container.findFirst({
+    where: { status: ContainerStatus.unavailable },
   });
 
-  await prisma.agreement.update({
-    where: { id: agreementRecords.at(1)?.id! },
-    data: { containerId: containerRecord?.at(1)?.id! },
+  await prisma.container.update({
+    where: { id: containerRecord?.id! },
+    data: { jobId: job?.id! },
+  });
+
+  await prisma.job.update({
+    where: { id: job?.id! },
+    data: { containerId: containerRecord?.id! },
   });
 
   // Create employees and associate them with cars
