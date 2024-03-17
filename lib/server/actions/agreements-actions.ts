@@ -17,7 +17,6 @@ export async function getAgreements() {
       where: { tenantId },
       include: {
         customer: true,
-        container: true,
       },
     });
 
@@ -56,7 +55,7 @@ export async function addAgreement(agreement: Partial<Agreement>) {
         customerId: agreement.customerId!,
         validTo: agreement.validTo || null,
         comment: agreement.comment || null,
-        containerId: agreement.containerId || null,
+        containerName: agreement.containerName!,
       },
     });
 

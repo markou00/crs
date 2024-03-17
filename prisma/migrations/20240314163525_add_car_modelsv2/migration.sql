@@ -33,11 +33,39 @@ CREATE TABLE "Customer" (
     "city" TEXT NOT NULL,
     "postalCode" TEXT NOT NULL,
     "country" TEXT NOT NULL,
-    "tenantId" TEXT,
+    "tenantId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Customer_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Agreement" (
+    "id" SERIAL NOT NULL,
+    "type" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "validFrom" TIMESTAMP(3) NOT NULL,
+    "validTo" TIMESTAMP(3),
+    "comment" TEXT,
+    "tenantId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "customerId" INTEGER NOT NULL,
+    "containerId" INTEGER,
+
+    CONSTRAINT "Agreement_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Container" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "tenantId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Container_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -60,6 +88,7 @@ CREATE TABLE "Employee" (
 CREATE TABLE "Car" (
     "id" SERIAL NOT NULL,
     "regnr" TEXT NOT NULL,
+    "model" TEXT NOT NULL,
     "status" TEXT NOT NULL,
     "tenantId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -93,7 +122,19 @@ CREATE UNIQUE INDEX "Car_regnr_key" ON "Car"("regnr");
 ALTER TABLE "User" ADD CONSTRAINT "User_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Customer" ADD CONSTRAINT "Customer_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Customer" ADD CONSTRAINT "Customer_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Agreement" ADD CONSTRAINT "Agreement_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Agreement" ADD CONSTRAINT "Agreement_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Agreement" ADD CONSTRAINT "Agreement_containerId_fkey" FOREIGN KEY ("containerId") REFERENCES "Container"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Container" ADD CONSTRAINT "Container_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Employee" ADD CONSTRAINT "Employee_carId_fkey" FOREIGN KEY ("carId") REFERENCES "Car"("id") ON DELETE SET NULL ON UPDATE CASCADE;
