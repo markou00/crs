@@ -28,7 +28,6 @@ export async function getAgreements() {
 
 export async function editAgreement(agreement: Partial<Agreement>) {
   try {
-    console.log(agreement);
     const modifiedAgreement = await prisma.agreement.update({
       where: { id: agreement.id },
       data: agreement,

@@ -48,3 +48,16 @@ export async function addContainer(container: Partial<Container>) {
     return { error };
   }
 }
+
+export async function editContainer(container: Partial<Container>) {
+  try {
+    const modifiedContainer = await prisma.container.update({
+      where: { id: container.id },
+      data: container,
+    });
+
+    return { modifiedContainer };
+  } catch (error) {
+    return { error };
+  }
+}
