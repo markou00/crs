@@ -5,5 +5,5 @@ export type EmployeeType = {
   email: string;
   phone: string;
   picture: string;
-  Car: { regnr: string } | null;
+  Car: { regnr: string; model: string; status: string } | null;
 };

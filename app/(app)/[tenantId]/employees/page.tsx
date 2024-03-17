@@ -14,6 +14,7 @@ import {
   Stack,
   TextInput,
   MultiSelect,
+  Tooltip,
 } from '@mantine/core';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -55,7 +56,13 @@ export default function EmployeesPage() {
       const data: EmployeeType[] = await response.json();
       return data.map((employee) => ({
         ...employee,
-        car: employee.Car?.regnr || 'No Car',
+        car: employee.Car
+          ? {
+              regnr: employee.Car.regnr,
+              model: employee.Car.model,
+              status: employee.Car.status,
+            }
+          : 'No Car',
       }));
     },
     enabled: !!tenantId,
@@ -299,9 +306,15 @@ export default function EmployeesPage() {
                 {employee.Car ? (
                   <>
                     <Group gap="xs" justify="center">
-                      <Text style={{ width: '60px' }} ta="right">
-                        {employee.Car.regnr}
-                      </Text>
+                      <Tooltip
+                        label={`Modell: ${employee.Car.model}, Status: ${employee.Car.status}`}
+                        withArrow
+                        position="bottom"
+                      >
+                        <Text style={{ width: '60px' }} ta="center">
+                          {employee.Car.regnr}
+                        </Text>
+                      </Tooltip>
                       <ActionIcon
                         size="sm"
                         variant="subtle"

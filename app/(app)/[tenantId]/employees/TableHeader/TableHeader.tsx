@@ -28,7 +28,10 @@ export function TableHeader({ userCount, onClick }: TableHeaderProps) {
           </Group>
         </Stack>
         <Stack>
-          <Text size="xs">Bruk ikonene i første rad til filtrering/sortering.</Text>
+          <Text size="xs">
+            Bruk ikonene i første rad til filtrering/sortering. Før musepeker over regnr for mer
+            info om lastebilen.
+          </Text>
         </Stack>
       </Stack>
     </Box>
