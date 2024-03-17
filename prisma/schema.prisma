@@ -92,7 +92,7 @@ model Container {
   Tenant      Tenant          @relation(fields: [tenantId], references: [id])
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
-  agreementId Int             @unique
+  agreementId Int?            @unique
   job         Job?
 }
 
