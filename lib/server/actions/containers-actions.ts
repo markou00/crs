@@ -61,3 +61,15 @@ export async function editContainer(container: Partial<Container>) {
     return { error };
   }
 }
+
+export async function deleteContainer(id: number) {
+  try {
+    const deletedContainer = await prisma.container.delete({
+      where: { id },
+    });
+
+    return { deletedContainer };
+  } catch (error) {
+    return { error };
+  }
+}
