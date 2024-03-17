@@ -15,6 +15,11 @@ enum Role {
   user
 }
 
+enum ContainerStatus {
+  available
+  unavailable
+}
+
 model User {
   id        String  @id @db.Uuid
   email     String  @unique
@@ -32,8 +37,9 @@ model Tenant {
   Customer  Customer[]
   Agreement Agreement[]
   Container Container[]
-  Employee Employee[]
-  Car Car[]
+  Employee  Employee[]
+  Car       Car[]
+  job       Job[]
 }
 
 model Customer {
@@ -52,6 +58,7 @@ model Customer {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   Agreement    Agreement[]
+  job          Job[]
 }
 
 model Agreement {
@@ -67,43 +74,67 @@ model Agreement {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   customerId  Int
-  container   Container? @relation(fields: [containerId], references: [id])
-  containerId Int?
+  containerId Int?       @unique
+  Container   Container?
+  job         Job[]
 }
 
 model Container {
-  id        Int         @id @default(autoincrement())
-  name      String
-  tenantId  String
-  Tenant    Tenant      @relation(fields: [tenantId], references: [id])
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  Agreement Agreement[]
+  id          Int             @id @default(autoincrement())
+  name        String
+  rfid        String
+  capacity    Int
+  type        String
+  status      ContainerStatus @default(available)
+  availableAt DateTime        @default(now())
+  agreement   Agreement?      @relation(fields: [agreementId], references: [id])
+  tenantId    String
+  Tenant      Tenant          @relation(fields: [tenantId], references: [id])
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  agreementId Int             @unique
+  job         Job?
 }
 
 model Employee {
-  id       Int    @id @default(autoincrement())
-  name     String
-  status   String
-  email    String @unique
-  phone    String @unique
-  picture  String?
-  carId    Int?   @unique
-  Car      Car?   @relation(fields: [carId], references: [id])
-  tenantId     String?
-  Tenant       Tenant?  @relation(fields: [tenantId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  name      String
+  status    String
+  email     String   @unique
+  phone     String   @unique
+  picture   String?
+  carId     Int?     @unique
+  Car       Car?     @relation(fields: [carId], references: [id])
+  tenantId  String?
+  Tenant    Tenant?  @relation(fields: [tenantId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Car {
-  id        Int      @id @default(autoincrement())
-  regnr     String   @unique
+  id        Int       @id @default(autoincrement())
+  regnr     String    @unique
   status    String
   Employee  Employee?
-  tenantId     String?
-  Tenant       Tenant?  @relation(fields: [tenantId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  tenantId  String?
+  Tenant    Tenant?   @relation(fields: [tenantId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
+model Job {
+  id          Int        @id @default(autoincrement())
+  type        String
+  status      String
+  customer    Customer   @relation(fields: [customerId], references: [id])
+  agreement   Agreement? @relation(fields: [agreementId], references: [id])
+  comment     String?
+  tenantId    String
+  Tenant      Tenant     @relation(fields: [tenantId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  customerId  Int
+  containerId Int?       @unique
+  agreementId Int?
+  Container   Container? @relation(fields: [containerId], references: [id])
+}
