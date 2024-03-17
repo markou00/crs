@@ -24,7 +24,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
 import { useEffect, useMemo, useState } from 'react';
 import { IconEdit, IconSearch, IconTrash, IconX, IconClick } from '@tabler/icons-react';
-import { Agreement, Container, Customer } from '@prisma/client';
+import { Agreement, Customer } from '@prisma/client';
 import { DateInput } from '@mantine/dates';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 
@@ -39,7 +39,6 @@ import { getContainers } from '@/lib/server/actions/containers-actions';
 
 type AgreementDetails = Agreement & {
   customer: Customer;
-  container: Container | null;
 };
 
 export default function AgreementsPage() {
@@ -68,10 +67,9 @@ export default function AgreementsPage() {
   const [currentRecord, setCurrentRecord] = useState<AgreementDetails>();
 
   const [currentRecordStatus, setCurrentRecordStatus] = useState(currentRecord?.status);
-  const [currentRecordContainer, setCurrentRecordContainer] = useState<ComboboxItem | null>({
-    value: currentRecord?.container?.id.toString() || '',
-    label: currentRecord?.container?.name || '',
-  });
+  const [currentRecordContainer, setCurrentRecordContainer] = useState(
+    currentRecord?.containerName
+  );
   const [currentRecordValidFrom, setCurrentRecordValidFrom] = useState(currentRecord?.validFrom);
   const [currentRecordValidTo, setCurrentRecordValidTo] = useState(currentRecord?.validTo);
   const [currentRecordComment, setCurrentRecordComment] = useState(currentRecord?.comment);
@@ -88,7 +86,7 @@ export default function AgreementsPage() {
   const [newType, setNewType] = useState('');
   const [newStatus, setNewStatus] = useState('');
   const [newCustomer, setNewCustomer] = useState<ComboboxItem | null>();
-  const [newContainer, setNewContainer] = useState<ComboboxItem | null>();
+  const [newContainer, setNewContainer] = useState('');
   const [newValidFrom, setNewValidFrom] = useState<Date>();
   const [newValidTo, setNewValidTo] = useState<Date>();
   const [newComment, setNewComment] = useState('');
@@ -99,7 +97,7 @@ export default function AgreementsPage() {
         type: newType,
         status: newStatus,
         customerId: newCustomer?.value ? parseInt(newCustomer?.value) : undefined,
-        containerId: newContainer?.value ? parseInt(newContainer?.value) : undefined,
+        containerName: newContainer,
         validFrom: newValidFrom,
         validTo: newValidTo,
         comment: newComment,
@@ -117,7 +115,7 @@ export default function AgreementsPage() {
       setNewType('');
       setNewStatus('');
       setNewCustomer(null);
-      setNewContainer(null);
+      setNewContainer('');
       setNewValidFrom(undefined);
       setNewValidTo(undefined);
       setNewComment('');
@@ -154,7 +152,7 @@ export default function AgreementsPage() {
         id: currentRecord?.id,
         status: currentRecordStatus,
         // eslint-disable-next-line radix
-        containerId: currentRecordContainer?.value ? parseInt(currentRecordContainer?.value) : null,
+        containerName: currentRecordContainer || undefined,
         validFrom: currentRecordValidFrom,
         validTo: currentRecordValidTo,
         comment: currentRecordComment,
@@ -209,7 +207,7 @@ export default function AgreementsPage() {
           setNewType('');
           setNewStatus('');
           setNewCustomer(null);
-          setNewContainer(null);
+          setNewContainer('');
           setNewValidFrom(undefined);
           setNewValidTo(undefined);
           setNewComment('');
@@ -243,14 +241,9 @@ export default function AgreementsPage() {
           />
           <Select
             comboboxProps={{ withinPortal: true }}
-            data={containers?.map((container) => ({
-              value: container.id.toString(),
-              label: container.name,
-            }))}
-            value={newContainer ? newContainer.value : null}
-            onChange={(_value, option) => {
-              setNewContainer({ value: option.value, label: option.label });
-            }}
+            data={containers?.map((container) => container.name)}
+            value={newContainer || null}
+            onChange={(_value, option) => setNewContainer(option.label)}
             label="Container"
           />
           <DateInput
@@ -311,13 +304,10 @@ export default function AgreementsPage() {
               />
               <Select
                 comboboxProps={{ withinPortal: true }}
-                data={containers?.map((container) => ({
-                  value: container.id.toString(),
-                  label: container.name,
-                }))}
-                value={currentRecordContainer ? currentRecordContainer.value : null}
+                data={containers?.map((container) => container.name)}
+                value={currentRecordContainer || null}
                 onChange={(_value, option) => {
-                  setCurrentRecordContainer({ value: option.value, label: option.label });
+                  setCurrentRecordContainer(option.label);
                 }}
                 label="Container"
               />
@@ -389,9 +379,8 @@ export default function AgreementsPage() {
           },
           { accessor: 'type' },
           {
-            accessor: 'Container',
+            accessor: 'containerName',
             title: 'Container',
-            render: ({ container }) => <Box>{container?.name}</Box>,
           },
           {
             accessor: 'customerId',
@@ -460,10 +449,7 @@ export default function AgreementsPage() {
                     setCurrentRecord(record);
                     setCurrentRecordStatus(record.status);
 
-                    setCurrentRecordContainer({
-                      value: record.container?.id.toString() || '',
-                      label: record.container?.name || '',
-                    });
+                    setCurrentRecordContainer(record.containerName);
                     setCurrentRecordValidFrom(record.validFrom);
                     setCurrentRecordValidTo(record.validTo);
                     setCurrentRecordComment(record.comment);
