@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { ContainerStatus, PrismaClient } from '@prisma/client';
 import { createClient } from '@supabase/supabase-js';
 import postgres from 'postgres';
 
@@ -157,6 +157,81 @@ async function main() {
     ],
   });
   console.log('Created cars:', cars.count);
+
+  const customerRecords = await prisma.customer.findMany();
+
+  const agreements = await prisma.agreement.createMany({
+    data: [
+      {
+        status: 'Tildelt',
+        type: 'Utleie',
+        containerName: '100 Matavfall',
+        validFrom: new Date(Date.now()),
+        customerId: customerRecords.at(0)?.id!,
+        comment: 'Test comment',
+        tenantId: tenant.id,
+      },
+      {
+        status: 'Opprettet',
+        type: 'Tømming',
+        containerName: '120 Restavfall',
+        validFrom: new Date(Date.now()),
+        customerId: customerRecords.at(1)?.id!,
+        validTo: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        tenantId: tenant.id,
+      },
+    ],
+  });
+  console.log('Created agreements:', agreements.count);
+
+  const jobs = await prisma.job.createMany({
+    data: [
+      {
+        status: 'Opprettet',
+        type: 'Tømming',
+        customerId: customerRecords.at(1)?.id!,
+        tenantId: tenant.id,
+      },
+    ],
+  });
+  console.log('Created jobs:', jobs.count);
+
+  const containers = await prisma.container.createMany({
+    data: [
+      {
+        rfid: Math.random().toString(16),
+        capacity: 100,
+        type: 'Matavfall',
+        name: '100 Matavfall',
+        tenantId: tenant.id,
+      },
+      {
+        rfid: Math.random().toString(16),
+        capacity: 120,
+        type: 'Restavfall',
+        name: '120 Restavfall',
+        status: ContainerStatus.unavailable,
+        availableAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        tenantId: tenant.id,
+      },
+    ],
+  });
+  console.log('Created containers:', containers.count);
+
+  const job = await prisma.job.findFirst();
+  const containerRecord = await prisma.container.findFirst({
+    where: { status: ContainerStatus.unavailable },
+  });
+
+  await prisma.container.update({
+    where: { id: containerRecord?.id! },
+    data: { jobId: job?.id! },
+  });
+
+  await prisma.job.update({
+    where: { id: job?.id! },
+    data: { containerId: containerRecord?.id! },
+  });
 
   // Create employees and associate them with cars
   // Note: This assumes that each car is associated with one employee
