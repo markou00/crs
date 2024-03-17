@@ -24,7 +24,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
 import { useEffect, useMemo, useState } from 'react';
 import { IconEdit, IconSearch, IconTrash, IconX, IconClick } from '@tabler/icons-react';
-import { Agreement, Container, Customer } from '@prisma/client';
+import { Agreement, Container as ContainerType, Customer } from '@prisma/client';
 import { DateInput } from '@mantine/dates';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 
@@ -39,7 +39,7 @@ import { getContainers } from '@/lib/server/actions/containers-actions';
 
 type AgreementDetails = Agreement & {
   customer: Customer;
-  container: Container | null;
+  Container: ContainerType | null;
 };
 
 export default function AgreementsPage() {
@@ -69,8 +69,8 @@ export default function AgreementsPage() {
 
   const [currentRecordStatus, setCurrentRecordStatus] = useState(currentRecord?.status);
   const [currentRecordContainer, setCurrentRecordContainer] = useState<ComboboxItem | null>({
-    value: currentRecord?.container?.id.toString() || '',
-    label: currentRecord?.container?.name || '',
+    value: currentRecord?.Container?.id.toString() || '',
+    label: currentRecord?.Container?.name || '',
   });
   const [currentRecordValidFrom, setCurrentRecordValidFrom] = useState(currentRecord?.validFrom);
   const [currentRecordValidTo, setCurrentRecordValidTo] = useState(currentRecord?.validTo);
@@ -391,7 +391,7 @@ export default function AgreementsPage() {
           {
             accessor: 'Container',
             title: 'Container',
-            render: ({ container }) => <Box>{container?.name}</Box>,
+            render: ({ Container }) => <Box>{Container?.name}</Box>,
           },
           {
             accessor: 'customerId',
@@ -461,8 +461,8 @@ export default function AgreementsPage() {
                     setCurrentRecordStatus(record.status);
 
                     setCurrentRecordContainer({
-                      value: record.container?.id.toString() || '',
-                      label: record.container?.name || '',
+                      value: record.Container?.id.toString() || '',
+                      label: record.Container?.name || '',
                     });
                     setCurrentRecordValidFrom(record.validFrom);
                     setCurrentRecordValidTo(record.validTo);

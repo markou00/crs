@@ -202,13 +202,16 @@ async function main() {
   });
   console.log('Created containers:', containers.count);
 
-  const containerRecord = await prisma.container.findFirst({
-    where: { status: ContainerStatus.unavailable },
+  const containerRecord = await prisma.container.findMany();
+
+  await prisma.agreement.update({
+    where: { id: agreementRecords.at(0)?.id! },
+    data: { containerId: containerRecord?.at(0)?.id! },
   });
 
   await prisma.agreement.update({
     where: { id: agreementRecords.at(1)?.id! },
-    data: { containerId: containerRecord?.id! },
+    data: { containerId: containerRecord?.at(1)?.id! },
   });
 
   // Create employees and associate them with cars
