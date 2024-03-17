@@ -14,24 +14,21 @@ export function TableHeader({ userCount, onClick }: TableHeaderProps) {
           <Group justify="space-between">
             <Group>
               <Text fw={700} size="lg">
-                Sjåfører
+                Biler
               </Text>
               <Text size="xs">
-                ({userCount} {userCount === 1 ? 'sjåfør' : 'sjåfører'})
+                ({userCount} {userCount === 1 ? 'bil' : 'biler'})
               </Text>
             </Group>
             <Group>
               <Button leftSection={<IconUserPlus size={16} />} onClick={onClick}>
-                Ny sjåfør
+                Ny bil
               </Button>
             </Group>
           </Group>
         </Stack>
         <Stack>
-          <Text size="xs">
-            Bruk ikonene i første rad til filtrering/sortering. Før musepeker over regnr for mer
-            info om lastebilen.
-          </Text>
+          <Text size="xs">Bruk ikonene i første rad til filtrering/sortering.</Text>
         </Stack>
       </Stack>
     </Box>

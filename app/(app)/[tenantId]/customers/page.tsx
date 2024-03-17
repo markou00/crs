@@ -30,7 +30,6 @@ export default function CustomersPage() {
     },
   });
 
-  // Function to open the modal for creating a new customer
   const openCreateModal = () => {
     setAddModalOpened(true);
   };

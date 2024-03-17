@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { Modal, TextInput, Select, Button, Group } from '@mantine/core';
+import { Modal, TextInput, Select, Button, Group, Flex } from '@mantine/core';
 import { useForm } from '@mantine/form';
 
 import { employeeFormValidation } from '../utils/employeeFormValidation';
@@ -40,24 +40,29 @@ export function AddEmployeeModal({
   });
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Legg til ny ansatt">
+    <Modal opened={opened} onClose={onClose} title="Legg til ny sjåfør">
       <form onSubmit={form.onSubmit(() => createEmployeeMutation.mutate())}>
-        <TextInput label="Navn" {...form.getInputProps('name')} />
-        <TextInput label="Epost" {...form.getInputProps('email')} />
-        <TextInput label="Tlf" {...form.getInputProps('phone')} />
-        <Select
-          label="Status"
-          placeholder="Velg status"
-          data={[
-            { value: 'Active', label: 'Active' },
-            { value: 'Inactive', label: 'Inactive' },
-          ]}
-          {...form.getInputProps('status')}
-        />
-        <TextInput label="Picture URL" {...form.getInputProps('picture')} />
-        <Group justify="flex-end" mt="md">
-          <Button type="submit">Lagre</Button>
-        </Group>
+        <Flex direction="column" gap="md">
+          <TextInput label="Navn" {...form.getInputProps('name')} />
+          <TextInput label="Epost" {...form.getInputProps('email')} />
+          <TextInput label="Tlf" {...form.getInputProps('phone')} />
+          <Select
+            label="Status"
+            placeholder="Velg status"
+            data={[
+              { value: 'Tilgjengelig', label: 'Tilgjengelig' },
+              { value: 'Utilgjengelig', label: 'Utilgjengelig' },
+              { value: 'På ferie', label: 'På ferie' },
+              { value: 'Permittert', label: 'Permittert' },
+              { value: 'Sykemeldt', label: 'Sykemeldt' },
+            ]}
+            {...form.getInputProps('status')}
+          />
+          <TextInput label="Picture URL" {...form.getInputProps('picture')} />
+          <Group justify="flex-end" mt="md">
+            <Button type="submit">Lagre</Button>
+          </Group>
+        </Flex>
       </form>
     </Modal>
   );
