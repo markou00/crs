@@ -29,8 +29,8 @@ import {
   IconTrash,
   IconX,
   IconClick,
-  IconMessageCircle,
-  IconSettings,
+  IconCheck,
+  IconEye,
 } from '@tabler/icons-react';
 import { Container, ContainerStatus } from '@prisma/client';
 import { DateInput } from '@mantine/dates';
@@ -167,13 +167,13 @@ export default function ContainersPage() {
         <Tabs.List grow>
           <Tabs.Tab
             value="availability"
-            leftSection={<IconSettings style={{ width: rem(16), height: rem(16) }} />}
+            leftSection={<IconCheck style={{ width: rem(16), height: rem(16) }} />}
           >
             Availability
           </Tabs.Tab>
           <Tabs.Tab
             value="overview"
-            leftSection={<IconMessageCircle style={{ width: rem(16), height: rem(16) }} />}
+            leftSection={<IconEye style={{ width: rem(16), height: rem(16) }} />}
           >
             Overview
           </Tabs.Tab>
