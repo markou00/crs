@@ -19,6 +19,7 @@ import {
   Title,
   Tabs,
   rem,
+  Table,
 } from '@mantine/core';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
@@ -158,6 +159,41 @@ export default function ContainersPage() {
     onError: (error: any) => console.log(error.message),
   });
 
+  interface ContainerSummary {
+    [type: string]: {
+      total: number;
+      unavailable: number;
+      available: number;
+    };
+  }
+
+  // @ts-ignore
+  const containerSummary: ContainerSummary = records?.reduce(
+    (acc: ContainerSummary, container: Container) => {
+      const { type, status } = container;
+      if (!acc[type]) {
+        acc[type] = { total: 0, unavailable: 0, available: 0 };
+      }
+      acc[type].total += 1;
+      if (status === ContainerStatus.available) {
+        acc[type].available += 1;
+      } else {
+        acc[type].unavailable += 1;
+      }
+      return acc;
+    },
+    {}
+  );
+
+  const rows = records?.map((container) => (
+    <Table.Tr key={container.id}>
+      <Table.Td>{container.name}</Table.Td>
+      <Table.Td>{containerSummary[container.type].total}</Table.Td>
+      <Table.Td>{containerSummary[container.type].unavailable}</Table.Td>
+      <Table.Td>{containerSummary[container.type].available}</Table.Td>
+    </Table.Tr>
+  ));
+
   if (getContainersQuery.error) return <Text>ERROR....</Text>;
   if (getContainersQuery.isLoading) return <Text>LOADING...</Text>;
 
@@ -180,7 +216,20 @@ export default function ContainersPage() {
         </Tabs.List>
 
         <Tabs.Panel value="availability" pt="xs">
-          Gallery tab content
+          <Group justify="space-between" mt="md" mb="md">
+            <Title>Beholdere</Title>
+            <Table withTableBorder>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th />
+                  <Table.Th>Totalt</Table.Th>
+                  <Table.Th>I oppdrag</Table.Th>
+                  <Table.Th>Tilgjengelig</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>{rows}</Table.Tbody>
+            </Table>
+          </Group>
         </Tabs.Panel>
 
         <Tabs.Panel value="overview" pt="xs">
