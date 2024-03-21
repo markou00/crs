@@ -1,0 +1,22 @@
+@startuml CRS C4 System & Container diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+!include <office/users/users.puml>
+!include <office/users/mobile_user.puml>
+!include <office/users/administrator.puml>
+
+LAYOUT_WITH_LEGEND()
+
+title System & Container Diagram For Container Rental System
+
+Person(user, "Kontoransatt", "En ansatt i en bedrift som leier ut containere")
+
+System(CRS_Web_Client, "Container Rental System\n<size:10>[Web app, Next.js & Mantine UI]</size>", "System for håndtering av avfallskontainer")
+System_Ext(email_system, "Email System\n<size:10>[Gmail & Nodemailer]</size>", "Email system. Brukes til å sende e-poster i forbindelse med verifisering av konto og invitasjon")
+System_Ext(supabase, "Supabase\n<size:10>Backend as a Service (BaaS)</size>", "Brukes for database, authentication, fil lagring, edge functions etc.")
+
+Rel_D(user, CRS_Web_Client, "CRUD kunder, biler, sjåfører, container, oppdrag og avtaler")
+Rel_R(CRS_Web_Client, email_system, "Sender e-poster v.h.a.")
+BiRel_D(CRS_Web_Client, supabase, "Data")
+Rel_U(email_system, user, "Sender e-poster til")
+
+@enduml
