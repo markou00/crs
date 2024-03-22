@@ -9,14 +9,13 @@
   }
   
 .compactButton {
-  padding: 0px 4px; /* Svært liten padding */
-  min-height: auto; /* Fjerner minimumshøyden hvis det er satt av Mantine */
-  line-height: 1; /* Justerer linjehøyden for å passe til den mindre knappen */
-  height: 20px; /* Fast høyde for knappen */
+  padding: 0px 4px;
+  min-height: auto;
+  line-height: 1;
+  height: 20px;
 }
-
 
 .compactText {
   white-space: nowrap;
-  font-size: 0.75rem; /* Mindre tekststørrelse */
+  font-size: 0.75rem;
 }
