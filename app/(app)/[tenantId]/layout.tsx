@@ -20,6 +20,7 @@ import { UserButton } from '@/components/Navbar/UserButton/UserButton';
 import { getAgreements } from '@/lib/server/actions/agreements-actions';
 import { getCustomers } from '@/lib/server/actions/customer-actions';
 import { getContainers } from '@/lib/server/actions/containers-actions';
+import { getJobs } from '@/lib/server/actions/job-actions';
 
 export default async function AppShellLayout({ children }: { children: ReactNode }) {
   const queryClient = new QueryClient();
@@ -47,6 +48,11 @@ export default async function AppShellLayout({ children }: { children: ReactNode
   await queryClient.prefetchQuery({
     queryKey: ['containers'],
     queryFn: getContainers,
+  });
+
+  await queryClient.prefetchQuery({
+    queryKey: ['jobs'],
+    queryFn: getJobs,
   });
 
   return (
