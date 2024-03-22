@@ -1,6 +1,7 @@
 'use server';
 
 import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
+import { Job } from '@prisma/client';
 import { cookies } from 'next/headers';
 
 import prisma from '@/lib/prisma';
@@ -29,3 +30,75 @@ export async function getJobs() {
     return { error };
   }
 }
+
+export async function getJob(id: number) {
+  try {
+    const uniqueJob = await prisma.job.findUnique({
+      where: { id },
+      include: {
+        car: true,
+        agreement: {
+          include: {
+            customer: true,
+          },
+        },
+      },
+    });
+
+    return { uniqueJob };
+  } catch (error) {
+    return { error };
+  }
+}
+
+export async function editJob(job: Partial<Job>) {
+  try {
+    const modifiedJob = await prisma.job.update({
+      where: { id: job.id },
+      data: job,
+    });
+
+    return { modifiedJob };
+  } catch (error) {
+    return { error };
+  }
+}
+/*
+export async function addJob(agreement: Partial<Job>) {
+  try {
+    const supabase = createServerActionClient({ cookies });
+
+    const authUser = await supabase.auth.getUser();
+    const tenantId = authUser.data.user?.user_metadata.tenantId;
+
+    const newJob = await prisma.job.create({
+      data: {
+        tenantId,
+        type: agreement.type!,
+        status: agreement.status!,
+        validFrom: agreement.validFrom!,
+        customerId: agreement.customerId!,
+        validTo: agreement.validTo || null,
+        comment: agreement.comment || null,
+        containerName: agreement.containerName!,
+      },
+    });
+
+    return { newJob };
+  } catch (error) {
+    return { error };
+  }
+}
+
+export async function deleteJob(id: number) {
+  try {
+    const deletedAgreement = await prisma.agreement.delete({
+      where: { id },
+    });
+
+    return { deletedAgreement };
+  } catch (error) {
+    return { error };
+  }
+}
+ */

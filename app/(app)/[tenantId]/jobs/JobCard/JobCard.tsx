@@ -34,7 +34,6 @@ export function JobCard({ job, tenantId, agreement, car, customer }: JobCardProp
       padding="lg"
       component="a"
       href={`/${tenantId}/jobs/${job.id}`}
-      target="_blank"
       style={{
         cursor: 'pointer',
         width: '900px',
