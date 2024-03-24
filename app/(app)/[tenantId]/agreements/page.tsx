@@ -438,7 +438,7 @@ export default function AgreementsPage() {
                 <IconClick size={16} />
               </Center>
             ),
-            width: '0%', // 👈 use minimal width
+            width: '0%',
             render: (record) => (
               <Group gap={4} justify="right" wrap="nowrap">
                 <ActionIcon

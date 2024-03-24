@@ -90,16 +90,16 @@ export async function addJob(agreement: Partial<Job>) {
     return { error };
   }
 }
+*/
 
 export async function deleteJob(id: number) {
   try {
-    const deletedAgreement = await prisma.agreement.delete({
+    const deletedJob = await prisma.job.delete({
       where: { id },
     });
 
-    return { deletedAgreement };
+    return { deletedJob };
   } catch (error) {
     return { error };
   }
 }
- */

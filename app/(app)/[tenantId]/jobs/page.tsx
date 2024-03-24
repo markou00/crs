@@ -19,16 +19,22 @@ import { DateTimePicker } from '@mantine/dates';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useDisclosure } from '@mantine/hooks';
 import { useState } from 'react';
-import { Job, Customer, Agreement, Container, Car } from '@prisma/client';
-import { getJobs, editJob } from '@/lib/server/actions/job-actions';
+import { Container, Car } from '@prisma/client';
+import { getJobs, editJob, deleteJob } from '@/lib/server/actions/job-actions';
 import { getCars } from '@/lib/server/actions/car-actions';
 import { JobCard } from './JobCard/JobCard';
 
-type JobDetails = Job & {
-  customer: Customer;
-  container: Container;
-  agreement: Agreement;
-  car: Car;
+type JobDetails = {
+  id: number;
+  type: string;
+  status: string;
+  date: Date;
+  comment: string | null;
+  containerId: number | null;
+  agreementId: number;
+  carId: number | null;
+  container: Container | null;
+  car: Car | null;
 };
 
 export default function JobsPage() {
@@ -87,6 +93,24 @@ export default function JobsPage() {
     setCurrentRecordCarId(record.carId);
     open();
   };
+
+  const deleteJobMutation = useMutation({
+    mutationFn: async ({ id }: { id: number }) => {
+      const { deletedJob, error } = await deleteJob(id);
+
+      if (error) throw new Error("Couldn't delete the job");
+
+      return deletedJob;
+    },
+    retry: false,
+
+    onSuccess: async () => {
+      const { data } = await getJobsQuery.refetch();
+      setRecords(data?.jobs);
+      close();
+    },
+    onError: (error: any) => console.log(error.message),
+  });
 
   if (getJobsQuery.error) return <Text>Error...</Text>;
   if (getJobsQuery.isLoading) return <Text>Loading...</Text>;
@@ -182,12 +206,37 @@ export default function JobsPage() {
                 placeholder="Select a car"
               />
               <Flex justify="end">
-                <Button
-                  onClick={() => editJobMutation.mutate()}
-                  loading={editJobMutation.isPending}
-                >
-                  Bekreft
-                </Button>
+                <Group>
+                  <Button
+                    color="red"
+                    onClick={() => {
+                      // Sjekker først om et oppdrag er valgt
+                      if (!currentRecord) {
+                        console.log('Ingen oppdrag er valgt.');
+                        return;
+                      }
+
+                      // Viser en bekreftelsesdialog til brukeren
+                      const isConfirmed = window.confirm(
+                        'Er du sikker på at du vil slette dette oppdraget?'
+                      );
+
+                      // Utfører slettingen hvis brukeren bekreftet
+                      if (isConfirmed) {
+                        deleteJobMutation.mutate({ id: currentRecord.id });
+                      }
+                    }}
+                    loading={deleteJobMutation.isPending}
+                  >
+                    Slett
+                  </Button>
+                  <Button
+                    onClick={() => editJobMutation.mutate()}
+                    loading={editJobMutation.isPending}
+                  >
+                    Bekreft
+                  </Button>
+                </Group>
               </Flex>
             </Flex>
           </Drawer.Body>
