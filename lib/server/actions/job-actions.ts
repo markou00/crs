@@ -17,6 +17,7 @@ export async function getJobs() {
       where: { tenantId },
       include: {
         car: true,
+        container: true,
         agreement: {
           include: {
             customer: true,

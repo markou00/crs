@@ -24,6 +24,26 @@ export async function getContainers() {
   }
 }
 
+export async function getAvailableContainers() {
+  try {
+    const supabase = createServerActionClient({ cookies });
+
+    const authUser = await supabase.auth.getUser();
+    const tenantId = authUser.data.user?.user_metadata.tenantId;
+
+    const containers = await prisma.container.findMany({
+      where: {
+        tenantId,
+        job: null,
+      },
+    });
+
+    return { containers };
+  } catch (error) {
+    return { error };
+  }
+}
+
 export async function addContainer(container: Partial<Container>) {
   try {
     const supabase = createServerActionClient({ cookies });

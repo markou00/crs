@@ -1,6 +1,12 @@
 import { Card, Text, Button, Group, Grid } from '@mantine/core';
 import { Job, Agreement, Car, Customer } from '@prisma/client';
-import { IconClock, IconRepeatOff, IconCalendarRepeat } from '@tabler/icons-react';
+import {
+  IconBox,
+  IconTruck,
+  IconClock,
+  IconRepeatOff,
+  IconCalendarRepeat,
+} from '@tabler/icons-react';
 import styles from './JobCard.module.css';
 
 type JobCardProps = {
@@ -8,17 +14,17 @@ type JobCardProps = {
   agreement: Agreement;
   car: Car | null;
   customer: Customer;
-  tenantId: string;
+  onEdit: (job: Job) => void;
 };
 
-export function JobCard({ job, tenantId, agreement, car, customer }: JobCardProps) {
+export function JobCard({ job, agreement, car, customer, onEdit }: JobCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'green';
       case 'assigned':
-        return 'yellow';
+        return 'green';
       case 'unassigned':
+        return 'orange';
+      case 'overdue':
         return 'red';
       default:
         return 'gray';
@@ -27,15 +33,17 @@ export function JobCard({ job, tenantId, agreement, car, customer }: JobCardProp
 
   const statusColor = getStatusColor(job.status);
 
+  const handleEditClick = () => {
+    onEdit(job);
+  };
+
   return (
     <Card
       key={job.id}
       shadow="sm"
       padding="lg"
       component="a"
-      href={`/${tenantId}/jobs/${job.id}`}
       style={{
-        cursor: 'pointer',
         width: '900px',
         position: 'relative',
         '--status-color': getStatusColor(job.status),
@@ -48,19 +56,25 @@ export function JobCard({ job, tenantId, agreement, car, customer }: JobCardProp
           <Text fw={700}>{job.type}</Text>
         </Grid.Col>
         <Grid.Col span={2}>
-          <Button variant="light" size="xs" className={styles.compactButton}>
-            <Text size="xs" className={styles.compactText}>
-              {agreement.containerName}
-            </Text>
-          </Button>
+          <Group gap="xs">
+            <IconBox size={16} />
+            <Button variant="light" size="xs" className={styles.compactButton}>
+              <Text size="xs" className={styles.compactText}>
+                {agreement.containerName}
+              </Text>
+            </Button>
+          </Group>
         </Grid.Col>
         <Grid.Col span={2}>
           {car && (
-            <Button variant="default" size="xs" className={styles.compactButton}>
-              <Text size="xs" className={styles.compactText}>
-                {car?.regnr}
-              </Text>
-            </Button>
+            <Group gap="xs">
+              <IconTruck size={16} />
+              <Button variant="default" size="xs" className={styles.compactButton}>
+                <Text size="xs" className={styles.compactText}>
+                  {car?.regnr}
+                </Text>
+              </Button>
+            </Group>
           )}
         </Grid.Col>
         <Grid.Col span={3}>
@@ -96,10 +110,13 @@ export function JobCard({ job, tenantId, agreement, car, customer }: JobCardProp
         <Grid.Col span={3}>
           <Text size="sm">{customer.name}</Text>
         </Grid.Col>
-        <Grid.Col span={6}>
+        <Grid.Col span={3}>
           <Text size="sm">
             {customer.address}, {customer.city}
           </Text>
+        </Grid.Col>
+        <Grid.Col span={3}>
+          <Button onClick={handleEditClick}>Rediger</Button>
         </Grid.Col>
       </Grid>
     </Card>
