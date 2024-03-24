@@ -6,7 +6,8 @@ import {
   Title,
   Text,
   TextInput,
-  rem,
+  Group,
+  Badge,
   Flex,
   Button,
   Drawer,
@@ -15,7 +16,6 @@ import {
   Select,
 } from '@mantine/core';
 import { DateTimePicker } from '@mantine/dates';
-import { IconSearch } from '@tabler/icons-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useDisclosure } from '@mantine/hooks';
 import { useState } from 'react';
@@ -32,8 +32,6 @@ type JobDetails = Job & {
 };
 
 export default function JobsPage() {
-  const [search, setSearch] = useState('');
-
   const getJobsQuery = useQuery({
     queryKey: ['jobs'],
     queryFn: () => getJobs(),
@@ -44,18 +42,14 @@ export default function JobsPage() {
     queryFn: () => getCars(),
   });
 
-  const filteredJobs = getJobsQuery.data?.jobs?.filter((job) =>
-    job.type.toLowerCase().includes(search.toLowerCase())
-  );
-
   const cars = getCarsQuery.data?.cars;
 
   const [opened, { open, close }] = useDisclosure(false);
 
   const [records, setRecords] = useState(getJobsQuery.data?.jobs);
+
   const [currentRecord, setCurrentRecord] = useState<JobDetails>();
 
-  const [currentRecordType, setCurrentRecordType] = useState(currentRecord?.type);
   const [currentRecordStatus, setCurrentRecordStatus] = useState(currentRecord?.status);
   const [currentRecordComment, setCurrentRecordComment] = useState(currentRecord?.comment);
   const [currentRecordDate, setCurrentRecordDate] = useState(currentRecord?.date);
@@ -65,10 +59,8 @@ export default function JobsPage() {
     mutationFn: async () => {
       const { modifiedJob, error } = await editJob({
         id: currentRecord?.id,
-        type: currentRecordType,
         status: currentRecordStatus,
         comment: currentRecordComment,
-        // eslint-disable-next-line radix
         date: currentRecordDate,
         carId: currentRecordCarId,
       });
@@ -90,7 +82,6 @@ export default function JobsPage() {
   const openDrawer = (record: JobDetails) => {
     setCurrentRecord(record);
     setCurrentRecordStatus(record.status);
-    setCurrentRecordType(record.type);
     setCurrentRecordDate(record.date);
     setCurrentRecordComment(record.comment);
     setCurrentRecordCarId(record.carId);
@@ -103,18 +94,19 @@ export default function JobsPage() {
   return (
     <>
       <Title mb="lg">Oppdrag</Title>
-      <TextInput
-        mb="sm"
-        radius="lg"
-        size="md"
-        style={{ width: '200px' }}
-        placeholder="Søk etter jobbtype"
-        rightSectionWidth={42}
-        leftSection={<IconSearch style={{ width: rem(18), height: rem(18) }} stroke={1.5} />}
-        onChange={(event) => setSearch(event.currentTarget.value)}
-      />
+      <Group mb="lg">
+        <Badge color="green" variant="filled">
+          Tildelt
+        </Badge>
+        <Badge color="orange" variant="filled">
+          Ikke tildelt
+        </Badge>
+        <Badge color="red" variant="filled">
+          Forfalt
+        </Badge>
+      </Group>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-        {filteredJobs?.map((job) => (
+        {records?.map((job) => (
           <div key={job.id} style={{ marginBottom: '5px' }}>
             <JobCard
               key={job.id}
@@ -149,14 +141,12 @@ export default function JobsPage() {
               <TextInput label="Oppdrag nr." value={currentRecord?.id} disabled />
               <Select
                 comboboxProps={{ withinPortal: true }}
-                // Definer en data-struktur som inkluderer både verdiene og de norske oversettelsene
                 data={[
                   { value: 'unassigned', label: 'Ikke tildelt' },
                   { value: 'assigned', label: 'Tildelt' },
                   { value: 'overdue', label: 'Forfalt' },
                 ]}
                 value={currentRecordStatus}
-                // Oppdaterer staten basert på valgt verdi
                 onChange={(value) => setCurrentRecordStatus(value ?? '')}
                 label="Status"
               />
