@@ -28,6 +28,21 @@ enum RepetitionFrequency {
   ANNUALLY
 }
 
+enum AgreementType {
+  RESIDUAL_WASTE
+  GLASS_WASTE
+  GLASS_AND_METAL
+  METAL_WASTE
+  HOUSEHOLD_WASTE
+  COMMERCIAL_WASTE
+  HAZARDOUS_WASTE
+  CONSTRUCTION_AND_DEMOLITION_WASTE
+  RECYCLING
+  SPECIAL_WASTE
+  ORGANIC_WASTE
+  ELECTRONIC_WASTE
+}
+
 model User {
   id        String  @id @db.Uuid
   email     String  @unique
@@ -70,7 +85,7 @@ model Customer {
 
 model Agreement {
   id            Int       @id @default(autoincrement())
-  type          String
+  type          AgreementType @default(RESIDUAL_WASTE)
   status        String
   containerName String
   customer      Customer  @relation(fields: [customerId], references: [id])
