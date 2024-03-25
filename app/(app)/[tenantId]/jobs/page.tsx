@@ -294,7 +294,7 @@ export default function JobsPage() {
               <Select
                 comboboxProps={{ withinPortal: true }}
                 data={[
-                  { value: 'none', label: 'Ingen sjåfør' },
+                  { value: 'none', label: 'Ingen bil' },
                   ...(cars || []).map((car) => ({
                     value: car.id.toString(),
                     label: `${car.regnr} - ${car.Employee?.name || 'mangler sjåfør'}`,
