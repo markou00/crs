@@ -24,8 +24,6 @@ export function JobCard({ job, agreement, car, customer, onEdit }: JobCardProps)
         return 'green';
       case 'unassigned':
         return 'orange';
-      case 'overdue':
-        return 'red';
       default:
         return 'gray';
     }

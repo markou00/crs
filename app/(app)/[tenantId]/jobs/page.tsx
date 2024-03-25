@@ -14,15 +14,20 @@ import {
   Textarea,
   ScrollArea,
   Select,
+  Modal,
+  ComboboxItem,
 } from '@mantine/core';
 import { DateTimePicker } from '@mantine/dates';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useDisclosure } from '@mantine/hooks';
 import { useState } from 'react';
-import { Container, Car } from '@prisma/client';
-import { getJobs, editJob, deleteJob } from '@/lib/server/actions/job-actions';
+import { Container, Car, Agreement } from '@prisma/client';
+import { getJobs, editJob, deleteJob, addJob } from '@/lib/server/actions/job-actions';
 import { getCars } from '@/lib/server/actions/car-actions';
+import { getAgreements } from '@/lib/server/actions/agreements-actions';
 import { JobCard } from './JobCard/JobCard';
+/* import { newJobFormValidation } from './utils/newJobFormValidation';
+import { editJobFormValidation } from './utils/editJobFormValidation'; */
 
 type JobDetails = {
   id: number;
@@ -48,24 +53,66 @@ export default function JobsPage() {
     queryFn: () => getCars(),
   });
 
+  const getAgreementsQuery = useQuery({
+    queryKey: ['agreements'],
+    queryFn: () => getAgreements(),
+  });
+
   const cars = getCarsQuery.data?.cars;
+  const agreements = getAgreementsQuery.data?.agreements;
 
   const [opened, { open, close }] = useDisclosure(false);
+  const [openedModal, { open: openModal, close: closeModal }] = useDisclosure(false);
 
   const [records, setRecords] = useState(getJobsQuery.data?.jobs);
 
   const [currentRecord, setCurrentRecord] = useState<JobDetails>();
 
-  const [currentRecordStatus, setCurrentRecordStatus] = useState(currentRecord?.status);
   const [currentRecordComment, setCurrentRecordComment] = useState(currentRecord?.comment);
   const [currentRecordDate, setCurrentRecordDate] = useState(currentRecord?.date);
   const [currentRecordCarId, setCurrentRecordCarId] = useState(currentRecord?.carId);
 
+  const [newAgreement, setNewAgreement] = useState<Agreement | null>();
+  const [newCar, setNewCar] = useState<ComboboxItem | null>();
+  const [newDate, setNewDate] = useState<Date>();
+  const [newComment, setNewComment] = useState('');
+
+  const createJobMutation = useMutation({
+    mutationFn: async () => {
+      const determinedStatus = newCar?.value ? 'assigned' : 'unassigned';
+
+      const { newJob, error } = await addJob({
+        comment: newComment,
+        agreementId: newAgreement?.id,
+        type: newAgreement?.type || '',
+        carId: newCar?.value ? parseInt(newCar?.value) : undefined,
+        status: determinedStatus,
+        date: newDate,
+      });
+
+      if (error) throw new Error("Couldn't create the job!");
+
+      return newJob;
+    },
+    retry: false,
+    onSuccess: async () => {
+      const { data } = await getJobsQuery.refetch();
+      setRecords(data?.jobs);
+      setNewAgreement(null);
+      setNewCar(null);
+      setNewDate(undefined);
+      setNewComment('');
+      closeModal();
+    },
+  });
+
   const editJobMutation = useMutation({
     mutationFn: async () => {
+      const determinedStatus = currentRecordCarId ? 'assigned' : 'unassigned';
+
       const { modifiedJob, error } = await editJob({
         id: currentRecord?.id,
-        status: currentRecordStatus,
+        status: determinedStatus,
         comment: currentRecordComment,
         date: currentRecordDate,
         carId: currentRecordCarId,
@@ -87,7 +134,6 @@ export default function JobsPage() {
 
   const openDrawer = (record: JobDetails) => {
     setCurrentRecord(record);
-    setCurrentRecordStatus(record.status);
     setCurrentRecordDate(record.date);
     setCurrentRecordComment(record.comment);
     setCurrentRecordCarId(record.carId);
@@ -117,16 +163,81 @@ export default function JobsPage() {
 
   return (
     <>
-      <Title mb="lg">Oppdrag</Title>
-      <Group mb="lg">
+      <Group justify="space-between" mb="md">
+        <Title>Oppdrag</Title>
+        <Button onClick={openModal}>Nytt oppdrag</Button>
+        <Modal
+          opened={openedModal}
+          onClose={() => {
+            closeModal();
+            setNewAgreement(null);
+            setNewCar(null);
+            setNewDate(undefined);
+            setNewComment('');
+          }}
+          title="Opprett nytt oppdrag"
+        >
+          <Flex direction="column" gap="md">
+            <Select
+              comboboxProps={{ withinPortal: true }}
+              data={agreements?.map((agreement) => ({
+                value: agreement.id.toString(),
+                label: `${agreement.id} - ${agreement.type} (${agreement.customer.name})`,
+              }))}
+              value={newAgreement ? newAgreement.id.toString() : ''}
+              onChange={(value) => {
+                const selectedAgreement = agreements?.find(
+                  (agreement) => agreement.id.toString() === value
+                );
+                setNewAgreement(selectedAgreement || null);
+              }}
+              label="Avtale"
+              placeholder="Avtale-ID - type (kunde)"
+            />
+            <Select
+              comboboxProps={{ withinPortal: true }}
+              data={cars?.map((car) => ({
+                value: car.id.toString(),
+                label: `${car.regnr} - ${car.Employee?.name || 'mangler sjåfør'}`,
+              }))}
+              value={newCar?.value ? newCar.value : null}
+              onChange={(_value, option) => {
+                setNewCar({ value: option.value, label: option.label });
+              }}
+              label="Bil (valgfritt)"
+              placeholder="Regnr - sjåfør/mangler sjåfør"
+            />
+            <DateTimePicker
+              value={newDate}
+              // @ts-ignore
+              onChange={setNewDate}
+              label="Velg dato og tid"
+              placeholder="Velg dato og tid"
+            />
+            <Textarea
+              label="Kommentar"
+              value={newComment || ''}
+              autosize
+              minRows={4}
+              onChange={(event) => setNewComment(event.currentTarget.value)}
+            />
+            <Flex justify="end">
+              <Button
+                onClick={() => createJobMutation.mutate()}
+                loading={createJobMutation.isPending}
+              >
+                Opprett
+              </Button>
+            </Flex>
+          </Flex>
+        </Modal>
+      </Group>
+      <Group mb="md">
         <Badge color="green" variant="filled">
           Tildelt
         </Badge>
         <Badge color="orange" variant="filled">
           Ikke tildelt
-        </Badge>
-        <Badge color="red" variant="filled">
-          Forfalt
         </Badge>
       </Group>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
@@ -163,17 +274,6 @@ export default function JobsPage() {
           <Drawer.Body>
             <Flex direction="column" gap="md">
               <TextInput label="Oppdrag nr." value={currentRecord?.id} disabled />
-              <Select
-                comboboxProps={{ withinPortal: true }}
-                data={[
-                  { value: 'unassigned', label: 'Ikke tildelt' },
-                  { value: 'assigned', label: 'Tildelt' },
-                  { value: 'overdue', label: 'Forfalt' },
-                ]}
-                value={currentRecordStatus}
-                onChange={(value) => setCurrentRecordStatus(value ?? '')}
-                label="Status"
-              />
               <TextInput label="Type" value={currentRecord?.type} disabled />
               <DateTimePicker
                 defaultValue={currentRecordDate}
@@ -193,35 +293,35 @@ export default function JobsPage() {
               <TextInput label="Agreement Id" value={currentRecord?.agreementId} disabled />
               <Select
                 comboboxProps={{ withinPortal: true }}
-                data={cars?.map((car) => ({
-                  value: car.id.toString(),
-                  label: `${car.regnr} (ID: ${car?.Employee?.name})`,
-                }))}
-                value={currentRecordCarId?.toString() || ''}
+                data={[
+                  { value: 'none', label: 'Ingen sjåfør' },
+                  ...(cars || []).map((car) => ({
+                    value: car.id.toString(),
+                    label: `${car.regnr} - ${car.Employee?.name || 'mangler sjåfør'}`,
+                  })),
+                ]}
+                value={currentRecordCarId?.toString() || 'none'}
                 onChange={(value) => {
-                  const newValue = value ? parseInt(value, 10) : null;
+                  const newValue = value !== 'none' && value !== null ? parseInt(value, 10) : null;
                   setCurrentRecordCarId(newValue);
                 }}
-                label="Car"
-                placeholder="Select a car"
+                label="Bil"
               />
+
               <Flex justify="end">
                 <Group>
                   <Button
                     color="red"
                     onClick={() => {
-                      // Sjekker først om et oppdrag er valgt
                       if (!currentRecord) {
                         console.log('Ingen oppdrag er valgt.');
                         return;
                       }
 
-                      // Viser en bekreftelsesdialog til brukeren
                       const isConfirmed = window.confirm(
                         'Er du sikker på at du vil slette dette oppdraget?'
                       );
 
-                      // Utfører slettingen hvis brukeren bekreftet
                       if (isConfirmed) {
                         deleteJobMutation.mutate({ id: currentRecord.id });
                       }

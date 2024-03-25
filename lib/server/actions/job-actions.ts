@@ -64,8 +64,8 @@ export async function editJob(job: Partial<Job>) {
     return { error };
   }
 }
-/*
-export async function addJob(agreement: Partial<Job>) {
+
+export async function addJob(job: Partial<Job>) {
   try {
     const supabase = createServerActionClient({ cookies });
 
@@ -75,13 +75,12 @@ export async function addJob(agreement: Partial<Job>) {
     const newJob = await prisma.job.create({
       data: {
         tenantId,
-        type: agreement.type!,
-        status: agreement.status!,
-        validFrom: agreement.validFrom!,
-        customerId: agreement.customerId!,
-        validTo: agreement.validTo || null,
-        comment: agreement.comment || null,
-        containerName: agreement.containerName!,
+        type: job.type!,
+        status: job.status!,
+        comment: job.comment || null,
+        agreementId: job.agreementId!,
+        carId: job.carId || null,
+        date: job.date!,
       },
     });
 
@@ -90,7 +89,6 @@ export async function addJob(agreement: Partial<Job>) {
     return { error };
   }
 }
-*/
 
 export async function deleteJob(id: number) {
   try {
