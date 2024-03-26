@@ -26,8 +26,6 @@ import { getJobs, editJob, deleteJob, addJob } from '@/lib/server/actions/job-ac
 import { getCars } from '@/lib/server/actions/car-actions';
 import { getAgreements } from '@/lib/server/actions/agreements-actions';
 import { JobCard } from './JobCard/JobCard';
-/* import { newJobFormValidation } from './utils/newJobFormValidation';
-import { editJobFormValidation } from './utils/editJobFormValidation'; */
 
 type JobDetails = {
   id: number;
