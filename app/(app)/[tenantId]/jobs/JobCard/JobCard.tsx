@@ -8,6 +8,7 @@ import {
   IconCalendarRepeat,
 } from '@tabler/icons-react';
 import styles from './JobCard.module.css';
+import { AgreementTypeDisplay } from '../../agreements/utils/agreementTypeDisplay';
 
 type JobCardProps = {
   job: Job;
@@ -16,6 +17,13 @@ type JobCardProps = {
   customer: Customer;
   onEdit: (job: Job) => void;
 };
+
+function getAgreementTypeDisplayValue(type: string): string {
+  if (type in AgreementTypeDisplay) {
+    return AgreementTypeDisplay[type as keyof typeof AgreementTypeDisplay];
+  }
+  return type;
+}
 
 export function JobCard({ job, agreement, car, customer, onEdit }: JobCardProps) {
   const getStatusColor = (status: string) => {
@@ -51,7 +59,7 @@ export function JobCard({ job, agreement, car, customer, onEdit }: JobCardProps)
       <div style={{ position: 'relative', height: '100%', backgroundColor: statusColor }} />
       <Grid gutter="sm">
         <Grid.Col span={3}>
-          <Text fw={700}>{job.type}</Text>
+          <Text fw={700}>{getAgreementTypeDisplayValue(job.type)}</Text>
         </Grid.Col>
         <Grid.Col span={2}>
           <Group gap="xs">

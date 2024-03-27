@@ -26,6 +26,7 @@ import { getJobs, editJob, deleteJob, addJob } from '@/lib/server/actions/job-ac
 import { getCars } from '@/lib/server/actions/car-actions';
 import { getAgreements } from '@/lib/server/actions/agreements-actions';
 import { JobCard } from './JobCard/JobCard';
+import { AgreementTypeDisplay } from '../agreements/utils/agreementTypeDisplay';
 
 type JobDetails = {
   id: number;
@@ -74,6 +75,13 @@ export default function JobsPage() {
   const [newCar, setNewCar] = useState<ComboboxItem | null>();
   const [newDate, setNewDate] = useState<Date>();
   const [newComment, setNewComment] = useState('');
+
+  function getAgreementTypeDisplayValue(type: string): string {
+    if (type in AgreementTypeDisplay) {
+      return AgreementTypeDisplay[type as keyof typeof AgreementTypeDisplay];
+    }
+    return type;
+  }
 
   const createJobMutation = useMutation({
     mutationFn: async () => {
@@ -180,7 +188,7 @@ export default function JobsPage() {
               comboboxProps={{ withinPortal: true }}
               data={agreements?.map((agreement) => ({
                 value: agreement.id.toString(),
-                label: `${agreement.id} - ${agreement.type} (${agreement.customer.name})`,
+                label: `${agreement.id} - ${getAgreementTypeDisplayValue(agreement.type || '')} (${agreement.customer.name})`,
               }))}
               value={newAgreement ? newAgreement.id.toString() : ''}
               onChange={(value) => {
@@ -190,7 +198,7 @@ export default function JobsPage() {
                 setNewAgreement(selectedAgreement || null);
               }}
               label="Avtale"
-              placeholder="Avtale-ID - type (kunde)"
+              placeholder="Avtale-ID - avfallstype (kunde)"
             />
             <Select
               comboboxProps={{ withinPortal: true }}
@@ -272,7 +280,11 @@ export default function JobsPage() {
           <Drawer.Body>
             <Flex direction="column" gap="md">
               <TextInput label="Oppdrag nr." value={currentRecord?.id} disabled />
-              <TextInput label="Type" value={currentRecord?.type} disabled />
+              <TextInput
+                label="Avfallstype"
+                value={getAgreementTypeDisplayValue(currentRecord?.type || '')}
+                disabled
+              />
               <DateTimePicker
                 defaultValue={currentRecordDate}
                 // @ts-ignore
