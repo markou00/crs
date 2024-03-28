@@ -55,7 +55,6 @@ export function Navbar() {
       link: `/${user?.user_metadata?.tenantId}/jobs`,
       label: 'Oppdrag',
       icon: IconCheckbox,
-      isDisabled: true, // remove this to remove the "grey out" effect
     },
     {
       link: `/${user?.user_metadata?.tenantId}/trucks`,

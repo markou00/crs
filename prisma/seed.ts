@@ -163,22 +163,44 @@ async function main() {
   const agreements = await prisma.agreement.createMany({
     data: [
       {
-        status: 'Tildelt',
-        type: 'Utleie',
+        status: 'Gjeldende',
+        type: 'ORGANIC_WASTE',
         containerName: '100 Matavfall',
         validFrom: new Date(Date.now()),
         customerId: customerRecords.at(0)?.id!,
-        comment: 'Test comment',
+        comment: 'Mye slakteavfall',
         tenantId: tenant.id,
+        repetition: 'NONE',
       },
       {
-        status: 'Opprettet',
-        type: 'Tømming',
-        containerName: '120 Restavfall',
+        status: 'Gjeldende',
+        type: 'ORGANIC_WASTE',
+        containerName: '100 Matavfall',
         validFrom: new Date(Date.now()),
         customerId: customerRecords.at(1)?.id!,
+        comment: 'En del involler',
+        tenantId: tenant.id,
+        repetition: 'WEEKLY',
+      },
+      {
+        status: 'Avsluttet',
+        type: 'RESIDUAL_WASTE',
+        containerName: '120 Matavfall',
+        validFrom: new Date(Date.now()),
+        customerId: customerRecords.at(2)?.id!,
+        comment: 'Var ikke fornøyd med tjenesten',
+        tenantId: tenant.id,
+        repetition: 'DAILY',
+      },
+      {
+        status: 'Gjeldende',
+        type: 'RESIDUAL_WASTE',
+        containerName: '120 Restavfall',
+        validFrom: new Date(Date.now()),
+        customerId: customerRecords.at(3)?.id!,
         validTo: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
         tenantId: tenant.id,
+        repetition: 'WEEKLY',
       },
     ],
   });
@@ -187,10 +209,30 @@ async function main() {
   const jobs = await prisma.job.createMany({
     data: [
       {
-        status: 'Opprettet',
-        type: 'Tømming',
-        customerId: customerRecords.at(1)?.id!,
+        type: 'ORGANIC_WASTE',
+        status: 'assigned',
+        date: new Date(2023, 3, 14, 10, 0),
+        comment: 'Engangsjobb med matavfall',
         tenantId: tenant.id,
+        agreementId: 1,
+        carId: 1,
+      },
+      {
+        type: 'ORGANIC_WASTE',
+        status: 'assigned',
+        date: new Date(2023, 3, 13, 14, 30),
+        comment: 'Det lukter vondt!',
+        tenantId: tenant.id,
+        agreementId: 2,
+        carId: 2,
+      },
+      {
+        type: 'RESIDUAL_WASTE',
+        status: 'unassigned',
+        date: new Date(2023, 3, 15, 9, 0),
+        comment: 'Ingen vil ha denne jobben',
+        tenantId: tenant.id,
+        agreementId: 4,
       },
     ],
   });
@@ -233,8 +275,6 @@ async function main() {
     data: { containerId: containerRecord?.id! },
   });
 
-  // Create employees and associate them with cars
-  // Note: This assumes that each car is associated with one employee
   const employees = await prisma.employee.createMany({
     data: [
       {

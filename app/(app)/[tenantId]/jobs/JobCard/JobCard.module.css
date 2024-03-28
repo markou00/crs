@@ -1,0 +1,21 @@
+.cardWithStatusEdge::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background-color: var(--status-color);
+  }
+  
+.compactButton {
+  padding: 0px 4px;
+  min-height: auto;
+  line-height: 1;
+  height: 20px;
+}
+
+.compactText {
+  white-space: nowrap;
+  font-size: 0.75rem;
+}

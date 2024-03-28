@@ -100,7 +100,7 @@
     "postcss": "^8.4.31",
     "postcss-preset-mantine": "1.13.0",
     "postcss-simple-vars": "^7.0.1",
-    "prettier": "^3.0.3",
+    "prettier": "^3.2.5",
     "prisma": "^5.9.1",
     "storybook": "^7.5.2",
     "storybook-dark-mode": "^3.0.1",
