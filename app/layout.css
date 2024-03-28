@@ -1,2 +1,15 @@
 /* 👇 Make sure the styles are applied in the correct order */
 @layer mantine, mantine-datatable;
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar:horizontal {
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--mantine-color-gray-5);
+}
