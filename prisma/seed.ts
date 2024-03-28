@@ -190,7 +190,7 @@ async function main() {
         customerId: customerRecords.at(2)?.id!,
         comment: 'Var ikke fornøyd med tjenesten',
         tenantId: tenant.id,
-        repetition: 'NONE',
+        repetition: 'DAILY',
       },
       {
         status: 'Gjeldende',

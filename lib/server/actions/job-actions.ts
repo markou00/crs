@@ -81,6 +81,7 @@ export async function addJob(job: Partial<Job>) {
         agreementId: job.agreementId!,
         carId: job.carId || null,
         date: job.date!,
+        repetition: job.repetition!,
       },
     });
 

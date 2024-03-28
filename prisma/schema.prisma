@@ -24,8 +24,6 @@ enum RepetitionFrequency {
   NONE
   DAILY
   WEEKLY
-  MONTHLY
-  ANNUALLY
 }
 
 enum AgreementType {
@@ -149,6 +147,7 @@ model Job {
   id          Int        @id @default(autoincrement())
   type        String
   status      String
+  repetition  RepetitionFrequency @default(NONE)
   date        DateTime
   agreement   Agreement @relation(fields: [agreementId], references: [id])
   comment     String?

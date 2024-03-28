@@ -85,7 +85,7 @@ export function JobCard({ job, agreement, car, customer, onEdit }: JobCardProps)
         </Grid.Col>
         <Grid.Col span={3}>
           <Group gap="xs" justify="flex-end">
-            {agreement.repetition === 'NONE' ? (
+            {job.repetition === 'NONE' ? (
               <IconRepeatOff size={16} />
             ) : (
               <IconCalendarRepeat size={16} />

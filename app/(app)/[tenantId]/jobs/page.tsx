@@ -16,17 +16,19 @@ import {
   Select,
   Modal,
   ComboboxItem,
+  Stack,
 } from '@mantine/core';
 import { DateTimePicker } from '@mantine/dates';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useDisclosure } from '@mantine/hooks';
-import { useState } from 'react';
-import { Container, Car, Agreement } from '@prisma/client';
+import { useEffect, useState } from 'react';
+import { Container, Car, Agreement, Job, RepetitionFrequency } from '@prisma/client';
 import { getJobs, editJob, deleteJob, addJob } from '@/lib/server/actions/job-actions';
 import { getCars } from '@/lib/server/actions/car-actions';
 import { getAgreements } from '@/lib/server/actions/agreements-actions';
 import { JobCard } from './JobCard/JobCard';
 import { AgreementTypeDisplay } from '../agreements/utils/agreementTypeDisplay';
+import { RepetitionFrequencyDisplay } from '../agreements/utils/repetitionFrequencyDisplay';
 
 type JobDetails = {
   id: number;
@@ -39,6 +41,7 @@ type JobDetails = {
   carId: number | null;
   container: Container | null;
   car: Car | null;
+  repetition: RepetitionFrequency;
 };
 
 export default function JobsPage() {
@@ -59,22 +62,26 @@ export default function JobsPage() {
 
   const cars = getCarsQuery.data?.cars;
   const agreements = getAgreementsQuery.data?.agreements;
-
   const [opened, { open, close }] = useDisclosure(false);
   const [openedModal, { open: openModal, close: closeModal }] = useDisclosure(false);
-
   const [records, setRecords] = useState(getJobsQuery.data?.jobs);
-
   const [currentRecord, setCurrentRecord] = useState<JobDetails>();
-
   const [currentRecordComment, setCurrentRecordComment] = useState(currentRecord?.comment);
   const [currentRecordDate, setCurrentRecordDate] = useState(currentRecord?.date);
   const [currentRecordCarId, setCurrentRecordCarId] = useState(currentRecord?.carId);
-
   const [newAgreement, setNewAgreement] = useState<Agreement | null>();
   const [newCar, setNewCar] = useState<ComboboxItem | null>();
   const [newDate, setNewDate] = useState<Date>();
   const [newComment, setNewComment] = useState('');
+  const [newRepetition, setNewRepetition] = useState<RepetitionFrequency | undefined>(
+    RepetitionFrequency.NONE
+  );
+
+  useEffect(() => {
+    if (newRepetition !== RepetitionFrequency.NONE) {
+      setNewCar(null);
+    }
+  }, [newRepetition]);
 
   function getAgreementTypeDisplayValue(type: string): string {
     if (type in AgreementTypeDisplay) {
@@ -83,20 +90,54 @@ export default function JobsPage() {
     return type;
   }
 
-  const createJobMutation = useMutation({
-    mutationFn: async () => {
-      const determinedStatus = newCar?.value ? 'assigned' : 'unassigned';
+  function getRepetitionFrequencyDisplayValue(type: string): string {
+    if (type in RepetitionFrequencyDisplay) {
+      return RepetitionFrequencyDisplay[type as keyof typeof RepetitionFrequencyDisplay];
+    }
+    return type;
+  }
 
+  const initialRepetitionOptions = [
+    { value: RepetitionFrequency.NONE, label: 'Ingen gjentagelse', disabled: false },
+    { value: RepetitionFrequency.DAILY, label: 'Daglig', disabled: true },
+    { value: RepetitionFrequency.WEEKLY, label: 'Ukentlig', disabled: true },
+  ];
+
+  const [repetitionOptions, setRepetitionOptions] = useState(initialRepetitionOptions);
+
+  useEffect(() => {
+    if (newAgreement) {
+      const updatedOptions = initialRepetitionOptions.map((option) => ({
+        ...option,
+        disabled: newAgreement.repetition !== option.value && option.value !== 'NONE',
+      }));
+
+      setRepetitionOptions(updatedOptions);
+
+      if (updatedOptions.find((option) => option.value === newRepetition)?.disabled) {
+        setNewRepetition('NONE');
+      }
+    } else {
+      setRepetitionOptions(initialRepetitionOptions);
+      setNewRepetition('NONE');
+    }
+  }, [newAgreement, newRepetition]);
+
+  const createJobMutation = useMutation({
+    mutationFn: async (job: Partial<Job>) => {
       const { newJob, error } = await addJob({
-        comment: newComment,
-        agreementId: newAgreement?.id,
-        type: newAgreement?.type || '',
-        carId: newCar?.value ? parseInt(newCar?.value) : undefined,
-        status: determinedStatus,
-        date: newDate,
+        comment: job.comment,
+        agreementId: job.agreementId,
+        type: job.type,
+        carId: job.carId,
+        status: job.status,
+        date: job.date,
+        repetition: job.repetition,
       });
 
-      if (error) throw new Error("Couldn't create the job!");
+      if (error) {
+        throw new Error(`Couldn't create the job for date ${job.date}`);
+      }
 
       return newJob;
     },
@@ -104,13 +145,54 @@ export default function JobsPage() {
     onSuccess: async () => {
       const { data } = await getJobsQuery.refetch();
       setRecords(data?.jobs);
-      setNewAgreement(null);
-      setNewCar(null);
-      setNewDate(undefined);
-      setNewComment('');
-      closeModal();
     },
   });
+
+  const handleCreateJobs = async () => {
+    if (!newAgreement || !newDate) return;
+
+    const validUntil = newAgreement.validTo ? new Date(newAgreement.validTo) : null;
+    if (!validUntil) {
+      console.error('Avtalen mangler en gyldig til dato.');
+      return;
+    }
+
+    const jobs: Partial<Job>[] = [];
+    const chosenDate = newDate;
+
+    while (chosenDate <= validUntil) {
+      jobs.push({
+        comment: newComment,
+        agreementId: newAgreement.id,
+        type: newAgreement.type || '',
+        carId: newCar ? parseInt(newCar.value, 10) : null,
+        status: newCar ? 'assigned' : 'unassigned',
+        repetition: newRepetition,
+        date: new Date(chosenDate),
+      });
+
+      if (newRepetition === RepetitionFrequency.DAILY) {
+        chosenDate.setDate(chosenDate.getDate() + 1);
+      } else if (newRepetition === RepetitionFrequency.WEEKLY) {
+        chosenDate.setDate(chosenDate.getDate() + 7);
+      } else {
+        break;
+      }
+    }
+
+    await Promise.all(jobs.map((job) => createJobMutation.mutateAsync(job)))
+      .then(() => {
+        setNewAgreement(null);
+        setNewCar(null);
+        setNewDate(undefined);
+        setNewRepetition(RepetitionFrequency.NONE);
+        setNewComment('');
+        closeModal();
+      })
+      .catch((error) => {
+        console.error('Feil under opprettelse av jobber:', error);
+      });
+  };
 
   const editJobMutation = useMutation({
     mutationFn: async () => {
@@ -188,7 +270,7 @@ export default function JobsPage() {
               comboboxProps={{ withinPortal: true }}
               data={agreements?.map((agreement) => ({
                 value: agreement.id.toString(),
-                label: `${agreement.id} - ${getAgreementTypeDisplayValue(agreement.type || '')} (${agreement.customer.name})`,
+                label: `${agreement.id} - ${getAgreementTypeDisplayValue(agreement.type || '')} - ${agreement.customer.name} - ${getRepetitionFrequencyDisplayValue(agreement.repetition)}`,
               }))}
               value={newAgreement ? newAgreement.id.toString() : ''}
               onChange={(value) => {
@@ -198,27 +280,43 @@ export default function JobsPage() {
                 setNewAgreement(selectedAgreement || null);
               }}
               label="Avtale"
-              placeholder="Avtale-ID - avfallstype (kunde)"
+              placeholder="AvtaleID - avfallstype - kunde - gjentagelse"
             />
-            <Select
-              comboboxProps={{ withinPortal: true }}
-              data={cars?.map((car) => ({
-                value: car.id.toString(),
-                label: `${car.regnr} - ${car.Employee?.name || 'mangler sjåfør'}`,
-              }))}
-              value={newCar?.value ? newCar.value : null}
-              onChange={(_value, option) => {
-                setNewCar({ value: option.value, label: option.label });
-              }}
-              label="Bil (valgfritt)"
-              placeholder="Regnr - sjåfør/mangler sjåfør"
-            />
+            <Stack gap="xs">
+              <Text size="sm" fw={500}>
+                Bil (valgfritt)
+              </Text>
+              {newRepetition === RepetitionFrequency.NONE ? (
+                <Select
+                  comboboxProps={{ withinPortal: true }}
+                  data={cars?.map((car) => ({
+                    value: car.id.toString(),
+                    label: `${car.regnr} - ${car.Employee?.name || 'mangler sjåfør'}`,
+                  }))}
+                  value={newCar?.value ? newCar.value : null}
+                  onChange={(_value, option) => {
+                    setNewCar({ value: option.value, label: option.label });
+                  }}
+                  placeholder="Regnr - sjåfør/mangler sjåfør"
+                />
+              ) : (
+                <Text size="sm" c="dimmed">
+                  Utilgjengelig for gjentagende oppdrag
+                </Text>
+              )}
+            </Stack>
             <DateTimePicker
               value={newDate}
               // @ts-ignore
               onChange={setNewDate}
               label="Velg dato og tid"
               placeholder="Velg dato og tid"
+            />
+            <Select
+              label="Gjentagelse (ingen eller avtalens gjentagelse)"
+              value={newRepetition}
+              onChange={(value) => setNewRepetition(value as RepetitionFrequency | undefined)}
+              data={repetitionOptions}
             />
             <Textarea
               label="Kommentar"
@@ -228,10 +326,7 @@ export default function JobsPage() {
               onChange={(event) => setNewComment(event.currentTarget.value)}
             />
             <Flex justify="end">
-              <Button
-                onClick={() => createJobMutation.mutate()}
-                loading={createJobMutation.isPending}
-              >
+              <Button onClick={handleCreateJobs} loading={createJobMutation.isPending}>
                 Opprett
               </Button>
             </Flex>
@@ -265,10 +360,7 @@ export default function JobsPage() {
         radius="md"
         position="right"
         opened={opened}
-        onClose={() => {
-          setCurrentRecord(undefined);
-          close();
-        }}
+        onClose={close}
         scrollAreaComponent={ScrollArea.Autosize}
       >
         <Drawer.Overlay />
@@ -291,6 +383,11 @@ export default function JobsPage() {
                 onChange={setCurrentRecordDate}
                 label="Velg dato og tid"
                 placeholder="Velg dato og tid"
+              />
+              <TextInput
+                label="Gjentagelse"
+                value={getRepetitionFrequencyDisplayValue(currentRecord?.repetition || '')}
+                disabled
               />
               <Textarea
                 label="Kommentar"
