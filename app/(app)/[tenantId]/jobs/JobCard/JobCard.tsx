@@ -50,7 +50,7 @@ export function JobCard({ job, agreement, car, customer, onEdit }: JobCardProps)
       padding="lg"
       component="a"
       style={{
-        width: '900px',
+        width: '700px',
         position: 'relative',
         '--status-color': getStatusColor(job.status),
       }}
@@ -61,7 +61,7 @@ export function JobCard({ job, agreement, car, customer, onEdit }: JobCardProps)
         <Grid.Col span={3}>
           <Text fw={700}>{getAgreementTypeDisplayValue(job.type)}</Text>
         </Grid.Col>
-        <Grid.Col span={2}>
+        <Grid.Col span={2.5}>
           <Group gap="xs">
             <IconBox size={16} />
             <Button variant="light" size="xs" className={styles.compactButton}>
@@ -83,7 +83,7 @@ export function JobCard({ job, agreement, car, customer, onEdit }: JobCardProps)
             </Group>
           )}
         </Grid.Col>
-        <Grid.Col span={3}>
+        <Grid.Col span={2.5}>
           <Group gap="xs" justify="flex-end">
             {job.repetition === 'NONE' ? (
               <IconRepeatOff size={16} />
@@ -113,16 +113,15 @@ export function JobCard({ job, agreement, car, customer, onEdit }: JobCardProps)
         <Grid.Col span={3}>
           <Text size="sm">Jobb-id: {job.id}</Text>
         </Grid.Col>
-        <Grid.Col span={3}>
-          <Text size="sm">{customer.name}</Text>
-        </Grid.Col>
-        <Grid.Col span={3}>
+        <Grid.Col span={6}>
           <Text size="sm">
-            {customer.address}, {customer.city}
+            {customer.name} - {customer.address}, {customer.city}
           </Text>
         </Grid.Col>
         <Grid.Col span={3}>
-          <Button onClick={handleEditClick}>Rediger</Button>
+          <Group justify="flex-end">
+            <Button onClick={handleEditClick}>Rediger</Button>
+          </Group>
         </Grid.Col>
       </Grid>
     </Card>
