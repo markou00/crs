@@ -26,8 +26,9 @@ import { DateTimePicker } from '@mantine/dates';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useDisclosure } from '@mantine/hooks';
 import { useEffect, useState } from 'react';
-import { Container, Car, Agreement, Job, RepetitionFrequency } from '@prisma/client';
+import { Container, Customer, Car, Agreement, Job, RepetitionFrequency } from '@prisma/client';
 import { getJobs, editJob, deleteJob, addJob } from '@/lib/server/actions/job-actions';
+import { getCustomers } from '@/lib/server/actions/customer-actions';
 import { getCars } from '@/lib/server/actions/car-actions';
 import { getAgreements } from '@/lib/server/actions/agreements-actions';
 import { JobCard } from './JobCard/JobCard';
@@ -47,12 +48,23 @@ type JobDetails = {
   container: Container | null;
   car: Car | null;
   repetition: RepetitionFrequency;
+  agreement: Agreement & {
+    customer: Customer;
+  };
+  tenantId: string;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 export default function JobsPage() {
   const getJobsQuery = useQuery({
     queryKey: ['jobs'],
     queryFn: () => getJobs(),
+  });
+
+  const getCustomersQuery = useQuery({
+    queryKey: ['customers'],
+    queryFn: () => getCustomers(),
   });
 
   const getCarsQuery = useQuery({
@@ -67,9 +79,10 @@ export default function JobsPage() {
 
   const cars = getCarsQuery.data?.cars;
   const agreements = getAgreementsQuery.data?.agreements;
+  const customers = getCustomersQuery.data?.customers;
+
   const [opened, { open, close }] = useDisclosure(false);
   const [openedModal, { open: openModal, close: closeModal }] = useDisclosure(false);
-  const [records, setRecords] = useState(getJobsQuery.data?.jobs);
   const [currentRecord, setCurrentRecord] = useState<JobDetails>();
   const [currentRecordComment, setCurrentRecordComment] = useState(currentRecord?.comment);
   const [currentRecordDate, setCurrentRecordDate] = useState(currentRecord?.date);
@@ -81,6 +94,10 @@ export default function JobsPage() {
   const [newRepetition, setNewRepetition] = useState<RepetitionFrequency | undefined>(
     RepetitionFrequency.NONE
   );
+  const [allJobs, setAllJobs] = useState<JobDetails[]>([]);
+  const [filteredJobs, setFilteredJobs] = useState<JobDetails[]>([]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
+  const [selectedAgreementId, setSelectedAgreementId] = useState<number | null>(null);
 
   useEffect(() => {
     if (newRepetition !== RepetitionFrequency.NONE) {
@@ -149,7 +166,9 @@ export default function JobsPage() {
     retry: false,
     onSuccess: async () => {
       const { data } = await getJobsQuery.refetch();
-      setRecords(data?.jobs);
+      if (data?.jobs) {
+        setAllJobs(data.jobs);
+      }
     },
   });
 
@@ -157,10 +176,6 @@ export default function JobsPage() {
     if (!newAgreement || !newDate) return;
 
     const validUntil = newAgreement.validTo ? new Date(newAgreement.validTo) : null;
-    if (!validUntil) {
-      console.error('Avtalen mangler en gyldig til dato.');
-      return;
-    }
 
     const jobs: Partial<Job>[] = [];
     const chosenDate = newDate;
@@ -216,10 +231,11 @@ export default function JobsPage() {
       return modifiedJob;
     },
     retry: false,
-
     onSuccess: async () => {
       const { data } = await getJobsQuery.refetch();
-      setRecords(data?.jobs);
+      if (data?.jobs) {
+        setAllJobs(data.jobs);
+      }
       close();
     },
     onError: (error: any) => console.log(error.message),
@@ -236,20 +252,40 @@ export default function JobsPage() {
   const deleteJobMutation = useMutation({
     mutationFn: async ({ id }: { id: number }) => {
       const { deletedJob, error } = await deleteJob(id);
-
       if (error) throw new Error("Couldn't delete the job");
-
       return deletedJob;
     },
     retry: false,
-
     onSuccess: async () => {
       const { data } = await getJobsQuery.refetch();
-      setRecords(data?.jobs);
+      if (data?.jobs) {
+        setAllJobs(data.jobs);
+      }
       close();
     },
     onError: (error: any) => console.log(error.message),
   });
+
+  useEffect(() => {
+    let jobs = allJobs;
+
+    if (selectedCustomerId !== null) {
+      jobs = jobs.filter((job) => job.agreement.customerId === selectedCustomerId);
+    }
+
+    if (selectedAgreementId !== null) {
+      jobs = jobs.filter((job) => job.agreementId === selectedAgreementId);
+    }
+
+    setFilteredJobs(jobs);
+  }, [selectedCustomerId, selectedAgreementId, allJobs]);
+
+  useEffect(() => {
+    if (getJobsQuery.data?.jobs) {
+      setAllJobs(getJobsQuery.data.jobs);
+      setFilteredJobs(getJobsQuery.data.jobs);
+    }
+  }, [getJobsQuery.data?.jobs]);
 
   if (getJobsQuery.error) return <Text>Error...</Text>;
   if (getJobsQuery.isLoading) return <Text>Loading...</Text>;
@@ -274,109 +310,8 @@ export default function JobsPage() {
 
         <Tabs.Panel value="incompleteTasks" pt="xs">
           <Group justify="space-between" mb="md">
-            <Title>Oppdrag</Title>
+            <Title>Aktive oppdrag</Title>
             <Button onClick={openModal}>Nytt oppdrag</Button>
-            <Modal
-              opened={openedModal}
-              onClose={() => {
-                closeModal();
-                setNewAgreement(null);
-                setNewCar(null);
-                setNewDate(undefined);
-                setNewComment('');
-              }}
-              title="Opprett nytt oppdrag"
-            >
-              <Flex direction="column" gap="md">
-                <Select
-                  comboboxProps={{ withinPortal: true }}
-                  data={agreements?.map((agreement) => ({
-                    value: agreement.id.toString(),
-                    label: `${agreement.id} - ${getAgreementTypeDisplayValue(agreement.type || '')} - ${agreement.customer.name} - ${getRepetitionFrequencyDisplayValue(agreement.repetition)}`,
-                  }))}
-                  value={newAgreement ? newAgreement.id.toString() : ''}
-                  onChange={(value) => {
-                    const selectedAgreement = agreements?.find(
-                      (agreement) => agreement.id.toString() === value
-                    );
-                    setNewAgreement(selectedAgreement || null);
-                  }}
-                  label="Avtale"
-                  placeholder="AvtaleID - avfallstype - kunde - gjentagelse"
-                />
-                <Stack gap="xs">
-                  <Text size="sm" fw={500}>
-                    Bil
-                  </Text>
-                  {newRepetition === RepetitionFrequency.NONE ? (
-                    <HoverCard width={280} shadow="md">
-                      <HoverCard.Target>
-                        <Select
-                          comboboxProps={{ withinPortal: true }}
-                          data={cars?.map((car) => ({
-                            value: car.id.toString(),
-                            label: `${car.regnr} - ${car.Employee?.name || 'mangler sjåfør'}`,
-                          }))}
-                          value={newCar?.value ? newCar.value : null}
-                          onChange={(_value, option) => {
-                            setNewCar({ value: option.value, label: option.label });
-                          }}
-                          placeholder="Regnr - sjåfør/mangler sjåfør"
-                        />
-                      </HoverCard.Target>
-                      <HoverCard.Dropdown>
-                        <Text size="sm">
-                          Dette er valgfritt, og vil kun være tilgjengelig for oppdrag uten
-                          gjentagelse.
-                        </Text>
-                      </HoverCard.Dropdown>
-                    </HoverCard>
-                  ) : (
-                    <Text size="sm" c="dimmed">
-                      Utilgjengelig for gjentagende oppdrag
-                    </Text>
-                  )}
-                </Stack>
-                <DateTimePicker
-                  value={newDate}
-                  // @ts-ignore
-                  onChange={setNewDate}
-                  label="Velg dato og tid"
-                  placeholder="Velg dato og tid"
-                />
-                <HoverCard width={280} shadow="md">
-                  <HoverCard.Target>
-                    <Select
-                      label="Gjentagelse"
-                      value={newRepetition}
-                      onChange={(value) =>
-                        setNewRepetition(value as RepetitionFrequency | undefined)
-                      }
-                      data={repetitionOptions}
-                    />
-                  </HoverCard.Target>
-                  <HoverCard.Dropdown>
-                    <Text size="sm">
-                      Du kan velge ingen gjentagelsesfrekvens, eller det som er oppgitt i avtalen.
-                      Oppdraget gjentas da frem til avtalen utløper. Hvis du velger en frekvens vil
-                      du ikke kunne tildele en bil til oppdraget.
-                    </Text>
-                  </HoverCard.Dropdown>
-                </HoverCard>
-                <Textarea
-                  label="Kommentar"
-                  value={newComment || ''}
-                  autosize
-                  minRows={4}
-                  onChange={(event) => setNewComment(event.currentTarget.value)}
-                />
-                <Flex justify="end">
-                  <Button onClick={handleCreateJobs} loading={createJobMutation.isPending}>
-                    Opprett
-                  </Button>
-                </Flex>
-              </Flex>
-            </Modal>
           </Group>
           <Group mb="md">
             <Badge color="green" variant="filled">
@@ -386,8 +321,132 @@ export default function JobsPage() {
               Ikke tildelt
             </Badge>
           </Group>
+          <Group mb="md" gap="xs">
+            <Select
+              comboboxProps={{ withinPortal: true }}
+              data={customers?.map((customer) => ({
+                value: customer.id.toString(),
+                label: customer.name,
+              }))}
+              value={selectedCustomerId?.toString() || ''}
+              onChange={(value) => setSelectedCustomerId(value ? parseInt(value) : null)}
+              label="Kunde"
+              placeholder="Velg en kunde"
+            />
+            <Select
+              comboboxProps={{ withinPortal: true }}
+              data={agreements?.map((agreement) => ({
+                value: agreement.id.toString(),
+                label: `${agreement.id} - ${getAgreementTypeDisplayValue(agreement.type || '')} - ${agreement.customer.name}`,
+              }))}
+              value={selectedAgreementId?.toString() || ''}
+              onChange={(value) => setSelectedAgreementId(value ? parseInt(value) : null)}
+              label="Avtale"
+              placeholder="Velg en avtale"
+            />
+          </Group>
+          <Modal
+            opened={openedModal}
+            onClose={() => {
+              closeModal();
+              setNewAgreement(null);
+              setNewCar(null);
+              setNewDate(undefined);
+              setNewComment('');
+            }}
+            title="Opprett nytt oppdrag"
+          >
+            <Flex direction="column" gap="md">
+              <Select
+                comboboxProps={{ withinPortal: true }}
+                data={agreements?.map((agreement) => ({
+                  value: agreement.id.toString(),
+                  label: `${agreement.id} - ${getAgreementTypeDisplayValue(agreement.type || '')} - ${agreement.customer.name} - ${getRepetitionFrequencyDisplayValue(agreement.repetition)}`,
+                }))}
+                value={newAgreement ? newAgreement.id.toString() : ''}
+                onChange={(value) => {
+                  const selectedAgreement = agreements?.find(
+                    (agreement) => agreement.id.toString() === value
+                  );
+                  setNewAgreement(selectedAgreement || null);
+                }}
+                label="Avtale"
+                placeholder="AvtaleID - avfallstype - kunde - gjentagelse"
+              />
+              <Stack gap="xs">
+                <Text size="sm" fw={500}>
+                  Bil
+                </Text>
+                {newRepetition === RepetitionFrequency.NONE ? (
+                  <HoverCard width={280} shadow="md">
+                    <HoverCard.Target>
+                      <Select
+                        comboboxProps={{ withinPortal: true }}
+                        data={cars?.map((car) => ({
+                          value: car.id.toString(),
+                          label: `${car.regnr} - ${car.Employee?.name || 'mangler sjåfør'}`,
+                        }))}
+                        value={newCar?.value ? newCar.value : null}
+                        onChange={(_value, option) => {
+                          setNewCar({ value: option.value, label: option.label });
+                        }}
+                        placeholder="Regnr - sjåfør/mangler sjåfør"
+                      />
+                    </HoverCard.Target>
+                    <HoverCard.Dropdown>
+                      <Text size="sm">
+                        Dette er valgfritt, og vil kun være tilgjengelig for oppdrag uten
+                        gjentagelse.
+                      </Text>
+                    </HoverCard.Dropdown>
+                  </HoverCard>
+                ) : (
+                  <Text size="sm" c="dimmed">
+                    Utilgjengelig for gjentagende oppdrag
+                  </Text>
+                )}
+              </Stack>
+              <DateTimePicker
+                value={newDate}
+                // @ts-ignore
+                onChange={setNewDate}
+                label="Velg dato og tid"
+                placeholder="Velg dato og tid"
+              />
+              <HoverCard width={280} shadow="md">
+                <HoverCard.Target>
+                  <Select
+                    label="Gjentagelse"
+                    value={newRepetition}
+                    onChange={(value) => setNewRepetition(value as RepetitionFrequency | undefined)}
+                    data={repetitionOptions}
+                  />
+                </HoverCard.Target>
+                <HoverCard.Dropdown>
+                  <Text size="sm">
+                    Du kan velge ingen gjentagelsesfrekvens, eller det som er oppgitt i avtalen.
+                    Oppdraget gjentas da frem til avtalen utløper. Hvis du velger en frekvens vil du
+                    ikke kunne tildele en bil til oppdraget.
+                  </Text>
+                </HoverCard.Dropdown>
+              </HoverCard>
+              <Textarea
+                label="Kommentar"
+                value={newComment || ''}
+                autosize
+                minRows={4}
+                onChange={(event) => setNewComment(event.currentTarget.value)}
+              />
+              <Flex justify="end">
+                <Button onClick={handleCreateJobs} loading={createJobMutation.isPending}>
+                  Opprett
+                </Button>
+              </Flex>
+            </Flex>
+          </Modal>
+
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-            {records?.map((job) => (
+            {filteredJobs?.map((job) => (
               <div key={job.id} style={{ marginBottom: '5px' }}>
                 <JobCard
                   key={job.id}
@@ -498,7 +557,7 @@ export default function JobsPage() {
         </Tabs.Panel>
 
         <Tabs.Panel value="completedTasks" pt="xs">
-          Gallery tab content
+          <Title>Fullførte oppdrag</Title>
         </Tabs.Panel>
       </Tabs>
     </>
