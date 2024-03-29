@@ -20,6 +20,7 @@ import {
   Tabs,
   HoverCard,
   rem,
+  Paper,
 } from '@mantine/core';
 import { IconSquare, IconCheckbox } from '@tabler/icons-react';
 import { DateTimePicker } from '@mantine/dates';
@@ -91,6 +92,7 @@ export default function JobsPage() {
   const [newCar, setNewCar] = useState<ComboboxItem | null>();
   const [newDate, setNewDate] = useState<Date>();
   const [newComment, setNewComment] = useState('');
+  const [newEndDate, setNewEndDate] = useState<Date>();
   const [newRepetition, setNewRepetition] = useState<RepetitionFrequency | undefined>(
     RepetitionFrequency.NONE
   );
@@ -100,10 +102,11 @@ export default function JobsPage() {
   const [selectedAgreementId, setSelectedAgreementId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (newRepetition !== RepetitionFrequency.NONE) {
+    if (newRepetition === RepetitionFrequency.NONE) {
+      setNewEndDate(newDate);
       setNewCar(null);
     }
-  }, [newRepetition]);
+  }, [newRepetition, newDate]);
 
   function getAgreementTypeDisplayValue(type: string): string {
     if (type in AgreementTypeDisplay) {
@@ -175,12 +178,17 @@ export default function JobsPage() {
   const handleCreateJobs = async () => {
     if (!newAgreement || !newDate) return;
 
-    const validUntil = newAgreement.validTo ? new Date(newAgreement.validTo) : null;
+    const endDate = newEndDate;
+
+    if (!endDate) {
+      console.error('En gyldig sluttdato er nødvendig.');
+      return;
+    }
 
     const jobs: Partial<Job>[] = [];
-    const chosenDate = newDate;
+    const chosenDate = new Date(newDate);
 
-    while (chosenDate <= validUntil) {
+    while (chosenDate <= endDate) {
       jobs.push({
         comment: newComment,
         agreementId: newAgreement.id,
@@ -357,23 +365,79 @@ export default function JobsPage() {
             title="Opprett nytt oppdrag"
           >
             <Flex direction="column" gap="md">
-              <Select
-                comboboxProps={{ withinPortal: true }}
-                data={agreements?.map((agreement) => ({
-                  value: agreement.id.toString(),
-                  label: `${agreement.id} - ${getAgreementTypeDisplayValue(agreement.type || '')} - ${agreement.customer.name} - ${getRepetitionFrequencyDisplayValue(agreement.repetition)}`,
-                }))}
-                value={newAgreement ? newAgreement.id.toString() : ''}
-                onChange={(value) => {
-                  const selectedAgreement = agreements?.find(
-                    (agreement) => agreement.id.toString() === value
-                  );
-                  setNewAgreement(selectedAgreement || null);
-                }}
-                label="Avtale"
-                placeholder="AvtaleID - avfallstype - kunde - gjentagelse"
-              />
+              <Paper withBorder shadow="sm" p="md">
+                <Select
+                  comboboxProps={{ withinPortal: true }}
+                  data={agreements?.map((agreement) => ({
+                    value: agreement.id.toString(),
+                    label: `${agreement.id} - ${getAgreementTypeDisplayValue(agreement.type || '')} - ${agreement.customer.name} - ${getRepetitionFrequencyDisplayValue(agreement.repetition)}`,
+                  }))}
+                  value={newAgreement ? newAgreement.id.toString() : ''}
+                  onChange={(value) => {
+                    const selectedAgreement = agreements?.find(
+                      (agreement) => agreement.id.toString() === value
+                    );
+                    setNewAgreement(selectedAgreement || null);
+                  }}
+                  label="Avtale"
+                  placeholder="AvtaleID - avfallstype - kunde - gjentagelse"
+                />
+                <TextInput
+                  label="Gyldig fra"
+                  value={
+                    newAgreement?.validFrom ? newAgreement.validFrom.toLocaleDateString('NO') : ''
+                  }
+                  disabled
+                />
+                <TextInput
+                  label="Gyldig til"
+                  value={
+                    newAgreement?.validTo
+                      ? newAgreement.validTo.toLocaleDateString()
+                      : newAgreement
+                        ? 'Løpende'
+                        : ''
+                  }
+                  disabled
+                />
+              </Paper>
               <Stack gap="xs">
+                <HoverCard width={280} shadow="md">
+                  <HoverCard.Target>
+                    <Select
+                      label="Gjentagelse"
+                      value={newRepetition}
+                      onChange={(value) =>
+                        setNewRepetition(value as RepetitionFrequency | undefined)
+                      }
+                      data={repetitionOptions}
+                    />
+                  </HoverCard.Target>
+                  <HoverCard.Dropdown>
+                    <Text size="sm">
+                      Du kan velge ingen gjentagelsesfrekvens eller det som er oppgitt i avtalen.
+                      Hvis du velger en frekvens vil du ikke kunne tildele en bil til oppdraget.
+                    </Text>
+                  </HoverCard.Dropdown>
+                </HoverCard>
+                <DateTimePicker
+                  value={newDate}
+                  onChange={(date) => {
+                    setNewDate(date ?? undefined);
+                    if (newRepetition === RepetitionFrequency.NONE) {
+                      setNewEndDate(date ?? undefined);
+                    }
+                  }}
+                  label="Velg startdato"
+                  placeholder="Velg startdato"
+                />
+                <DateTimePicker
+                  value={newEndDate}
+                  onChange={(date) => setNewEndDate(date ?? undefined)}
+                  label="Velg sluttdato for gjentagelse"
+                  placeholder="Velg sluttdato for gjentagelse"
+                  disabled={newRepetition === RepetitionFrequency.NONE}
+                />
                 <Text size="sm" fw={500}>
                   Bil
                 </Text>
@@ -406,30 +470,6 @@ export default function JobsPage() {
                   </Text>
                 )}
               </Stack>
-              <DateTimePicker
-                value={newDate}
-                // @ts-ignore
-                onChange={setNewDate}
-                label="Velg dato og tid"
-                placeholder="Velg dato og tid"
-              />
-              <HoverCard width={280} shadow="md">
-                <HoverCard.Target>
-                  <Select
-                    label="Gjentagelse"
-                    value={newRepetition}
-                    onChange={(value) => setNewRepetition(value as RepetitionFrequency | undefined)}
-                    data={repetitionOptions}
-                  />
-                </HoverCard.Target>
-                <HoverCard.Dropdown>
-                  <Text size="sm">
-                    Du kan velge ingen gjentagelsesfrekvens, eller det som er oppgitt i avtalen.
-                    Oppdraget gjentas da frem til avtalen utløper. Hvis du velger en frekvens vil du
-                    ikke kunne tildele en bil til oppdraget.
-                  </Text>
-                </HoverCard.Dropdown>
-              </HoverCard>
               <Textarea
                 label="Kommentar"
                 value={newComment || ''}
@@ -501,7 +541,33 @@ export default function JobsPage() {
                     onChange={(event) => setCurrentRecordComment(event.currentTarget.value)}
                   />
                   <TextInput label="Rfid" value={currentRecord?.container?.rfid} disabled />
-                  <TextInput label="Agreement Id" value={currentRecord?.agreementId} disabled />
+                  <Paper withBorder shadow="sm" p="md">
+                    <TextInput
+                      label="AvtaleId"
+                      value={`${currentRecord?.agreementId} - ${getAgreementTypeDisplayValue(currentRecord?.agreement.type || '')} - ${currentRecord?.agreement.customer.name}`}
+                      disabled
+                    />
+                    <TextInput
+                      label="Gyldig fra"
+                      value={
+                        currentRecord?.agreement?.validFrom
+                          ? currentRecord?.agreement.validFrom.toLocaleDateString()
+                          : ''
+                      }
+                      disabled
+                    />
+                    <TextInput
+                      label="Gyldig til"
+                      value={
+                        newAgreement
+                          ? newAgreement.validTo
+                            ? newAgreement.validTo.toLocaleDateString()
+                            : 'Løpende'
+                          : ''
+                      }
+                      disabled
+                    />
+                  </Paper>
                   <Select
                     comboboxProps={{ withinPortal: true }}
                     data={[
