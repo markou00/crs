@@ -17,6 +17,7 @@ import {
   Modal,
   ComboboxItem,
   Stack,
+  HoverCard,
 } from '@mantine/core';
 import { DateTimePicker } from '@mantine/dates';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -284,21 +285,30 @@ export default function JobsPage() {
             />
             <Stack gap="xs">
               <Text size="sm" fw={500}>
-                Bil (valgfritt)
+                Bil
               </Text>
               {newRepetition === RepetitionFrequency.NONE ? (
-                <Select
-                  comboboxProps={{ withinPortal: true }}
-                  data={cars?.map((car) => ({
-                    value: car.id.toString(),
-                    label: `${car.regnr} - ${car.Employee?.name || 'mangler sjåfør'}`,
-                  }))}
-                  value={newCar?.value ? newCar.value : null}
-                  onChange={(_value, option) => {
-                    setNewCar({ value: option.value, label: option.label });
-                  }}
-                  placeholder="Regnr - sjåfør/mangler sjåfør"
-                />
+                <HoverCard width={280} shadow="md">
+                  <HoverCard.Target>
+                    <Select
+                      comboboxProps={{ withinPortal: true }}
+                      data={cars?.map((car) => ({
+                        value: car.id.toString(),
+                        label: `${car.regnr} - ${car.Employee?.name || 'mangler sjåfør'}`,
+                      }))}
+                      value={newCar?.value ? newCar.value : null}
+                      onChange={(_value, option) => {
+                        setNewCar({ value: option.value, label: option.label });
+                      }}
+                      placeholder="Regnr - sjåfør/mangler sjåfør"
+                    />
+                  </HoverCard.Target>
+                  <HoverCard.Dropdown>
+                    <Text size="sm">
+                      Dette er valgfritt, og vil kun være tilgjengelig for oppdrag uten gjentagelse.
+                    </Text>
+                  </HoverCard.Dropdown>
+                </HoverCard>
               ) : (
                 <Text size="sm" c="dimmed">
                   Utilgjengelig for gjentagende oppdrag
@@ -312,12 +322,23 @@ export default function JobsPage() {
               label="Velg dato og tid"
               placeholder="Velg dato og tid"
             />
-            <Select
-              label="Gjentagelse (ingen eller avtalens gjentagelse)"
-              value={newRepetition}
-              onChange={(value) => setNewRepetition(value as RepetitionFrequency | undefined)}
-              data={repetitionOptions}
-            />
+            <HoverCard width={280} shadow="md">
+              <HoverCard.Target>
+                <Select
+                  label="Gjentagelse"
+                  value={newRepetition}
+                  onChange={(value) => setNewRepetition(value as RepetitionFrequency | undefined)}
+                  data={repetitionOptions}
+                />
+              </HoverCard.Target>
+              <HoverCard.Dropdown>
+                <Text size="sm">
+                  Du kan velge ingen gjentagelsesfrekvens, eller det som er oppgitt i avtalen.
+                  Oppdraget gjentas da frem til avtalen utløper. Hvis du velger en frekvens vil du
+                  ikke kunne tildele en bil til oppdraget.
+                </Text>
+              </HoverCard.Dropdown>
+            </HoverCard>
             <Textarea
               label="Kommentar"
               value={newComment || ''}
