@@ -17,8 +17,11 @@ import {
   Modal,
   ComboboxItem,
   Stack,
+  Tabs,
   HoverCard,
+  rem,
 } from '@mantine/core';
+import { IconSquare, IconCheckbox } from '@tabler/icons-react';
 import { DateTimePicker } from '@mantine/dates';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useDisclosure } from '@mantine/hooks';
@@ -28,6 +31,7 @@ import { getJobs, editJob, deleteJob, addJob } from '@/lib/server/actions/job-ac
 import { getCars } from '@/lib/server/actions/car-actions';
 import { getAgreements } from '@/lib/server/actions/agreements-actions';
 import { JobCard } from './JobCard/JobCard';
+import classes from './page.module.css';
 import { AgreementTypeDisplay } from '../agreements/utils/agreementTypeDisplay';
 import { RepetitionFrequencyDisplay } from '../agreements/utils/repetitionFrequencyDisplay';
 
@@ -252,224 +256,251 @@ export default function JobsPage() {
 
   return (
     <>
-      <Group justify="space-between" mb="md">
-        <Title>Oppdrag</Title>
-        <Button onClick={openModal}>Nytt oppdrag</Button>
-        <Modal
-          opened={openedModal}
-          onClose={() => {
-            closeModal();
-            setNewAgreement(null);
-            setNewCar(null);
-            setNewDate(undefined);
-            setNewComment('');
-          }}
-          title="Opprett nytt oppdrag"
-        >
-          <Flex direction="column" gap="md">
-            <Select
-              comboboxProps={{ withinPortal: true }}
-              data={agreements?.map((agreement) => ({
-                value: agreement.id.toString(),
-                label: `${agreement.id} - ${getAgreementTypeDisplayValue(agreement.type || '')} - ${agreement.customer.name} - ${getRepetitionFrequencyDisplayValue(agreement.repetition)}`,
-              }))}
-              value={newAgreement ? newAgreement.id.toString() : ''}
-              onChange={(value) => {
-                const selectedAgreement = agreements?.find(
-                  (agreement) => agreement.id.toString() === value
-                );
-                setNewAgreement(selectedAgreement || null);
+      <Tabs variant="unstyled" defaultValue="incompleteTasks" classNames={classes}>
+        <Tabs.List grow>
+          <Tabs.Tab
+            value="incompleteTasks"
+            leftSection={<IconSquare style={{ width: rem(16), height: rem(16) }} />}
+          >
+            Aktive
+          </Tabs.Tab>
+          <Tabs.Tab
+            value="completedTasks"
+            leftSection={<IconCheckbox style={{ width: rem(16), height: rem(16) }} />}
+          >
+            Fullførte
+          </Tabs.Tab>
+        </Tabs.List>
+
+        <Tabs.Panel value="incompleteTasks" pt="xs">
+          <Group justify="space-between" mb="md">
+            <Title>Oppdrag</Title>
+            <Button onClick={openModal}>Nytt oppdrag</Button>
+            <Modal
+              opened={openedModal}
+              onClose={() => {
+                closeModal();
+                setNewAgreement(null);
+                setNewCar(null);
+                setNewDate(undefined);
+                setNewComment('');
               }}
-              label="Avtale"
-              placeholder="AvtaleID - avfallstype - kunde - gjentagelse"
-            />
-            <Stack gap="xs">
-              <Text size="sm" fw={500}>
-                Bil
-              </Text>
-              {newRepetition === RepetitionFrequency.NONE ? (
+              title="Opprett nytt oppdrag"
+            >
+              <Flex direction="column" gap="md">
+                <Select
+                  comboboxProps={{ withinPortal: true }}
+                  data={agreements?.map((agreement) => ({
+                    value: agreement.id.toString(),
+                    label: `${agreement.id} - ${getAgreementTypeDisplayValue(agreement.type || '')} - ${agreement.customer.name} - ${getRepetitionFrequencyDisplayValue(agreement.repetition)}`,
+                  }))}
+                  value={newAgreement ? newAgreement.id.toString() : ''}
+                  onChange={(value) => {
+                    const selectedAgreement = agreements?.find(
+                      (agreement) => agreement.id.toString() === value
+                    );
+                    setNewAgreement(selectedAgreement || null);
+                  }}
+                  label="Avtale"
+                  placeholder="AvtaleID - avfallstype - kunde - gjentagelse"
+                />
+                <Stack gap="xs">
+                  <Text size="sm" fw={500}>
+                    Bil
+                  </Text>
+                  {newRepetition === RepetitionFrequency.NONE ? (
+                    <HoverCard width={280} shadow="md">
+                      <HoverCard.Target>
+                        <Select
+                          comboboxProps={{ withinPortal: true }}
+                          data={cars?.map((car) => ({
+                            value: car.id.toString(),
+                            label: `${car.regnr} - ${car.Employee?.name || 'mangler sjåfør'}`,
+                          }))}
+                          value={newCar?.value ? newCar.value : null}
+                          onChange={(_value, option) => {
+                            setNewCar({ value: option.value, label: option.label });
+                          }}
+                          placeholder="Regnr - sjåfør/mangler sjåfør"
+                        />
+                      </HoverCard.Target>
+                      <HoverCard.Dropdown>
+                        <Text size="sm">
+                          Dette er valgfritt, og vil kun være tilgjengelig for oppdrag uten
+                          gjentagelse.
+                        </Text>
+                      </HoverCard.Dropdown>
+                    </HoverCard>
+                  ) : (
+                    <Text size="sm" c="dimmed">
+                      Utilgjengelig for gjentagende oppdrag
+                    </Text>
+                  )}
+                </Stack>
+                <DateTimePicker
+                  value={newDate}
+                  // @ts-ignore
+                  onChange={setNewDate}
+                  label="Velg dato og tid"
+                  placeholder="Velg dato og tid"
+                />
                 <HoverCard width={280} shadow="md">
                   <HoverCard.Target>
                     <Select
-                      comboboxProps={{ withinPortal: true }}
-                      data={cars?.map((car) => ({
-                        value: car.id.toString(),
-                        label: `${car.regnr} - ${car.Employee?.name || 'mangler sjåfør'}`,
-                      }))}
-                      value={newCar?.value ? newCar.value : null}
-                      onChange={(_value, option) => {
-                        setNewCar({ value: option.value, label: option.label });
-                      }}
-                      placeholder="Regnr - sjåfør/mangler sjåfør"
+                      label="Gjentagelse"
+                      value={newRepetition}
+                      onChange={(value) =>
+                        setNewRepetition(value as RepetitionFrequency | undefined)
+                      }
+                      data={repetitionOptions}
                     />
                   </HoverCard.Target>
                   <HoverCard.Dropdown>
                     <Text size="sm">
-                      Dette er valgfritt, og vil kun være tilgjengelig for oppdrag uten gjentagelse.
+                      Du kan velge ingen gjentagelsesfrekvens, eller det som er oppgitt i avtalen.
+                      Oppdraget gjentas da frem til avtalen utløper. Hvis du velger en frekvens vil
+                      du ikke kunne tildele en bil til oppdraget.
                     </Text>
                   </HoverCard.Dropdown>
                 </HoverCard>
-              ) : (
-                <Text size="sm" c="dimmed">
-                  Utilgjengelig for gjentagende oppdrag
-                </Text>
-              )}
-            </Stack>
-            <DateTimePicker
-              value={newDate}
-              // @ts-ignore
-              onChange={setNewDate}
-              label="Velg dato og tid"
-              placeholder="Velg dato og tid"
-            />
-            <HoverCard width={280} shadow="md">
-              <HoverCard.Target>
-                <Select
-                  label="Gjentagelse"
-                  value={newRepetition}
-                  onChange={(value) => setNewRepetition(value as RepetitionFrequency | undefined)}
-                  data={repetitionOptions}
+                <Textarea
+                  label="Kommentar"
+                  value={newComment || ''}
+                  autosize
+                  minRows={4}
+                  onChange={(event) => setNewComment(event.currentTarget.value)}
                 />
-              </HoverCard.Target>
-              <HoverCard.Dropdown>
-                <Text size="sm">
-                  Du kan velge ingen gjentagelsesfrekvens, eller det som er oppgitt i avtalen.
-                  Oppdraget gjentas da frem til avtalen utløper. Hvis du velger en frekvens vil du
-                  ikke kunne tildele en bil til oppdraget.
-                </Text>
-              </HoverCard.Dropdown>
-            </HoverCard>
-            <Textarea
-              label="Kommentar"
-              value={newComment || ''}
-              autosize
-              minRows={4}
-              onChange={(event) => setNewComment(event.currentTarget.value)}
-            />
-            <Flex justify="end">
-              <Button onClick={handleCreateJobs} loading={createJobMutation.isPending}>
-                Opprett
-              </Button>
-            </Flex>
-          </Flex>
-        </Modal>
-      </Group>
-      <Group mb="md">
-        <Badge color="green" variant="filled">
-          Tildelt
-        </Badge>
-        <Badge color="orange" variant="filled">
-          Ikke tildelt
-        </Badge>
-      </Group>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-        {records?.map((job) => (
-          <div key={job.id} style={{ marginBottom: '5px' }}>
-            <JobCard
-              key={job.id}
-              job={job}
-              agreement={job.agreement}
-              car={job.car}
-              customer={job.agreement.customer}
-              // @ts-ignore
-              onEdit={openDrawer}
-            />
-          </div>
-        ))}
-      </div>
-      <Drawer.Root
-        radius="md"
-        position="right"
-        opened={opened}
-        onClose={close}
-        scrollAreaComponent={ScrollArea.Autosize}
-      >
-        <Drawer.Overlay />
-        <Drawer.Content>
-          <Drawer.Header>
-            <Drawer.Title>Oppdrag detaljer</Drawer.Title>
-            <Drawer.CloseButton />
-          </Drawer.Header>
-          <Drawer.Body>
-            <Flex direction="column" gap="md">
-              <TextInput label="Oppdrag nr." value={currentRecord?.id} disabled />
-              <TextInput
-                label="Avfallstype"
-                value={getAgreementTypeDisplayValue(currentRecord?.type || '')}
-                disabled
-              />
-              <DateTimePicker
-                defaultValue={currentRecordDate}
-                // @ts-ignore
-                onChange={setCurrentRecordDate}
-                label="Velg dato og tid"
-                placeholder="Velg dato og tid"
-              />
-              <TextInput
-                label="Gjentagelse"
-                value={getRepetitionFrequencyDisplayValue(currentRecord?.repetition || '')}
-                disabled
-              />
-              <Textarea
-                label="Kommentar"
-                value={currentRecordComment || ''}
-                autosize
-                minRows={4}
-                onChange={(event) => setCurrentRecordComment(event.currentTarget.value)}
-              />
-              <TextInput label="Rfid" value={currentRecord?.container?.rfid} disabled />
-              <TextInput label="Agreement Id" value={currentRecord?.agreementId} disabled />
-              <Select
-                comboboxProps={{ withinPortal: true }}
-                data={[
-                  { value: 'none', label: 'Ingen bil' },
-                  ...(cars || []).map((car) => ({
-                    value: car.id.toString(),
-                    label: `${car.regnr} - ${car.Employee?.name || 'mangler sjåfør'}`,
-                  })),
-                ]}
-                value={currentRecordCarId?.toString() || 'none'}
-                onChange={(value) => {
-                  const newValue = value !== 'none' && value !== null ? parseInt(value, 10) : null;
-                  setCurrentRecordCarId(newValue);
-                }}
-                label="Bil"
-              />
-
-              <Flex justify="end">
-                <Group>
-                  <Button
-                    color="red"
-                    onClick={() => {
-                      if (!currentRecord) {
-                        console.log('Ingen oppdrag er valgt.');
-                        return;
-                      }
-
-                      const isConfirmed = window.confirm(
-                        'Er du sikker på at du vil slette dette oppdraget?'
-                      );
-
-                      if (isConfirmed) {
-                        deleteJobMutation.mutate({ id: currentRecord.id });
-                      }
-                    }}
-                    loading={deleteJobMutation.isPending}
-                  >
-                    Slett
+                <Flex justify="end">
+                  <Button onClick={handleCreateJobs} loading={createJobMutation.isPending}>
+                    Opprett
                   </Button>
-                  <Button
-                    onClick={() => editJobMutation.mutate()}
-                    loading={editJobMutation.isPending}
-                  >
-                    Bekreft
-                  </Button>
-                </Group>
+                </Flex>
               </Flex>
-            </Flex>
-          </Drawer.Body>
-        </Drawer.Content>
-      </Drawer.Root>
+            </Modal>
+          </Group>
+          <Group mb="md">
+            <Badge color="green" variant="filled">
+              Tildelt
+            </Badge>
+            <Badge color="orange" variant="filled">
+              Ikke tildelt
+            </Badge>
+          </Group>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            {records?.map((job) => (
+              <div key={job.id} style={{ marginBottom: '5px' }}>
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  agreement={job.agreement}
+                  car={job.car}
+                  customer={job.agreement.customer}
+                  // @ts-ignore
+                  onEdit={openDrawer}
+                />
+              </div>
+            ))}
+          </div>
+          <Drawer.Root
+            radius="md"
+            position="right"
+            opened={opened}
+            onClose={close}
+            scrollAreaComponent={ScrollArea.Autosize}
+          >
+            <Drawer.Overlay />
+            <Drawer.Content>
+              <Drawer.Header>
+                <Drawer.Title>Oppdrag detaljer</Drawer.Title>
+                <Drawer.CloseButton />
+              </Drawer.Header>
+              <Drawer.Body>
+                <Flex direction="column" gap="md">
+                  <TextInput label="Oppdrag nr." value={currentRecord?.id} disabled />
+                  <TextInput
+                    label="Avfallstype"
+                    value={getAgreementTypeDisplayValue(currentRecord?.type || '')}
+                    disabled
+                  />
+                  <DateTimePicker
+                    defaultValue={currentRecordDate}
+                    // @ts-ignore
+                    onChange={setCurrentRecordDate}
+                    label="Velg dato og tid"
+                    placeholder="Velg dato og tid"
+                  />
+                  <TextInput
+                    label="Gjentagelse"
+                    value={getRepetitionFrequencyDisplayValue(currentRecord?.repetition || '')}
+                    disabled
+                  />
+                  <Textarea
+                    label="Kommentar"
+                    value={currentRecordComment || ''}
+                    autosize
+                    minRows={4}
+                    onChange={(event) => setCurrentRecordComment(event.currentTarget.value)}
+                  />
+                  <TextInput label="Rfid" value={currentRecord?.container?.rfid} disabled />
+                  <TextInput label="Agreement Id" value={currentRecord?.agreementId} disabled />
+                  <Select
+                    comboboxProps={{ withinPortal: true }}
+                    data={[
+                      { value: 'none', label: 'Ingen bil' },
+                      ...(cars || []).map((car) => ({
+                        value: car.id.toString(),
+                        label: `${car.regnr} - ${car.Employee?.name || 'mangler sjåfør'}`,
+                      })),
+                    ]}
+                    value={currentRecordCarId?.toString() || 'none'}
+                    onChange={(value) => {
+                      const newValue =
+                        value !== 'none' && value !== null ? parseInt(value, 10) : null;
+                      setCurrentRecordCarId(newValue);
+                    }}
+                    label="Bil"
+                  />
+
+                  <Flex justify="end">
+                    <Group>
+                      <Button
+                        color="red"
+                        onClick={() => {
+                          if (!currentRecord) {
+                            console.log('Ingen oppdrag er valgt.');
+                            return;
+                          }
+
+                          const isConfirmed = window.confirm(
+                            'Er du sikker på at du vil slette dette oppdraget?'
+                          );
+
+                          if (isConfirmed) {
+                            deleteJobMutation.mutate({ id: currentRecord.id });
+                          }
+                        }}
+                        loading={deleteJobMutation.isPending}
+                      >
+                        Slett
+                      </Button>
+                      <Button
+                        onClick={() => editJobMutation.mutate()}
+                        loading={editJobMutation.isPending}
+                      >
+                        Bekreft
+                      </Button>
+                    </Group>
+                  </Flex>
+                </Flex>
+              </Drawer.Body>
+            </Drawer.Content>
+          </Drawer.Root>
+        </Tabs.Panel>
+
+        <Tabs.Panel value="completedTasks" pt="xs">
+          Gallery tab content
+        </Tabs.Panel>
+      </Tabs>
     </>
   );
 }
