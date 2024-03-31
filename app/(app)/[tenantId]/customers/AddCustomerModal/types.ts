@@ -2,7 +2,7 @@ export interface AddCustomerModalProps {
   opened: boolean;
   tenantId: string;
   onClose: () => void;
-  onCustomerAdded: () => void;
+  getCustomersQuery: any;
 }
 
 export interface CustomerFormValues {

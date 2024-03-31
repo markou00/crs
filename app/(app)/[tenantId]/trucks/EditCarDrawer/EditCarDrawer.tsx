@@ -1,82 +1,59 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { Car } from '@prisma/client';
 import { Drawer, Button, TextInput, Group, Flex, Select, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { editCar } from '@/lib/server/actions/car-actions';
 import { carFormValidation } from '../utils/carFormValidation';
 
-interface EditCarDrawerProps {
-  carId: string;
+export interface EditCarDrawerProps {
+  car: Car;
   opened: boolean;
   onClose: () => void;
+  getCarsQuery: any;
+  setRecords: any;
 }
 
-export function EditCarDrawer({ carId, opened, onClose }: EditCarDrawerProps) {
-  const supabase = createClientComponentClient();
-  const [tenantId, setTenantId] = useState('');
-  const queryClient = useQueryClient();
-
+export function EditCarDrawer({
+  car,
+  opened,
+  onClose,
+  getCarsQuery,
+  setRecords,
+}: EditCarDrawerProps) {
   const form = useForm({
     initialValues: {
-      regnr: '',
-      model: '',
-      status: '',
+      regnr: car.regnr,
+      model: car.model,
+      status: car.status,
     },
     validate: carFormValidation,
   });
 
-  const getCarQuery = useQuery({
-    queryKey: [carId],
-    queryFn: async () => {
-      const user = await supabase.auth.getUser();
-      const _tenantId = user.data.user?.user_metadata.tenantId;
-      setTenantId(_tenantId);
-      const response = await fetch(`/api/${_tenantId}/trucks/${carId}`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const fullData = await response.json();
-      const data = {
-        regnr: fullData.regnr || '',
-        model: fullData.model || '',
-        status: fullData.status || '',
-      };
-      form.setValues(data);
-
-      return data;
-    },
-  });
-
   const updateCarMutation = useMutation({
     mutationFn: async () => {
-      if (form.validate().hasErrors) throw new Error('The form has erros');
-
-      const response = await fetch(`/api/${tenantId}/trucks/${carId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form.values),
+      const { modifiedCar, error } = await editCar({
+        id: car.id,
+        ...form.values,
       });
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
+      if (error) throw new Error("Couldn't modify the car");
+
+      return modifiedCar;
     },
     retry: false,
-    onSuccess: () => {
+
+    onSuccess: async () => {
+      const { data } = await getCarsQuery.refetch();
+      setRecords(data?.cars);
       onClose();
-      queryClient.invalidateQueries({ queryKey: ['cars', tenantId] });
     },
-    onError: (error) => {
-      console.error('Failed to update car:', error);
-    },
+    onError: (error: any) => console.log(error.message),
   });
 
-  if (getCarQuery.isError) {
-    return <Text>An error occurred: {getCarQuery.error.message}</Text>;
-  }
-  if (getCarQuery.isLoading) return <Text>Loading...</Text>;
+  if (getCarsQuery.error) return <Text>Error...</Text>;
+  if (getCarsQuery.isLoading) return <Text>Loading...</Text>;
 
   return (
     <>
@@ -107,7 +84,11 @@ export function EditCarDrawer({ carId, opened, onClose }: EditCarDrawerProps) {
               <Button variant="default" onClick={onClose}>
                 Cancel
               </Button>
-              <Button type="button" onClick={() => updateCarMutation.mutate()}>
+              <Button
+                type="button"
+                onClick={() => updateCarMutation.mutate()}
+                loading={updateCarMutation.isPending}
+              >
                 Lagre
               </Button>
             </Group>

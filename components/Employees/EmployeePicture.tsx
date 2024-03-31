@@ -2,7 +2,7 @@ import React from 'react';
 import { Avatar } from '@mantine/core';
 
 interface EmployeePictureProps {
-  imageSrc: string;
+  imageSrc: string | null;
 }
 
 export function EmployeePicture({ imageSrc }: EmployeePictureProps) {

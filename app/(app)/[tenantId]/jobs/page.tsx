@@ -1,5 +1,3 @@
-/* eslint-disable radix */
-
 'use client';
 
 import {
@@ -27,7 +25,7 @@ import { DateTimePicker } from '@mantine/dates';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useDisclosure } from '@mantine/hooks';
 import { useEffect, useState } from 'react';
-import { Container, Customer, Car, Agreement, Job, RepetitionFrequency } from '@prisma/client';
+import { Agreement, Job, RepetitionFrequency } from '@prisma/client';
 import { getJobs, editJob, deleteJob, addJob } from '@/lib/server/actions/job-actions';
 import { getCustomers } from '@/lib/server/actions/customer-actions';
 import { getCars } from '@/lib/server/actions/car-actions';
@@ -36,26 +34,7 @@ import { JobCard } from './JobCard/JobCard';
 import classes from './page.module.css';
 import { AgreementTypeDisplay } from '../agreements/utils/agreementTypeDisplay';
 import { RepetitionFrequencyDisplay } from '../agreements/utils/repetitionFrequencyDisplay';
-
-type JobDetails = {
-  id: number;
-  type: string;
-  status: string;
-  date: Date;
-  comment: string | null;
-  containerId: number | null;
-  agreementId: number;
-  carId: number | null;
-  container: Container | null;
-  car: Car | null;
-  repetition: RepetitionFrequency;
-  agreement: Agreement & {
-    customer: Customer;
-  };
-  tenantId: string;
-  createdAt: Date;
-  updatedAt: Date;
-};
+import { JobDetails } from './types';
 
 export default function JobsPage() {
   const getJobsQuery = useQuery({
@@ -100,6 +79,15 @@ export default function JobsPage() {
   const [filteredJobs, setFilteredJobs] = useState<JobDetails[]>([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
   const [selectedAgreementId, setSelectedAgreementId] = useState<number | null>(null);
+  const [completedJobs, setCompletedJobs] = useState<JobDetails[]>([]);
+
+  useEffect(() => {
+    document.body.classList.add(classes.bodyWithScrollbar);
+
+    return () => {
+      document.body.classList.remove(classes.bodyWithScrollbar);
+    };
+  }, []);
 
   useEffect(() => {
     if (newRepetition === RepetitionFrequency.NONE) {
@@ -148,6 +136,34 @@ export default function JobsPage() {
     }
   }, [newAgreement, newRepetition]);
 
+  useEffect(() => {
+    let jobs = allJobs;
+
+    if (selectedCustomerId !== null) {
+      jobs = jobs.filter((job) => job.agreement.customerId === selectedCustomerId);
+    }
+
+    if (selectedAgreementId !== null) {
+      jobs = jobs.filter((job) => job.agreementId === selectedAgreementId);
+    }
+
+    const newlyFilteredJobs = jobs.filter((job) => job.status !== 'completed');
+
+    setFilteredJobs(newlyFilteredJobs);
+  }, [selectedCustomerId, selectedAgreementId, allJobs]);
+
+  const filterJobs = (jobsData: any[] | ((prevState: JobDetails[]) => JobDetails[])) => {
+    setAllJobs(jobsData);
+    setFilteredJobs((jobsData as any[]).filter((job) => job.status !== 'completed'));
+    setCompletedJobs((jobsData as any[]).filter((job) => job.status === 'completed'));
+  };
+
+  useEffect(() => {
+    if (getJobsQuery.data?.jobs) {
+      filterJobs(getJobsQuery.data.jobs);
+    }
+  }, [getJobsQuery.data?.jobs]);
+
   const createJobMutation = useMutation({
     mutationFn: async (job: Partial<Job>) => {
       const { newJob, error } = await addJob({
@@ -170,7 +186,7 @@ export default function JobsPage() {
     onSuccess: async () => {
       const { data } = await getJobsQuery.refetch();
       if (data?.jobs) {
-        setAllJobs(data.jobs);
+        filterJobs(data.jobs);
       }
     },
   });
@@ -242,7 +258,29 @@ export default function JobsPage() {
     onSuccess: async () => {
       const { data } = await getJobsQuery.refetch();
       if (data?.jobs) {
-        setAllJobs(data.jobs);
+        filterJobs(data.jobs);
+      }
+      close();
+    },
+    onError: (error: any) => console.log(error.message),
+  });
+
+  const completeJobMutation = useMutation({
+    mutationFn: async () => {
+      const { modifiedJob, error } = await editJob({
+        id: currentRecord?.id,
+        status: 'completed',
+      });
+
+      if (error) throw new Error("Couldn't set the job to completed");
+
+      return modifiedJob;
+    },
+    retry: false,
+    onSuccess: async () => {
+      const { data } = await getJobsQuery.refetch();
+      if (data?.jobs) {
+        filterJobs(data.jobs);
       }
       close();
     },
@@ -267,39 +305,22 @@ export default function JobsPage() {
     onSuccess: async () => {
       const { data } = await getJobsQuery.refetch();
       if (data?.jobs) {
-        setAllJobs(data.jobs);
+        filterJobs(data.jobs);
       }
       close();
     },
     onError: (error: any) => console.log(error.message),
   });
 
-  useEffect(() => {
-    let jobs = allJobs;
-
-    if (selectedCustomerId !== null) {
-      jobs = jobs.filter((job) => job.agreement.customerId === selectedCustomerId);
-    }
-
-    if (selectedAgreementId !== null) {
-      jobs = jobs.filter((job) => job.agreementId === selectedAgreementId);
-    }
-
-    setFilteredJobs(jobs);
-  }, [selectedCustomerId, selectedAgreementId, allJobs]);
-
-  useEffect(() => {
-    if (getJobsQuery.data?.jobs) {
-      setAllJobs(getJobsQuery.data.jobs);
-      setFilteredJobs(getJobsQuery.data.jobs);
-    }
-  }, [getJobsQuery.data?.jobs]);
-
   if (getJobsQuery.error) return <Text>Error...</Text>;
   if (getJobsQuery.isLoading) return <Text>Loading...</Text>;
 
   return (
     <>
+      <Group justify="space-between" mb="md">
+        <Title>Oppdrag</Title>
+        <Button onClick={openModal}>Nytt oppdrag</Button>
+      </Group>
       <Tabs variant="unstyled" defaultValue="incompleteTasks" classNames={classes}>
         <Tabs.List grow>
           <Tabs.Tab
@@ -315,20 +336,7 @@ export default function JobsPage() {
             Fullførte
           </Tabs.Tab>
         </Tabs.List>
-
         <Tabs.Panel value="incompleteTasks" pt="xs">
-          <Group justify="space-between" mb="md">
-            <Title>Aktive oppdrag</Title>
-            <Button onClick={openModal}>Nytt oppdrag</Button>
-          </Group>
-          <Group mb="md">
-            <Badge color="green" variant="filled">
-              Tildelt
-            </Badge>
-            <Badge color="orange" variant="filled">
-              Ikke tildelt
-            </Badge>
-          </Group>
           <Group mb="md" gap="xs">
             <Select
               comboboxProps={{ withinPortal: true }}
@@ -337,7 +345,7 @@ export default function JobsPage() {
                 label: customer.name,
               }))}
               value={selectedCustomerId?.toString() || ''}
-              onChange={(value) => setSelectedCustomerId(value ? parseInt(value) : null)}
+              onChange={(value) => setSelectedCustomerId(value ? parseInt(value, 10) : null)}
               label="Kunde"
               placeholder="Velg en kunde"
             />
@@ -348,10 +356,18 @@ export default function JobsPage() {
                 label: `${agreement.id} - ${getAgreementTypeDisplayValue(agreement.type || '')} - ${agreement.customer.name}`,
               }))}
               value={selectedAgreementId?.toString() || ''}
-              onChange={(value) => setSelectedAgreementId(value ? parseInt(value) : null)}
+              onChange={(value) => setSelectedAgreementId(value ? parseInt(value, 10) : null)}
               label="Avtale"
               placeholder="Velg en avtale"
             />
+          </Group>
+          <Group mb="md">
+            <Badge color="green" variant="filled">
+              Tildelt
+            </Badge>
+            <Badge color="orange" variant="filled">
+              Ikke tildelt
+            </Badge>
           </Group>
           <Modal
             opened={openedModal}
@@ -484,19 +500,10 @@ export default function JobsPage() {
               </Flex>
             </Flex>
           </Modal>
-
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-            {filteredJobs?.map((job) => (
+            {filteredJobs.map((job) => (
               <div key={job.id} style={{ marginBottom: '5px' }}>
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  agreement={job.agreement}
-                  car={job.car}
-                  customer={job.agreement.customer}
-                  // @ts-ignore
-                  onEdit={openDrawer}
-                />
+                <JobCard key={job.id} job={job} onEdit={openDrawer} />
               </div>
             ))}
           </div>
@@ -510,12 +517,12 @@ export default function JobsPage() {
             <Drawer.Overlay />
             <Drawer.Content>
               <Drawer.Header>
-                <Drawer.Title>Oppdrag detaljer</Drawer.Title>
+                <Drawer.Title>Oppdragsdetaljer</Drawer.Title>
                 <Drawer.CloseButton />
               </Drawer.Header>
               <Drawer.Body>
                 <Flex direction="column" gap="md">
-                  <TextInput label="Oppdrag nr." value={currentRecord?.id} disabled />
+                  <TextInput label="Oppdragsnr." value={currentRecord?.id} disabled />
                   <TextInput
                     label="Avfallstype"
                     value={getAgreementTypeDisplayValue(currentRecord?.type || '')}
@@ -523,8 +530,7 @@ export default function JobsPage() {
                   />
                   <DateTimePicker
                     defaultValue={currentRecordDate}
-                    // @ts-ignore
-                    onChange={setCurrentRecordDate}
+                    onChange={(value) => setCurrentRecordDate(value === null ? undefined : value)}
                     label="Velg dato og tid"
                     placeholder="Velg dato og tid"
                   />
@@ -559,9 +565,9 @@ export default function JobsPage() {
                     <TextInput
                       label="Gyldig til"
                       value={
-                        newAgreement
-                          ? newAgreement.validTo
-                            ? newAgreement.validTo.toLocaleDateString()
+                        currentRecord?.agreement
+                          ? currentRecord.agreement.validTo
+                            ? currentRecord.agreement.validFrom.toLocaleDateString()
                             : 'Løpende'
                           : ''
                       }
@@ -585,45 +591,83 @@ export default function JobsPage() {
                     }}
                     label="Bil"
                   />
-
                   <Flex justify="end">
-                    <Group>
-                      <Button
-                        color="red"
-                        onClick={() => {
-                          if (!currentRecord) {
-                            console.log('Ingen oppdrag er valgt.');
-                            return;
-                          }
+                    <Stack justify="end">
+                      <Group justify="end">
+                        <Button
+                          leftSection={<IconCheckbox size={14} />}
+                          color="green"
+                          onClick={() => {
+                            if (!currentRecord) {
+                              console.log('Ingen oppdrag er valgt.');
+                              return;
+                            }
+                            // eslint-disable-next-line no-alert
+                            const isConfirmed = window.confirm(
+                              'Er du sikker på at du vil sette dette oppdraget som fullført?'
+                            );
 
-                          const isConfirmed = window.confirm(
-                            'Er du sikker på at du vil slette dette oppdraget?'
-                          );
+                            if (isConfirmed) {
+                              completeJobMutation.mutate();
+                            }
+                          }}
+                          loading={completeJobMutation.isPending}
+                        >
+                          Merk som fullført
+                        </Button>
+                      </Group>
+                      <Group>
+                        <Button
+                          color="red"
+                          onClick={() => {
+                            if (!currentRecord) {
+                              console.log('Ingen oppdrag er valgt.');
+                              return;
+                            }
+                            // eslint-disable-next-line no-alert
+                            const isConfirmed = window.confirm(
+                              'Er du sikker på at du vil slette dette oppdraget?'
+                            );
 
-                          if (isConfirmed) {
-                            deleteJobMutation.mutate({ id: currentRecord.id });
-                          }
-                        }}
-                        loading={deleteJobMutation.isPending}
-                      >
-                        Slett
-                      </Button>
-                      <Button
-                        onClick={() => editJobMutation.mutate()}
-                        loading={editJobMutation.isPending}
-                      >
-                        Bekreft
-                      </Button>
-                    </Group>
+                            if (isConfirmed) {
+                              deleteJobMutation.mutate({ id: currentRecord.id });
+                            }
+                          }}
+                          loading={deleteJobMutation.isPending}
+                        >
+                          Slett
+                        </Button>
+                        <Button
+                          onClick={() => editJobMutation.mutate()}
+                          loading={editJobMutation.isPending}
+                        >
+                          Bekreft
+                        </Button>
+                      </Group>
+                    </Stack>
                   </Flex>
                 </Flex>
               </Drawer.Body>
             </Drawer.Content>
           </Drawer.Root>
         </Tabs.Panel>
-
         <Tabs.Panel value="completedTasks" pt="xs">
-          <Title>Fullførte oppdrag</Title>
+          <Group mb="md" gap="xs">
+            <Select label="Kunde" placeholder="Velg en kunde" disabled />
+            <Select label="Avtale" placeholder="Velg en avtale" disabled />
+          </Group>
+          <Group mb="md" justify="flex-end">
+            <Badge color="grey" variant="filled">
+              Fullført
+            </Badge>
+          </Group>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+            {completedJobs.map((job) => (
+              <div key={job.id} style={{ marginBottom: '5px' }}>
+                <JobCard key={job.id} job={job} />
+              </div>
+            ))}
+          </div>
         </Tabs.Panel>
       </Tabs>
     </>

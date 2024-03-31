@@ -34,6 +34,7 @@ export function AddEmployeeModal({
         throw new Error('Network response was not ok');
       }
       if (onEmployeeAdded) onEmployeeAdded();
+      form.reset();
       onClose();
     },
     retry: false,
@@ -60,7 +61,9 @@ export function AddEmployeeModal({
           />
           <TextInput label="Picture URL" {...form.getInputProps('picture')} />
           <Group justify="flex-end" mt="md">
-            <Button type="submit">Lagre</Button>
+            <Button type="submit" loading={createEmployeeMutation.isPending}>
+              Lagre
+            </Button>
           </Group>
         </Flex>
       </form>

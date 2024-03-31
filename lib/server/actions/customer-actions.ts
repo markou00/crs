@@ -1,6 +1,7 @@
 'use server';
 
 import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
+import { Customer } from '@prisma/client';
 import { cookies } from 'next/headers';
 
 import prisma from '@/lib/prisma';
@@ -17,6 +18,31 @@ export async function getCustomers() {
     });
 
     return { customers };
+  } catch (error) {
+    return { error };
+  }
+}
+
+export async function editCustomer(customer: Partial<Customer>) {
+  try {
+    const modifiedCustomer = await prisma.customer.update({
+      where: { id: customer.id },
+      data: customer,
+    });
+
+    return { modifiedCustomer };
+  } catch (error) {
+    return { error };
+  }
+}
+
+export async function deleteCustomer(id: number) {
+  try {
+    const deletedCustomer = await prisma.customer.delete({
+      where: { id },
+    });
+
+    return { deletedCustomer };
   } catch (error) {
     return { error };
   }

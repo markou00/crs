@@ -1,23 +1,30 @@
 'use client';
 
+import { Car } from '@prisma/client';
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { DataTable, type DataTableSortStatus } from 'mantine-datatable';
 import sortBy from 'lodash/sortBy';
 import { IconEdit, IconTrash, IconSearch, IconX } from '@tabler/icons-react';
 import { Group, ActionIcon, Paper, Text, TextInput, MultiSelect } from '@mantine/core';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { getCars } from '@/lib/server/actions/car-actions';
 import { TableHeader } from './TableHeader/TableHeader';
 import { AddCarModal } from './AddCarModal/AddCarModal';
 import { EditCarDrawer } from './EditCarDrawer/EditCarDrawer';
 import { CarType } from './types';
 
 export default function CarsPage() {
+  const getCarsQuery = useQuery({
+    queryKey: ['cars'],
+    queryFn: () => getCars(),
+  });
+
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [tenantId, setTenantId] = useState('');
   const supabase = createClientComponentClient();
-  const [selectedCarId, setSelectedCarId] = useState<string>('');
+  const [selectedCar, setSelectedCar] = useState<Car | null>();
   const [opened, { open, close }] = useDisclosure(false);
 
   useEffect(() => {
@@ -31,50 +38,7 @@ export default function CarsPage() {
     fetchTenantId();
   }, [supabase]);
 
-  const getCarsQuery = useQuery<CarType[]>({
-    queryKey: ['cars', tenantId],
-    queryFn: async () => {
-      const response = await fetch(`/api/${tenantId}/trucks`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data: CarType[] = await response.json();
-      return data.map((car) => ({
-        ...car,
-        employee: car.Employee?.name || 'Ingen sjåfør',
-      }));
-    },
-    enabled: !!tenantId,
-  });
-
-  const queryClient = useQueryClient();
-
-  const deleteCarMutation = useMutation({
-    mutationFn: async (carId: string) => {
-      await fetch(`/api/${tenantId}/trucks/${carId}`, {
-        method: 'DELETE',
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['cars'],
-      });
-    },
-    onError: (error) => {
-      console.error('Error deleting car:', error);
-    },
-  });
-
-  const handleDelete = (carId: string) => {
-    if (
-      window.confirm('Er du sikker på at du vil slette denne bilen? Handlingen kan ikke angres.')
-    ) {
-      deleteCarMutation.mutate(carId);
-    }
-  };
-
-  const initialRecords = getCarsQuery.data ?? [];
-  const [records, setRecords] = useState(initialRecords);
+  const [records, setRecords] = useState(getCarsQuery.data?.cars);
   const [nameQuery, setNameQuery] = useState('');
   const [regnrQuery, setRegnrQuery] = useState('');
   const [modelQuery, setModelQuery] = useState('');
@@ -87,13 +51,33 @@ export default function CarsPage() {
     direction: 'asc',
   });
 
-  useEffect(() => {
-    setRecords(getCarsQuery.data ?? []);
-  }, [getCarsQuery.data]);
+  const deleteCarMutation = useMutation({
+    mutationFn: async (carId: number) => {
+      await fetch(`/api/${tenantId}/trucks/${carId}`, {
+        method: 'DELETE',
+      });
+    },
+
+    onSuccess: async () => {
+      const { data } = await getCarsQuery.refetch();
+      setRecords(data?.cars);
+    },
+    onError: (error) => {
+      console.error('Error deleting car:', error);
+    },
+  });
+
+  const handleDelete = (carId: number) => {
+    if (
+      window.confirm('Er du sikker på at du vil slette denne bilen? Handlingen kan ikke angres.')
+    ) {
+      deleteCarMutation.mutate(carId);
+    }
+  };
 
   useEffect(() => {
     setRecords(
-      initialRecords?.filter(({ regnr, model, Employee, status }) => {
+      getCarsQuery.data?.cars?.filter(({ regnr, model, Employee, status }) => {
         if (
           debouncedRegnrQuery !== '' &&
           !`${regnr}`.toLowerCase().includes(debouncedRegnrQuery.trim().toLowerCase())
@@ -128,11 +112,11 @@ export default function CarsPage() {
   };
 
   useEffect(() => {
-    const data = sortBy(records, sortStatus.columnAccessor) as CarType[];
+    const data = sortBy(records ?? [], sortStatus.columnAccessor) as CarType[];
     setRecords(sortStatus.direction === 'desc' ? data.reverse() : data);
   }, [sortStatus]);
 
-  const userCount = records.length || 0;
+  const userCount = (records ?? []).length || 0;
 
   if (getCarsQuery.error) return <Text>Error...</Text>;
   if (getCarsQuery.isLoading) return <Text>Loading...</Text>;
@@ -264,7 +248,7 @@ export default function CarsPage() {
                   variant="subtle"
                   color="blue"
                   onClick={() => {
-                    setSelectedCarId(car.id);
+                    setSelectedCar(car);
                     open();
                   }}
                 >
@@ -275,6 +259,7 @@ export default function CarsPage() {
                   variant="subtle"
                   color="red"
                   onClick={() => handleDelete(car.id)}
+                  loading={deleteCarMutation.isPending}
                 >
                   <IconTrash size={16} />
                 </ActionIcon>
@@ -285,12 +270,24 @@ export default function CarsPage() {
         sortStatus={sortStatus}
         onSortStatusChange={setSortStatus}
       />
-      <EditCarDrawer carId={selectedCarId} opened={opened} onClose={close} />
+      {selectedCar && (
+        <EditCarDrawer
+          car={selectedCar}
+          opened={opened}
+          onClose={() => {
+            close();
+            setSelectedCar(null);
+          }}
+          getCarsQuery={getCarsQuery}
+          setRecords={setRecords}
+        />
+      )}
       <AddCarModal
         opened={addModalOpened}
-        tenantId={tenantId}
         onClose={() => setAddModalOpened(false)}
-        onCarAdded={getCarsQuery.refetch}
+        tenantId={tenantId}
+        getCarsQuery={getCarsQuery}
+        setRecords={setRecords}
       />
     </Paper>
   );

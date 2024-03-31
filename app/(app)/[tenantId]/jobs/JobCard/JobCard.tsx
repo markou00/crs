@@ -1,5 +1,4 @@
 import { Card, Text, Button, Group, Grid } from '@mantine/core';
-import { Job, Agreement, Car, Customer } from '@prisma/client';
 import {
   IconBox,
   IconTruck,
@@ -9,14 +8,7 @@ import {
 } from '@tabler/icons-react';
 import styles from './JobCard.module.css';
 import { AgreementTypeDisplay } from '../../agreements/utils/agreementTypeDisplay';
-
-type JobCardProps = {
-  job: Job;
-  agreement: Agreement;
-  car: Car | null;
-  customer: Customer;
-  onEdit: (job: Job) => void;
-};
+import { JobCardProps } from '../types';
 
 function getAgreementTypeDisplayValue(type: string): string {
   if (type in AgreementTypeDisplay) {
@@ -25,22 +17,26 @@ function getAgreementTypeDisplayValue(type: string): string {
   return type;
 }
 
-export function JobCard({ job, agreement, car, customer, onEdit }: JobCardProps) {
+export function JobCard({ job, onEdit }: JobCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'assigned':
         return 'green';
       case 'unassigned':
         return 'orange';
+      case 'completed':
+        return 'grey';
       default:
-        return 'gray';
+        return 'white';
     }
   };
 
   const statusColor = getStatusColor(job.status);
 
   const handleEditClick = () => {
-    onEdit(job);
+    if (onEdit) {
+      onEdit(job);
+    }
   };
 
   return (
@@ -66,18 +62,18 @@ export function JobCard({ job, agreement, car, customer, onEdit }: JobCardProps)
             <IconBox size={16} />
             <Button variant="light" size="xs" className={styles.compactButton}>
               <Text size="xs" className={styles.compactText}>
-                {agreement.containerName}
+                {job.agreement.containerName}
               </Text>
             </Button>
           </Group>
         </Grid.Col>
         <Grid.Col span={2}>
-          {car && (
+          {job.car && (
             <Group gap="xs">
               <IconTruck size={16} />
               <Button variant="default" size="xs" className={styles.compactButton}>
                 <Text size="xs" className={styles.compactText}>
-                  {car?.regnr}
+                  {job.car?.regnr}
                 </Text>
               </Button>
             </Group>
@@ -115,12 +111,13 @@ export function JobCard({ job, agreement, car, customer, onEdit }: JobCardProps)
         </Grid.Col>
         <Grid.Col span={6}>
           <Text size="sm">
-            {customer.name} - {customer.address}, {customer.city}
+            {job.agreement.customer.name} - {job.agreement.customer.address},{' '}
+            {job.agreement.customer.city}
           </Text>
         </Grid.Col>
         <Grid.Col span={3}>
           <Group justify="flex-end">
-            <Button onClick={handleEditClick}>Rediger</Button>
+            {onEdit && <Button onClick={handleEditClick}>Rediger</Button>}
           </Group>
         </Grid.Col>
       </Grid>

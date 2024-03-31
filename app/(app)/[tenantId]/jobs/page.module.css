@@ -43,4 +43,8 @@
       }
     }
   }
+
+  .body-with-scrollbar {
+    overflow-y: scroll;
+}
   

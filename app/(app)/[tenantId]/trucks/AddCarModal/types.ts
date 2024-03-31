@@ -2,7 +2,8 @@ export interface AddCarModalProps {
   opened: boolean;
   tenantId: string;
   onClose: () => void;
-  onCarAdded: () => void;
+  getCarsQuery: any;
+  setRecords: any;
 }
 
 export interface CarFormValues {

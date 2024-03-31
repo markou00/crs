@@ -1,63 +1,46 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
-import { Drawer, Button, TextInput, Group, Flex, Select, Text } from '@mantine/core';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+//import { useState } from 'react';
+import { Employee } from '@prisma/client';
+import { Drawer, Button, TextInput, Group, Flex, Select } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+//import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { employeeFormValidation } from '../utils/employeeFormValidation';
 
 interface EditEmployeeDrawerProps {
-  employeeId: string;
+  employee: Employee;
   opened: boolean;
+  tenantId: string;
   onClose: () => void;
 }
 
-export function EditEmployeeDrawer({ employeeId, opened, onClose }: EditEmployeeDrawerProps) {
-  const supabase = createClientComponentClient();
-  const [tenantId, setTenantId] = useState('');
+export function EditEmployeeDrawer({
+  employee,
+  opened,
+  tenantId,
+  onClose,
+}: EditEmployeeDrawerProps) {
+  // const supabase = createClientComponentClient();
+  // const [tenantId, setTenantId] = useState('');
   const queryClient = useQueryClient();
 
   const form = useForm({
     initialValues: {
-      name: '',
-      email: '',
-      phone: '',
-      status: '',
-      picture: '',
+      name: employee.name,
+      email: employee.email,
+      phone: employee.phone,
+      status: employee.status,
+      picture: employee.picture,
     },
     validate: employeeFormValidation,
-  });
-
-  const getEmployeeQuery = useQuery({
-    queryKey: [employeeId],
-    queryFn: async () => {
-      const user = await supabase.auth.getUser();
-      const _tenantId = user.data.user?.user_metadata.tenantId;
-      setTenantId(_tenantId);
-      const response = await fetch(`/api/${_tenantId}/employees/${employeeId}`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const fullData = await response.json();
-      const data = {
-        name: fullData.name || '',
-        email: fullData.email || '',
-        phone: fullData.phone || '',
-        status: fullData.status || '',
-        picture: fullData.picture || '',
-      };
-      form.setValues(data);
-
-      return data;
-    },
   });
 
   const updateEmployeeMutation = useMutation({
     mutationFn: async () => {
       if (form.validate().hasErrors) throw new Error('The form has erros');
 
-      const response = await fetch(`/api/${tenantId}/employees/${employeeId}`, {
+      const response = await fetch(`/api/${tenantId}/employees/${employee.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form.values),
@@ -76,11 +59,6 @@ export function EditEmployeeDrawer({ employeeId, opened, onClose }: EditEmployee
       console.error('Failed to update employee:', error);
     },
   });
-
-  if (getEmployeeQuery.isError) {
-    return <Text>An error occurred: {getEmployeeQuery.error.message}</Text>;
-  }
-  if (getEmployeeQuery.isLoading) return <Text>Loading...</Text>;
 
   return (
     <>
@@ -114,7 +92,11 @@ export function EditEmployeeDrawer({ employeeId, opened, onClose }: EditEmployee
               <Button variant="default" onClick={onClose}>
                 Cancel
               </Button>
-              <Button type="button" onClick={() => updateEmployeeMutation.mutate()}>
+              <Button
+                type="button"
+                onClick={() => updateEmployeeMutation.mutate()}
+                loading={updateEmployeeMutation.isPending}
+              >
                 Lagre
               </Button>
             </Group>

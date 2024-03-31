@@ -1,39 +1,39 @@
 'use server';
 
 import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
-import { Car } from '@prisma/client';
+import { Employee } from '@prisma/client';
 import { cookies } from 'next/headers';
 
 import prisma from '@/lib/prisma';
 
-export async function getCars() {
+export async function getEmployees() {
   try {
     const supabase = createServerActionClient({ cookies });
 
     const authUser = await supabase.auth.getUser();
     const tenantId = authUser.data.user?.user_metadata.tenantId;
 
-    const cars = await prisma.car.findMany({
+    const employees = await prisma.employee.findMany({
       where: { tenantId },
       include: {
-        Employee: true,
+        Car: true,
       },
     });
 
-    return { cars };
+    return { employees };
   } catch (error) {
     return { error };
   }
 }
 
-export async function editCar(car: Partial<Car>) {
+export async function editEmployee(employee: Partial<Employee>) {
   try {
-    const modifiedCar = await prisma.car.update({
-      where: { id: car.id },
-      data: car,
+    const modifiedEmployee = await prisma.employee.update({
+      where: { id: employee.id },
+      data: employee,
     });
 
-    return { modifiedCar };
+    return { modifiedEmployee };
   } catch (error) {
     return { error };
   }

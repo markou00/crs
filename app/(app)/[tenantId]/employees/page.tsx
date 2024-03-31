@@ -1,5 +1,6 @@
 'use client';
 
+import { Employee } from '@prisma/client';
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DataTable, type DataTableSortStatus } from 'mantine-datatable';
@@ -16,6 +17,7 @@ import {
   MultiSelect,
   Tooltip,
 } from '@mantine/core';
+// import { getEmployees } from '@/lib/server/actions/employees-actions';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { EmployeePicture } from '../../../../components/Employees/EmployeePicture';
@@ -26,13 +28,18 @@ import { CreateCarRelationModal } from './CreateCarRelationModal/CreateCarRelati
 import { EmployeeType } from './types';
 
 export default function EmployeesPage() {
+  /* const getEmployeesQuery = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => getEmployees(),
+  }); */
+
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [tenantId, setTenantId] = useState('');
   const supabase = createClientComponentClient();
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>();
   const [opened, { open, close }] = useDisclosure(false);
   const [showCarRelationModal, setShowCarRelationModal] = useState(false);
-  const [selectedEmployeeForCar, setSelectedEmployeeForCar] = useState<string | null>(null);
+  const [selectedEmployeeForCar, setSelectedEmployeeForCar] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -69,7 +76,7 @@ export default function EmployeesPage() {
   });
 
   const deleteEmployeeMutation = useMutation({
-    mutationFn: async (employeeId: string) => {
+    mutationFn: async (employeeId: number) => {
       await fetch(`/api/${tenantId}/employees/${employeeId}`, {
         method: 'DELETE',
       });
@@ -84,7 +91,7 @@ export default function EmployeesPage() {
     },
   });
 
-  const handleDelete = (employeeId: string) => {
+  const handleDelete = (employeeId: number) => {
     if (
       window.confirm('Er du sikker på at du vil slette denne sjåføren? Handlingen kan ikke angres.')
     ) {
@@ -93,7 +100,7 @@ export default function EmployeesPage() {
   };
 
   const deleteTruckRelationMutation = useMutation({
-    mutationFn: async (employeeId: string) => {
+    mutationFn: async (employeeId: number) => {
       await fetch(`/api/${tenantId}/employees/${employeeId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -109,14 +116,14 @@ export default function EmployeesPage() {
     },
   });
 
-  const handleDeleteTruckRelation = (employeeId: string) => {
+  const handleDeleteTruckRelation = (employeeId: number) => {
     if (window.confirm('Er du sikker på at du vil fjerne relasjonen til denne bilen?')) {
       deleteTruckRelationMutation.mutate(employeeId);
     }
   };
 
   type MutationArgs = {
-    employeeId: string;
+    employeeId: number;
     carRelationId: string;
   };
 
@@ -184,7 +191,7 @@ export default function EmployeesPage() {
     setAddModalOpened(true);
   };
 
-  const handleOpenCarRelationModal = (employeeId: string) => {
+  const handleOpenCarRelationModal = (employeeId: number) => {
     setSelectedEmployeeForCar(employeeId);
     setShowCarRelationModal(true);
   };
@@ -320,6 +327,7 @@ export default function EmployeesPage() {
                         variant="subtle"
                         color="red"
                         onClick={() => handleDeleteTruckRelation(employee.id)}
+                        loading={deleteTruckRelationMutation.isPending}
                       >
                         <IconTruck size={16} />
                       </ActionIcon>
@@ -373,7 +381,7 @@ export default function EmployeesPage() {
                   variant="subtle"
                   color="blue"
                   onClick={() => {
-                    setSelectedEmployeeId(employee.id);
+                    setSelectedEmployee(employee);
                     open();
                   }}
                 >
@@ -384,6 +392,7 @@ export default function EmployeesPage() {
                   variant="subtle"
                   color="red"
                   onClick={() => handleDelete(employee.id)}
+                  loading={deleteEmployeeMutation.isPending}
                 >
                   <IconTrash size={16} />
                 </ActionIcon>
@@ -394,12 +403,20 @@ export default function EmployeesPage() {
         sortStatus={sortStatus}
         onSortStatusChange={setSortStatus}
       />
-      <EditEmployeeDrawer employeeId={selectedEmployeeId} opened={opened} onClose={close} />
+
+      {selectedEmployee && (
+        <EditEmployeeDrawer
+          employee={selectedEmployee}
+          opened={opened}
+          onClose={close}
+          tenantId={tenantId}
+        />
+      )}
       <AddEmployeeModal
         opened={addModalOpened}
-        tenantId={tenantId}
         onClose={() => setAddModalOpened(false)}
         onEmployeeAdded={getEmployeesQuery.refetch}
+        tenantId={tenantId}
       />
       <CreateCarRelationModal
         opened={showCarRelationModal}
