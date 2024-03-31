@@ -38,3 +38,15 @@ export async function editEmployee(employee: Partial<Employee>) {
     return { error };
   }
 }
+
+export async function deleteEmployee(id: number) {
+  try {
+    const deletedEmployee = await prisma.employee.delete({
+      where: { id },
+    });
+
+    return { deletedEmployee };
+  } catch (error) {
+    return { error };
+  }
+}

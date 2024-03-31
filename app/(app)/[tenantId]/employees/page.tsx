@@ -4,8 +4,8 @@ import { Employee } from '@prisma/client';
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DataTable, type DataTableSortStatus } from 'mantine-datatable';
-import sortBy from 'lodash/sortBy';
 import { IconEdit, IconTrash, IconSearch, IconX, IconTruck } from '@tabler/icons-react';
+import sortBy from 'lodash/sortBy';
 import {
   Group,
   ActionIcon,
@@ -17,21 +17,21 @@ import {
   MultiSelect,
   Tooltip,
 } from '@mantine/core';
-// import { getEmployees } from '@/lib/server/actions/employees-actions';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { getEmployees } from '@/lib/server/actions/employees-actions';
 import { EmployeePicture } from '../../../../components/Employees/EmployeePicture';
 import { TableHeader } from './TableHeader/TableHeader';
 import { AddEmployeeModal } from './AddEmployeeModal/AddEmployeeModal';
 import { EditEmployeeDrawer } from './EditEmployeeDrawer/EditEmployeeDrawer';
 import { CreateCarRelationModal } from './CreateCarRelationModal/CreateCarRelationModal';
-import { EmployeeType } from './types';
+import { EmployeeType, MutationArgs } from './types';
 
 export default function EmployeesPage() {
-  /* const getEmployeesQuery = useQuery({
+  const getEmployeesQuery = useQuery({
     queryKey: ['employees'],
     queryFn: () => getEmployees(),
-  }); */
+  });
 
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [tenantId, setTenantId] = useState('');
@@ -53,101 +53,7 @@ export default function EmployeesPage() {
     fetchTenantId();
   }, [supabase]);
 
-  const getEmployeesQuery = useQuery<EmployeeType[]>({
-    queryKey: ['employees', tenantId],
-    queryFn: async () => {
-      const response = await fetch(`/api/${tenantId}/employees`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data: EmployeeType[] = await response.json();
-      return data.map((employee) => ({
-        ...employee,
-        car: employee.Car
-          ? {
-              regnr: employee.Car.regnr,
-              model: employee.Car.model,
-              status: employee.Car.status,
-            }
-          : 'No Car',
-      }));
-    },
-    enabled: !!tenantId,
-  });
-
-  const deleteEmployeeMutation = useMutation({
-    mutationFn: async (employeeId: number) => {
-      await fetch(`/api/${tenantId}/employees/${employeeId}`, {
-        method: 'DELETE',
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['employees'],
-      });
-    },
-    onError: (error) => {
-      console.error('Error deleting employee:', error);
-    },
-  });
-
-  const handleDelete = (employeeId: number) => {
-    if (
-      window.confirm('Er du sikker på at du vil slette denne sjåføren? Handlingen kan ikke angres.')
-    ) {
-      deleteEmployeeMutation.mutate(employeeId);
-    }
-  };
-
-  const deleteTruckRelationMutation = useMutation({
-    mutationFn: async (employeeId: number) => {
-      await fetch(`/api/${tenantId}/employees/${employeeId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ carId: null }),
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['employees', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['availableCars', tenantId] });
-    },
-    onError: (error) => {
-      console.error('Error deleting car relation:', error);
-    },
-  });
-
-  const handleDeleteTruckRelation = (employeeId: number) => {
-    if (window.confirm('Er du sikker på at du vil fjerne relasjonen til denne bilen?')) {
-      deleteTruckRelationMutation.mutate(employeeId);
-    }
-  };
-
-  type MutationArgs = {
-    employeeId: number;
-    carRelationId: string;
-  };
-
-  const createTruckRelationMutation = useMutation<void, Error, MutationArgs>({
-    mutationFn: async ({ employeeId, carRelationId }) => {
-      const carIdInt = parseInt(carRelationId, 10);
-
-      await fetch(`/api/${tenantId}/employees/${employeeId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ carId: carIdInt }),
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['employees', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['availableCars', tenantId] });
-    },
-    onError: (error) => {
-      console.error('Error creating car relation:', error);
-    },
-  });
-
-  const initialRecords = getEmployeesQuery.data ?? [];
-  const [records, setRecords] = useState(initialRecords);
+  const [records, setRecords] = useState(getEmployeesQuery.data?.employees);
   const [nameQuery, setNameQuery] = useState('');
   const [regnrQuery, setRegnrQuery] = useState('');
   const [debouncedNameQuery] = useDebouncedValue(nameQuery, 200);
@@ -159,12 +65,13 @@ export default function EmployeesPage() {
   });
 
   useEffect(() => {
-    setRecords(getEmployeesQuery.data ?? []);
-  }, [getEmployeesQuery.data]);
+    const data = sortBy(records, sortStatus.columnAccessor) as EmployeeType[];
+    setRecords(sortStatus.direction === 'desc' ? data.reverse() : data);
+  }, [sortStatus]);
 
   useEffect(() => {
     setRecords(
-      initialRecords?.filter(({ name, Car, status }) => {
+      getEmployeesQuery.data?.employees?.filter(({ name, Car, status }) => {
         if (
           debouncedNameQuery !== '' &&
           !`${name}`.toLowerCase().includes(debouncedNameQuery.trim().toLowerCase())
@@ -183,7 +90,7 @@ export default function EmployeesPage() {
         if (selectedStatus.length && !selectedStatus.some((d) => d === status)) return false;
 
         return true;
-      })
+      }) ?? []
     );
   }, [debouncedNameQuery, debouncedRegnrQuery, selectedStatus]);
 
@@ -194,6 +101,75 @@ export default function EmployeesPage() {
   const handleOpenCarRelationModal = (employeeId: number) => {
     setSelectedEmployeeForCar(employeeId);
     setShowCarRelationModal(true);
+  };
+
+  const createTruckRelationMutation = useMutation<void, Error, MutationArgs>({
+    mutationFn: async ({ employeeId, carRelationId }) => {
+      const carIdInt = parseInt(carRelationId, 10);
+
+      await fetch(`/api/${tenantId}/employees/${employeeId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ carId: carIdInt }),
+      });
+    },
+    onSuccess: async () => {
+      const { data } = await getEmployeesQuery.refetch();
+      setRecords(data?.employees);
+      queryClient.invalidateQueries({ queryKey: ['availableCars', tenantId] });
+    },
+    onError: (error) => {
+      console.error('Error creating car relation:', error);
+    },
+  });
+
+  const deleteTruckRelationMutation = useMutation({
+    mutationFn: async (employeeId: number) => {
+      await fetch(`/api/${tenantId}/employees/${employeeId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ carId: null }),
+      });
+    },
+    onSuccess: async () => {
+      const { data } = await getEmployeesQuery.refetch();
+      setRecords(data?.employees);
+      queryClient.invalidateQueries({ queryKey: ['availableCars', tenantId] });
+    },
+    onError: (error) => {
+      console.error('Error deleting car relation:', error);
+    },
+  });
+
+  const deleteEmployeeMutation = useMutation({
+    mutationFn: async (employeeId: number) => {
+      await fetch(`/api/${tenantId}/employees/${employeeId}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: async () => {
+      const { data } = await getEmployeesQuery.refetch();
+      setRecords(data?.employees);
+    },
+    onError: (error) => {
+      console.error('Error deleting employee:', error);
+    },
+  });
+
+  const handleDelete = (employeeId: number) => {
+    if (
+      // eslint-disable-next-line no-alert
+      window.confirm('Er du sikker på at du vil slette denne sjåføren? Handlingen kan ikke angres.')
+    ) {
+      deleteEmployeeMutation.mutate(employeeId);
+    }
+  };
+
+  const handleDeleteTruckRelation = (employeeId: number) => {
+    // eslint-disable-next-line no-alert
+    if (window.confirm('Er du sikker på at du vil fjerne relasjonen til denne bilen?')) {
+      deleteTruckRelationMutation.mutate(employeeId);
+    }
   };
 
   const handleCarSelected = (carId: string) => {
@@ -218,12 +194,7 @@ export default function EmployeesPage() {
     }
   };
 
-  useEffect(() => {
-    const data = sortBy(records, sortStatus.columnAccessor) as EmployeeType[];
-    setRecords(sortStatus.direction === 'desc' ? data.reverse() : data);
-  }, [sortStatus]);
-
-  const userCount = records.length || 0;
+  const userCount = records?.length || 0;
 
   if (getEmployeesQuery.error) return <Text>Error...</Text>;
   if (getEmployeesQuery.isLoading) return <Text>Loading...</Text>;
@@ -408,15 +379,21 @@ export default function EmployeesPage() {
         <EditEmployeeDrawer
           employee={selectedEmployee}
           opened={opened}
-          onClose={close}
           tenantId={tenantId}
+          onClose={() => {
+            close();
+            setSelectedEmployee(null);
+          }}
+          getEmployeesQuery={getEmployeesQuery}
+          setRecords={setRecords}
         />
       )}
       <AddEmployeeModal
         opened={addModalOpened}
         onClose={() => setAddModalOpened(false)}
-        onEmployeeAdded={getEmployeesQuery.refetch}
         tenantId={tenantId}
+        getEmployeesQuery={getEmployeesQuery}
+        setRecords={setRecords}
       />
       <CreateCarRelationModal
         opened={showCarRelationModal}

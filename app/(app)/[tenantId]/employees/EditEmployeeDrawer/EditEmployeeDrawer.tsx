@@ -1,11 +1,9 @@
 'use client';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-//import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { Employee } from '@prisma/client';
 import { Drawer, Button, TextInput, Group, Flex, Select } from '@mantine/core';
 import { useForm } from '@mantine/form';
-//import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { employeeFormValidation } from '../utils/employeeFormValidation';
 
 interface EditEmployeeDrawerProps {
@@ -13,6 +11,8 @@ interface EditEmployeeDrawerProps {
   opened: boolean;
   tenantId: string;
   onClose: () => void;
+  getEmployeesQuery: any;
+  setRecords: any;
 }
 
 export function EditEmployeeDrawer({
@@ -20,11 +20,9 @@ export function EditEmployeeDrawer({
   opened,
   tenantId,
   onClose,
+  getEmployeesQuery,
+  setRecords,
 }: EditEmployeeDrawerProps) {
-  // const supabase = createClientComponentClient();
-  // const [tenantId, setTenantId] = useState('');
-  const queryClient = useQueryClient();
-
   const form = useForm({
     initialValues: {
       name: employee.name,
@@ -51,9 +49,10 @@ export function EditEmployeeDrawer({
       }
     },
     retry: false,
-    onSuccess: () => {
+    onSuccess: async () => {
+      const { data } = await getEmployeesQuery.refetch();
+      setRecords(data?.employees);
       onClose();
-      queryClient.invalidateQueries({ queryKey: ['employees', tenantId] });
     },
     onError: (error) => {
       console.error('Failed to update employee:', error);

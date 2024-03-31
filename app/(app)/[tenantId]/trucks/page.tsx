@@ -69,6 +69,7 @@ export default function CarsPage() {
 
   const handleDelete = (carId: number) => {
     if (
+      // eslint-disable-next-line no-alert
       window.confirm('Er du sikker på at du vil slette denne bilen? Handlingen kan ikke angres.')
     ) {
       deleteCarMutation.mutate(carId);

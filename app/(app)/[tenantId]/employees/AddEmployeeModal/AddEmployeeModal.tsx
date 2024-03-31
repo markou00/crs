@@ -8,8 +8,9 @@ import { AddEmployeeModalProps, EmployeeFormValues } from './types';
 export function AddEmployeeModal({
   opened,
   onClose,
-  onEmployeeAdded,
   tenantId,
+  getEmployeesQuery,
+  setRecords,
 }: AddEmployeeModalProps) {
   const form = useForm<EmployeeFormValues>({
     initialValues: {
@@ -33,11 +34,17 @@ export function AddEmployeeModal({
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-      if (onEmployeeAdded) onEmployeeAdded();
+    },
+    retry: false,
+    onSuccess: async () => {
+      const { data } = await getEmployeesQuery.refetch();
+      setRecords(data?.employees);
       form.reset();
       onClose();
     },
-    retry: false,
+    onError: (error) => {
+      console.error('Failed to add car:', error);
+    },
   });
 
   return (
