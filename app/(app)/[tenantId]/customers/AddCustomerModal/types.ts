@@ -3,6 +3,7 @@ export interface AddCustomerModalProps {
   tenantId: string;
   onClose: () => void;
   getCustomersQuery: any;
+  setRecords: any;
 }
 
 export interface CustomerFormValues {

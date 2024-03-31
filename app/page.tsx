@@ -1,11 +1,7 @@
-import { ColorSchemeToggle } from '@/components/ColorSchemeToggle/ColorSchemeToggle';
-import { Welcome } from '@/components/Welcome/Welcome';
-
 export default function HomePage() {
   return (
     <>
-      <Welcome />
-      <ColorSchemeToggle />
+      <div>Gå til http://localhost:3000/dashboard</div>
     </>
   );
 }

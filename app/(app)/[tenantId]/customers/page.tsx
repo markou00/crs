@@ -9,7 +9,6 @@ import {
   rem,
   Drawer,
   Flex,
-  Textarea,
   ScrollArea,
 } from '@mantine/core';
 import { IconSearch, IconUserPlus } from '@tabler/icons-react';
@@ -126,6 +125,15 @@ export default function CustomersPage() {
     onError: (error: any) => console.log(error.message),
   });
 
+  useEffect(() => {
+    if (getCustomersQuery.data?.customers) {
+      const sortedCustomers = [...getCustomersQuery.data.customers].sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+      setRecords(sortedCustomers);
+    }
+  }, [getCustomersQuery.data?.customers]);
+
   if (getCustomersQuery.error) return <Text>Error...</Text>;
   if (getCustomersQuery.isLoading) return <Text>Loading...</Text>;
 
@@ -167,42 +175,43 @@ export default function CustomersPage() {
           <Drawer.Body>
             <Flex direction="column" gap="md">
               <TextInput label="Kundenr." value={currentRecord?.id} disabled />
-              <Textarea
+              <TextInput label="Type" value={currentRecord?.type} disabled />
+              <TextInput
                 label="Navn"
                 value={currentRecordName || ''}
                 onChange={(event) => setCurrentRecordName(event.currentTarget.value)}
               />
-              <Textarea
+              <TextInput
                 label="Kontaktnavn"
                 value={currentRecordContactName || ''}
                 onChange={(event) => setCurrentRecordContactName(event.currentTarget.value)}
               />
-              <Textarea
+              <TextInput
                 label="E-post"
                 value={currentRecordContactEmail || ''}
                 onChange={(event) => setCurrentRecordContactEmail(event.currentTarget.value)}
               />
-              <Textarea
+              <TextInput
                 label="Kontaktnavn"
                 value={currentRecordContactPhone || ''}
                 onChange={(event) => setCurrentRecordContactPhone(event.currentTarget.value)}
               />
-              <Textarea
+              <TextInput
                 label="Adresse"
                 value={currentRecordAddress || ''}
                 onChange={(event) => setCurrentRecordAddress(event.currentTarget.value)}
               />
-              <Textarea
+              <TextInput
                 label="Sted"
                 value={currentRecordCity || ''}
                 onChange={(event) => setCurrentRecordCity(event.currentTarget.value)}
               />
-              <Textarea
+              <TextInput
                 label="Postnr."
                 value={currentRecordPostalCode || ''}
                 onChange={(event) => setCurrentRecordPostalCode(event.currentTarget.value)}
               />
-              <Textarea
+              <TextInput
                 label="Land"
                 value={currentRecordCountry || ''}
                 onChange={(event) => setCurrentRecordCountry(event.currentTarget.value)}
