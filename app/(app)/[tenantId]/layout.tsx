@@ -15,7 +15,7 @@ import '@mantine/core/styles.layer.css';
 import 'mantine-datatable/styles.layer.css';
 
 import { Navbar } from '@/components/Navbar/Navbar';
-import { getAuthUser, getUser } from '@/lib/server/actions/user-actions';
+import { getAllUsers, getAuthUser, getUser } from '@/lib/server/actions/user-actions';
 import { UserButton } from '@/components/Navbar/UserButton/UserButton';
 import { getAgreements } from '@/lib/server/actions/agreements-actions';
 import { getCustomers } from '@/lib/server/actions/customer-actions';
@@ -65,6 +65,11 @@ export default async function AppShellLayout({ children }: { children: ReactNode
   await queryClient.prefetchQuery({
     queryKey: ['cars'],
     queryFn: getCars,
+  });
+
+  await queryClient.prefetchQuery({
+    queryKey: ['all-users'],
+    queryFn: getAllUsers,
   });
 
   return (
