@@ -60,7 +60,6 @@ export default function JobsPage() {
   const cars = getCarsQuery.data?.cars;
   const agreements = getAgreementsQuery.data?.agreements;
   const customers = getCustomersQuery.data?.customers;
-  const jobsForFiltering = getJobsQuery.data?.jobs;
 
   const [opened, { open, close }] = useDisclosure(false);
   const [openedModal, { open: openModal, close: closeModal }] = useDisclosure(false);
