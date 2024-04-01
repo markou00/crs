@@ -112,3 +112,46 @@ export async function confirmInvitation(
     return { error };
   }
 }
+
+export async function getAllUsers() {
+  try {
+    const adminSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SECRET!
+    );
+    const supabase = createServerActionClient({ cookies });
+
+    const authUser = await supabase.auth.getUser();
+    const tenantId = authUser.data.user?.user_metadata.tenantId;
+
+    const {
+      data: { users },
+      error,
+    } = await adminSupabase.auth.admin.listUsers();
+
+    if (error) throw new Error("Couldn't get users!");
+
+    const tenantUsers = users.filter((user) => user.user_metadata.tenantId === tenantId);
+
+    return { tenantUsers };
+  } catch (error) {
+    return { error };
+  }
+}
+
+export async function deleteUser(id: string) {
+  try {
+    const adminSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SECRET!
+    );
+
+    const { data, error } = await adminSupabase.auth.admin.deleteUser(id);
+
+    if (error) throw new Error("Couldn't delete user!");
+
+    return { data };
+  } catch (error) {
+    return { error };
+  }
+}

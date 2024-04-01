@@ -2,7 +2,8 @@ export interface AddEmployeeModalProps {
   opened: boolean;
   tenantId: string;
   onClose: () => void;
-  onEmployeeAdded: () => void;
+  getEmployeesQuery: any;
+  setRecords: any;
 }
 
 export interface EmployeeFormValues {

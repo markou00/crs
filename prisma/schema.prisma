@@ -20,6 +20,27 @@ enum ContainerStatus {
   unavailable
 }
 
+enum RepetitionFrequency {
+  NONE
+  DAILY
+  WEEKLY
+}
+
+enum AgreementType {
+  RESIDUAL_WASTE
+  GLASS_WASTE
+  GLASS_AND_METAL
+  METAL_WASTE
+  HOUSEHOLD_WASTE
+  COMMERCIAL_WASTE
+  HAZARDOUS_WASTE
+  CONSTRUCTION_AND_DEMOLITION_WASTE
+  RECYCLING
+  SPECIAL_WASTE
+  ORGANIC_WASTE
+  ELECTRONIC_WASTE
+}
+
 model User {
   id        String  @id @db.Uuid
   email     String  @unique
@@ -58,12 +79,11 @@ model Customer {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   Agreement    Agreement[]
-  job          Job[]
 }
 
 model Agreement {
   id            Int       @id @default(autoincrement())
-  type          String
+  type          AgreementType @default(RESIDUAL_WASTE)
   status        String
   containerName String
   customer      Customer  @relation(fields: [customerId], references: [id])
@@ -75,6 +95,7 @@ model Agreement {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   customerId    Int
+  repetition    RepetitionFrequency @default(NONE)
   job           Job[]
 }
 
@@ -103,8 +124,8 @@ model Employee {
   picture   String?
   carId     Int?     @unique
   Car       Car?     @relation(fields: [carId], references: [id])
-  tenantId  String?
-  Tenant    Tenant?  @relation(fields: [tenantId], references: [id])
+  tenantId  String
+  Tenant    Tenant   @relation(fields: [tenantId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -115,25 +136,27 @@ model Car {
   model     String
   status    String
   Employee  Employee?
-  tenantId  String?
-  Tenant    Tenant?   @relation(fields: [tenantId], references: [id])
+  tenantId  String
+  Tenant    Tenant    @relation(fields: [tenantId], references: [id])
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  job       Job[]
 }
 
 model Job {
   id          Int        @id @default(autoincrement())
-  type        String
   status      String
-  customer    Customer   @relation(fields: [customerId], references: [id])
-  agreement   Agreement? @relation(fields: [agreementId], references: [id])
+  repetition  RepetitionFrequency @default(NONE)
+  date        DateTime
+  agreement   Agreement @relation(fields: [agreementId], references: [id])
   comment     String?
   tenantId    String
   Tenant      Tenant     @relation(fields: [tenantId], references: [id])
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-  customerId  Int
   containerId Int?       @unique
-  agreementId Int?
-  Container   Container? @relation(fields: [containerId], references: [id])
+  agreementId Int
+  carId       Int?
+  container   Container? @relation(fields: [containerId], references: [id])
+  car         Car? @relation(fields: [carId], references: [id])
 }

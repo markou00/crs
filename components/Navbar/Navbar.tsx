@@ -34,7 +34,6 @@ export function Navbar() {
       link: `/${user?.user_metadata?.tenantId}/dashboard`,
       label: 'Dashboard',
       icon: IconLayoutDashboard,
-      isDisabled: true, // remove this to remove the "grey out" effect
     },
     {
       link: `/${user?.user_metadata?.tenantId}/customers`,
@@ -55,7 +54,6 @@ export function Navbar() {
       link: `/${user?.user_metadata?.tenantId}/jobs`,
       label: 'Oppdrag',
       icon: IconCheckbox,
-      isDisabled: true, // remove this to remove the "grey out" effect
     },
     {
       link: `/${user?.user_metadata?.tenantId}/trucks`,
@@ -80,16 +78,9 @@ export function Navbar() {
     },
   ];
 
-  // Only used while some pages are inactive - can be deleted afterwards
-  const disabledLinkClass = {
-    color: '#adb5bd',
-    cursor: 'default',
-  };
-
   const links = data.map((item) => (
     <Link
       className={classes.link}
-      style={item.isDisabled ? disabledLinkClass : {}} // remove this when no more need for "greying out"
       data-active={pathname === item.link ? true : undefined}
       href={item.link}
       key={item.label}

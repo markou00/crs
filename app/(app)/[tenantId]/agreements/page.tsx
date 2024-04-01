@@ -24,7 +24,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
 import { useEffect, useMemo, useState } from 'react';
 import { IconEdit, IconSearch, IconTrash, IconX, IconClick } from '@tabler/icons-react';
-import { Agreement, Customer } from '@prisma/client';
+import { Agreement, AgreementType, Customer, RepetitionFrequency } from '@prisma/client';
 import { DateInput } from '@mantine/dates';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 
@@ -36,6 +36,8 @@ import {
 } from '@/lib/server/actions/agreements-actions';
 import { getCustomers } from '@/lib/server/actions/customer-actions';
 import { getContainers } from '@/lib/server/actions/containers-actions';
+import { AgreementTypeDisplay } from './utils/agreementTypeDisplay';
+import { RepetitionFrequencyDisplay } from './utils/repetitionFrequencyDisplay';
 
 type AgreementDetails = Agreement & {
   customer: Customer;
@@ -83,7 +85,10 @@ export default function AgreementsPage() {
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
   const statuses = useMemo(() => Array.from(new Set(records?.map((e) => e.status))), [records]);
 
-  const [newType, setNewType] = useState('');
+  const [newType, setNewType] = useState<AgreementType | undefined>(AgreementType.RESIDUAL_WASTE);
+  const [newRepetitionFrequency, setNewRepetitionFrequency] = useState<
+    RepetitionFrequency | undefined
+  >(RepetitionFrequency.NONE);
   const [newStatus, setNewStatus] = useState('');
   const [newCustomer, setNewCustomer] = useState<ComboboxItem | null>();
   const [newContainer, setNewContainer] = useState('');
@@ -95,6 +100,7 @@ export default function AgreementsPage() {
     mutationFn: async () => {
       const { newAgreement, error } = await addAgreement({
         type: newType,
+        repetition: newRepetitionFrequency,
         status: newStatus,
         customerId: newCustomer?.value ? parseInt(newCustomer?.value) : undefined,
         containerName: newContainer,
@@ -112,7 +118,8 @@ export default function AgreementsPage() {
       const { data } = await getAgreementsQuery.refetch();
       setRecords(data?.agreements);
       closeModal();
-      setNewType('');
+      setNewType(undefined);
+      setNewRepetitionFrequency(undefined);
       setNewStatus('');
       setNewCustomer(null);
       setNewContainer('');
@@ -204,7 +211,8 @@ export default function AgreementsPage() {
         opened={openedModal}
         onClose={() => {
           closeModal();
-          setNewType('');
+          setNewType(AgreementType.RESIDUAL_WASTE);
+          setNewRepetitionFrequency(RepetitionFrequency.NONE);
           setNewStatus('');
           setNewCustomer(null);
           setNewContainer('');
@@ -215,11 +223,6 @@ export default function AgreementsPage() {
         title="Opprett ny avtale"
       >
         <Flex direction="column" gap="md">
-          <TextInput
-            label="Type"
-            value={newType}
-            onChange={(event) => setNewType(event.currentTarget.value)}
-          />
           <Select
             comboboxProps={{ withinPortal: true }}
             data={customers?.map((customer) => ({
@@ -231,6 +234,26 @@ export default function AgreementsPage() {
               setNewCustomer({ value: option.value, label: option.label });
             }}
             label="Kunde"
+          />
+          <Select
+            comboboxProps={{ withinPortal: true }}
+            data={Object.entries(AgreementTypeDisplay).map(([value, label]) => ({
+              value,
+              label,
+            }))}
+            value={newType}
+            onChange={(value) => setNewType(value as AgreementType)}
+            label="Avfallstype"
+          />
+          <Select
+            comboboxProps={{ withinPortal: true }}
+            data={Object.entries(RepetitionFrequencyDisplay).map(([value, label]) => ({
+              value,
+              label,
+            }))}
+            value={newRepetitionFrequency}
+            onChange={(value) => setNewRepetitionFrequency(value as RepetitionFrequency)}
+            label="Repetisjon"
           />
           <Select
             comboboxProps={{ withinPortal: true }}
@@ -293,7 +316,16 @@ export default function AgreementsPage() {
           <Drawer.Body>
             <Flex direction="column" gap="md">
               <TextInput label="Avtale nr." value={currentRecord?.id} disabled />
-              <TextInput label="Type" value={currentRecord?.type} disabled />
+              <TextInput
+                label="Avfallstype"
+                value={currentRecord ? AgreementTypeDisplay[currentRecord.type] : ''}
+                disabled
+              />
+              <TextInput
+                label="Repetisjon"
+                value={currentRecord ? RepetitionFrequencyDisplay[currentRecord.repetition] : ''}
+                disabled
+              />
               <TextInput label="Kunde" value={currentRecord?.customer?.name} disabled />
               <Select
                 comboboxProps={{ withinPortal: true }}
@@ -377,7 +409,16 @@ export default function AgreementsPage() {
             ),
             filtering: idQuery !== '',
           },
-          { accessor: 'type' },
+          {
+            accessor: 'type',
+            title: 'Avfallstype',
+            render: ({ type }) => <Box>{AgreementTypeDisplay[type]}</Box>,
+          },
+          {
+            accessor: 'repetition',
+            title: 'Repetisjon',
+            render: ({ repetition }) => <Box>{RepetitionFrequencyDisplay[repetition]}</Box>,
+          },
           {
             accessor: 'containerName',
             title: 'Container',
@@ -438,7 +479,7 @@ export default function AgreementsPage() {
                 <IconClick size={16} />
               </Center>
             ),
-            width: '0%', // 👈 use minimal width
+            width: '0%',
             render: (record) => (
               <Group gap={4} justify="right" wrap="nowrap">
                 <ActionIcon

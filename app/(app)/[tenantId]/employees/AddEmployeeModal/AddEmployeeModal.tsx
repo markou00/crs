@@ -8,8 +8,9 @@ import { AddEmployeeModalProps, EmployeeFormValues } from './types';
 export function AddEmployeeModal({
   opened,
   onClose,
-  onEmployeeAdded,
   tenantId,
+  getEmployeesQuery,
+  setRecords,
 }: AddEmployeeModalProps) {
   const form = useForm<EmployeeFormValues>({
     initialValues: {
@@ -33,10 +34,17 @@ export function AddEmployeeModal({
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-      if (onEmployeeAdded) onEmployeeAdded();
-      onClose();
     },
     retry: false,
+    onSuccess: async () => {
+      const { data } = await getEmployeesQuery.refetch();
+      setRecords(data?.employees);
+      form.reset();
+      onClose();
+    },
+    onError: (error) => {
+      console.error('Failed to add car:', error);
+    },
   });
 
   return (
@@ -60,7 +68,9 @@ export function AddEmployeeModal({
           />
           <TextInput label="Picture URL" {...form.getInputProps('picture')} />
           <Group justify="flex-end" mt="md">
-            <Button type="submit">Lagre</Button>
+            <Button type="submit" loading={createEmployeeMutation.isPending}>
+              Lagre
+            </Button>
           </Group>
         </Flex>
       </form>

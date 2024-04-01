@@ -5,7 +5,13 @@ import { useForm } from '@mantine/form';
 import { carFormValidation } from '../utils/carFormValidation';
 import { AddCarModalProps, CarFormValues } from './types';
 
-export function AddCarModal({ opened, onClose, onCarAdded, tenantId }: AddCarModalProps) {
+export function AddCarModal({
+  opened,
+  onClose,
+  tenantId,
+  getCarsQuery,
+  setRecords,
+}: AddCarModalProps) {
   const form = useForm<CarFormValues>({
     initialValues: {
       regnr: '',
@@ -26,10 +32,17 @@ export function AddCarModal({ opened, onClose, onCarAdded, tenantId }: AddCarMod
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-      if (onCarAdded) onCarAdded();
-      onClose();
     },
     retry: false,
+    onSuccess: async () => {
+      const { data } = await getCarsQuery.refetch();
+      setRecords(data?.cars);
+      form.reset();
+      onClose();
+    },
+    onError: (error) => {
+      console.error('Failed to add car:', error);
+    },
   });
 
   return (
@@ -50,7 +63,9 @@ export function AddCarModal({ opened, onClose, onCarAdded, tenantId }: AddCarMod
             {...form.getInputProps('status')}
           />
           <Group justify="flex-end" mt="md">
-            <Button type="submit">Lagre</Button>
+            <Button type="submit" loading={createCarMutation.isPending}>
+              Lagre
+            </Button>
           </Group>
         </Flex>
       </form>

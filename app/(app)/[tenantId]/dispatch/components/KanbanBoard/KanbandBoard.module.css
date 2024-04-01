@@ -1,0 +1,10 @@
+.columnWrapper {
+  /* margin: auto; */
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: rem(40) rem(40);
+}

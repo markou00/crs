@@ -2,7 +2,8 @@ export interface AddCustomerModalProps {
   opened: boolean;
   tenantId: string;
   onClose: () => void;
-  onCustomerAdded: () => void;
+  getCustomersQuery: any;
+  setRecords: any;
 }
 
 export interface CustomerFormValues {

@@ -163,34 +163,76 @@ async function main() {
   const agreements = await prisma.agreement.createMany({
     data: [
       {
-        status: 'Tildelt',
-        type: 'Utleie',
+        status: 'Gjeldende',
+        type: 'ORGANIC_WASTE',
         containerName: '100 Matavfall',
         validFrom: new Date(Date.now()),
         customerId: customerRecords.at(0)?.id!,
-        comment: 'Test comment',
+        comment: 'Mye slakteavfall',
         tenantId: tenant.id,
+        repetition: 'NONE',
       },
       {
-        status: 'Opprettet',
-        type: 'Tømming',
-        containerName: '120 Restavfall',
+        status: 'Gjeldende',
+        type: 'ORGANIC_WASTE',
+        containerName: '100 Matavfall',
         validFrom: new Date(Date.now()),
         customerId: customerRecords.at(1)?.id!,
+        comment: 'En del involler',
+        tenantId: tenant.id,
+        repetition: 'WEEKLY',
+      },
+      {
+        status: 'Avsluttet',
+        type: 'RESIDUAL_WASTE',
+        containerName: '120 Matavfall',
+        validFrom: new Date(Date.now()),
+        customerId: customerRecords.at(2)?.id!,
+        comment: 'Var ikke fornøyd med tjenesten',
+        tenantId: tenant.id,
+        repetition: 'DAILY',
+      },
+      {
+        status: 'Gjeldende',
+        type: 'RESIDUAL_WASTE',
+        containerName: '120 Restavfall',
+        validFrom: new Date(Date.now()),
+        customerId: customerRecords.at(3)?.id!,
         validTo: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
         tenantId: tenant.id,
+        repetition: 'WEEKLY',
       },
     ],
   });
   console.log('Created agreements:', agreements.count);
 
+  const agreementsRecords = await prisma.agreement.findMany();
+  const carsRecords = await prisma.car.findMany();
+
   const jobs = await prisma.job.createMany({
     data: [
       {
-        status: 'Opprettet',
-        type: 'Tømming',
-        customerId: customerRecords.at(1)?.id!,
+        status: 'assigned',
+        date: new Date(2023, 3, 14, 10, 0),
+        comment: 'Engangsjobb med matavfall',
         tenantId: tenant.id,
+        agreementId: agreementsRecords.at(0)?.id!,
+        carId: carsRecords.at(0)?.id!,
+      },
+      {
+        status: 'assigned',
+        date: new Date(2023, 3, 13, 14, 30),
+        comment: 'Det lukter vondt!',
+        tenantId: tenant.id,
+        agreementId: agreementsRecords.at(1)?.id!,
+        carId: carsRecords.at(1)?.id!,
+      },
+      {
+        status: 'unassigned',
+        date: new Date(2023, 3, 15, 9, 0),
+        comment: 'Ingen vil ha denne jobben',
+        tenantId: tenant.id,
+        agreementId: agreementsRecords.at(2)?.id!,
       },
     ],
   });
@@ -233,8 +275,6 @@ async function main() {
     data: { containerId: containerRecord?.id! },
   });
 
-  // Create employees and associate them with cars
-  // Note: This assumes that each car is associated with one employee
   const employees = await prisma.employee.createMany({
     data: [
       {
@@ -244,7 +284,7 @@ async function main() {
         phone: '99000011',
         picture:
           'https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=2598&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        carId: 1,
+        carId: carsRecords.at(0)?.id!,
         tenantId: tenant.id,
       },
       {
@@ -254,7 +294,7 @@ async function main() {
         phone: '99433111',
         picture:
           'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=2576&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        carId: 2,
+        carId: carsRecords.at(1)?.id!,
         tenantId: tenant.id,
       },
       {
@@ -273,7 +313,7 @@ async function main() {
         phone: '91183111',
         picture:
           'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        carId: 4,
+        carId: carsRecords.at(2)?.id!,
         tenantId: tenant.id,
       },
     ],
