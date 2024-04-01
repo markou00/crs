@@ -1,7 +1,6 @@
 'use client';
 
-import { Button, Flex } from '@mantine/core';
-import { IconPlus } from '@tabler/icons-react';
+import { Flex } from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 import {
   DndContext,
@@ -17,12 +16,10 @@ import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
 import { SortableContext, arrayMove } from '@dnd-kit/sortable';
 
-import { Column, Id, Task } from './types';
+import { Column, Task } from './types';
 import ColumnContainer from './ColumnContainer/ColumnContainer';
 import classes from './KanbandBoard.module.css';
 import TaskCard from './TaskCard/TaskCard';
-import { getJobs } from '@/lib/server/actions/job-actions';
-import { JobDetails } from '../../../jobs/types';
 import { getCars } from '@/lib/server/actions/car-actions';
 import { CarType } from '../../../trucks/types';
 
@@ -53,10 +50,6 @@ function KanbanBoard() {
       },
     })
   );
-
-  function generateId() {
-    return Math.floor(Math.random() * 10001);
-  }
 
   function onDragStart(event: DragStartEvent) {
     if (event.active.data.current?.type === 'Column') {
@@ -141,6 +134,10 @@ function KanbanBoard() {
         <Flex gap="sm">
           <Flex gap="md">
             <SortableContext items={columnsId}>
+              <ColumnContainer
+                column={{ id: '0', regnr: 'Unassigned' }}
+                tasks={tasks.filter((task) => task.columnId === col.id)}
+              />
               {columns.map((col) => (
                 <ColumnContainer
                   key={col.id}

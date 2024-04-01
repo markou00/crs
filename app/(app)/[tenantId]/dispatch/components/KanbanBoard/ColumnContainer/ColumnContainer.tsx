@@ -9,7 +9,7 @@ import TaskCard from '../TaskCard/TaskCard';
 import { CarType } from '@/app/(app)/[tenantId]/employees/CreateCarRelationModal/types';
 
 interface Props {
-  column: CarType;
+  column: Partial<CarType>;
   tasks: Task[];
 }
 
@@ -17,7 +17,7 @@ function ColumnContainer(props: Props) {
   const { column, tasks } = props;
 
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
-    id: column.id,
+    id: column.id?.toString()!,
     data: {
       type: 'Column',
       column,
@@ -44,7 +44,7 @@ function ColumnContainer(props: Props) {
   return (
     <Box ref={setNodeRef} style={style} className={classes.container}>
       <Box {...attributes} {...listeners} className={classes.title}>
-        <Flex gap="0.5rem">
+        <Flex gap="0.5rem" align="center">
           <div className={classes.taskNumber}>0</div>
           {column.regnr}
         </Flex>
