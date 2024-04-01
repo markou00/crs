@@ -12,6 +12,7 @@ import { ReactNode } from 'react';
 import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query';
 
 import '@mantine/core/styles.layer.css';
+import '@mantine/charts/styles.css';
 import 'mantine-datatable/styles.layer.css';
 
 import { Navbar } from '@/components/Navbar/Navbar';
