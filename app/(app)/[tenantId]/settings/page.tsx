@@ -19,14 +19,14 @@ import { useState } from 'react';
 import { DataTable } from 'mantine-datatable';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
-import { getAllUsers, inviteUser } from '@/lib/server/actions/user-actions';
+import { deleteUser, getAllUsers, inviteUser } from '@/lib/server/actions/user-actions';
 
 export default function SettignsPage() {
   const getAllUsersQuery = useQuery({
     queryKey: ['all-users'],
     queryFn: () => getAllUsers(),
   });
-  const [records] = useState(getAllUsersQuery.data?.tenantUsers);
+  const [records, setRecords] = useState(getAllUsersQuery.data?.tenantUsers);
 
   const [opened, { open, close }] = useDisclosure(false);
 
@@ -48,11 +48,30 @@ export default function SettignsPage() {
       return user;
     },
     retry: false,
-    onSuccess: () => {
+    onSuccess: async () => {
       close();
       form.values.email = '';
+      const { data } = await getAllUsersQuery.refetch();
+      setRecords(data?.tenantUsers);
     },
     onError: (error) => console.log(error.message),
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const { data, error } = await deleteUser(id);
+
+      if (error) throw new Error("Couldn't delete the user");
+
+      return data;
+    },
+    retry: false,
+
+    onSuccess: async () => {
+      const { data } = await getAllUsersQuery.refetch();
+      setRecords(data?.tenantUsers);
+    },
+    onError: (error: any) => console.log(error.message),
   });
 
   return (
@@ -108,11 +127,11 @@ export default function SettignsPage() {
                   size="sm"
                   variant="subtle"
                   color="red"
-                  // loading={deleteAgreementMutation.isPending}
+                  loading={deleteUserMutation.isPending}
                 >
                   <IconTrash
                     size={16}
-                    // onClick={() => deleteAgreementMutation.mutate({ id: record.id })}
+                    onClick={() => deleteUserMutation.mutate({ id: record.id })}
                   />
                 </ActionIcon>
               </Group>
