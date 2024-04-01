@@ -25,7 +25,7 @@ import { DateTimePicker } from '@mantine/dates';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useDisclosure } from '@mantine/hooks';
 import { useEffect, useState } from 'react';
-import { Agreement, Job, RepetitionFrequency } from '@prisma/client';
+import { Agreement, AgreementType, Job, RepetitionFrequency } from '@prisma/client';
 import { getJobs, editJob, deleteJob, addJob } from '@/lib/server/actions/job-actions';
 import { getCustomers } from '@/lib/server/actions/customer-actions';
 import { getCars } from '@/lib/server/actions/car-actions';
@@ -60,6 +60,7 @@ export default function JobsPage() {
   const cars = getCarsQuery.data?.cars;
   const agreements = getAgreementsQuery.data?.agreements;
   const customers = getCustomersQuery.data?.customers;
+  const jobsForFiltering = getJobsQuery.data?.jobs;
 
   const [opened, { open, close }] = useDisclosure(false);
   const [openedModal, { open: openModal, close: closeModal }] = useDisclosure(false);
@@ -79,6 +80,7 @@ export default function JobsPage() {
   const [filteredJobs, setFilteredJobs] = useState<JobDetails[]>([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
   const [selectedAgreementId, setSelectedAgreementId] = useState<number | null>(null);
+  const [selectedType, setSelectedType] = useState<AgreementType | null>(null);
   const [completedJobs, setCompletedJobs] = useState<JobDetails[]>([]);
 
   useEffect(() => {
@@ -147,10 +149,14 @@ export default function JobsPage() {
       jobs = jobs.filter((job) => job.agreementId === selectedAgreementId);
     }
 
+    if (selectedType !== null) {
+      jobs = jobs.filter((job) => job.agreement.type === selectedType);
+    }
+
     const newlyFilteredJobs = jobs.filter((job) => job.status !== 'completed');
 
     setFilteredJobs(newlyFilteredJobs);
-  }, [selectedCustomerId, selectedAgreementId, allJobs]);
+  }, [selectedCustomerId, selectedAgreementId, selectedType, allJobs]);
 
   const filterJobs = (jobsData: any[] | ((prevState: JobDetails[]) => JobDetails[])) => {
     setAllJobs(jobsData);
@@ -169,7 +175,6 @@ export default function JobsPage() {
       const { newJob, error } = await addJob({
         comment: job.comment,
         agreementId: job.agreementId,
-        type: job.type,
         carId: job.carId,
         status: job.status,
         date: job.date,
@@ -208,7 +213,6 @@ export default function JobsPage() {
       jobs.push({
         comment: newComment,
         agreementId: newAgreement.id,
-        type: newAgreement.type || '',
         carId: newCar ? parseInt(newCar.value, 10) : null,
         status: newCar ? 'assigned' : 'unassigned',
         repetition: newRepetition,
@@ -359,6 +363,21 @@ export default function JobsPage() {
               onChange={(value) => setSelectedAgreementId(value ? parseInt(value, 10) : null)}
               label="Avtale"
               placeholder="Velg en avtale"
+            />
+            <Select
+              comboboxProps={{ withinPortal: true }}
+              data={
+                AgreementType
+                  ? Object.keys(AgreementType).map((type) => ({
+                      value: type,
+                      label: getAgreementTypeDisplayValue(type),
+                    }))
+                  : []
+              }
+              value={selectedType || ''}
+              onChange={(value) => setSelectedType(value as AgreementType | null)}
+              label="Avfallstype"
+              placeholder="Velg en type"
             />
           </Group>
           <Group mb="md">
@@ -525,7 +544,7 @@ export default function JobsPage() {
                   <TextInput label="Oppdragsnr." value={currentRecord?.id} disabled />
                   <TextInput
                     label="Avfallstype"
-                    value={getAgreementTypeDisplayValue(currentRecord?.type || '')}
+                    value={getAgreementTypeDisplayValue(currentRecord?.agreement.type || '')}
                     disabled
                   />
                   <DateTimePicker

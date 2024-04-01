@@ -145,7 +145,6 @@ model Car {
 
 model Job {
   id          Int        @id @default(autoincrement())
-  type        String
   status      String
   repetition  RepetitionFrequency @default(NONE)
   date        DateTime

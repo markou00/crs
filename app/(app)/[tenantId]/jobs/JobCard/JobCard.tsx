@@ -55,7 +55,7 @@ export function JobCard({ job, onEdit }: JobCardProps) {
       <div style={{ position: 'relative', height: '100%', backgroundColor: statusColor }} />
       <Grid gutter="sm">
         <Grid.Col span={3}>
-          <Text fw={700}>{getAgreementTypeDisplayValue(job.type)}</Text>
+          <Text fw={700}>{getAgreementTypeDisplayValue(job.agreement.type)}</Text>
         </Grid.Col>
         <Grid.Col span={2.5}>
           <Group gap="xs">
