@@ -6,6 +6,9 @@ import {
   IconRepeatOff,
   IconCalendarRepeat,
 } from '@tabler/icons-react';
+import { CSS } from '@dnd-kit/utilities';
+import { useSortable } from '@dnd-kit/sortable';
+
 import styles from './JobCard.module.css';
 import { AgreementTypeDisplay } from '../../agreements/utils/agreementTypeDisplay';
 import { JobCardProps } from '../types';
@@ -39,16 +42,38 @@ export function JobCard({ job, onEdit }: JobCardProps) {
     }
   };
 
+  const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
+    id: job.id,
+    data: {
+      type: 'Task',
+      job,
+    },
+  });
+
+  const style = {
+    transition,
+    transform: CSS.Transform.toString(transform),
+  };
+
+  if (isDragging) {
+    return <div ref={setNodeRef} style={style} className={`${styles.card} ${styles.isDragging}`} />;
+  }
+
   return (
     <Card
       key={job.id}
       shadow="sm"
       padding="lg"
       component="a"
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
       style={{
         width: '700px',
         position: 'relative',
         '--status-color': getStatusColor(job.status),
+        transition,
+        transform: CSS.Transform.toString(transform),
       }}
       className={styles.cardWithStatusEdge}
     >

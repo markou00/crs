@@ -10,7 +10,7 @@ interface Props {
 
 function TaskCard({ task }: Props) {
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
-    id: task.id,
+    id: task.id?.toString()!,
     data: {
       type: 'Task',
       task,

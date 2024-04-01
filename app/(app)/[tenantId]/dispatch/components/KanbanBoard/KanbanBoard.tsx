@@ -13,15 +13,16 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { createPortal } from 'react-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { SortableContext, arrayMove } from '@dnd-kit/sortable';
 
-import { Column, Task } from './types';
 import ColumnContainer from './ColumnContainer/ColumnContainer';
 import classes from './KanbandBoard.module.css';
 import TaskCard from './TaskCard/TaskCard';
 import { getCars } from '@/lib/server/actions/car-actions';
 import { CarType } from '../../../trucks/types';
+import { editJob, getJobs } from '@/lib/server/actions/job-actions';
+import { JobDetails } from '../../../jobs/types';
 
 function KanbanBoard() {
   const getCarsQuery = useQuery({
@@ -29,17 +30,26 @@ function KanbanBoard() {
     queryFn: () => getCars(),
   });
 
-  const [columns, setColumns] = useState<CarType[]>([]);
-  const [activeColumn, setActiveColumn] = useState<Column | null>(null);
+  const getJobsQuery = useQuery({
+    queryKey: ['jobs'],
+    queryFn: () => getJobs(),
+  });
 
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [columns, setColumns] = useState<Partial<CarType>[]>([]);
+  const [activeColumn, setActiveColumn] = useState<Partial<CarType> | null>(null);
+
+  const [tasks, setTasks] = useState<JobDetails[]>([]);
+  const [activeTask, setActiveTask] = useState<JobDetails | null>(null);
 
   useEffect(() => {
     if (getCarsQuery.data?.cars) {
-      setColumns(getCarsQuery.data.cars);
+      setColumns([{ id: 0, regnr: 'Unassigned' }, ...getCarsQuery.data.cars]);
     }
-  }, [getCarsQuery.data?.cars]);
+
+    if (getJobsQuery.data?.jobs) {
+      setTasks(getJobsQuery.data.jobs);
+    }
+  }, [getCarsQuery.data?.cars, getJobsQuery.data?.jobs]);
 
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
 
@@ -61,6 +71,30 @@ function KanbanBoard() {
     }
   }
 
+  const editJobMutation = useMutation({
+    mutationFn: async ({ task }: { task: JobDetails }) => {
+      const determinedStatus = task.carId && task.carId !== 0 ? 'assigned' : 'unassigned';
+
+      const { modifiedJob, error } = await editJob({
+        id: task.id,
+        status: determinedStatus,
+        carId: task.carId === 0 ? null : task.carId,
+      });
+
+      if (error) throw new Error("Couldn't modify the job");
+
+      return modifiedJob;
+    },
+    retry: false,
+    onSuccess: async () => {
+      const { data } = await getJobsQuery.refetch();
+      if (data?.jobs) {
+        setTasks(data.jobs);
+      }
+    },
+    onError: (error: any) => console.log(error.message),
+  });
+
   function onDragEnd(event: DragEndEvent) {
     setActiveColumn(null);
     setActiveTask(null);
@@ -70,6 +104,8 @@ function KanbanBoard() {
 
     const activeColumnId = active.id;
     const overColumnId = over.id;
+
+    editJobMutation.mutate({ task: active.data.current?.job });
 
     if (activeColumnId === overColumnId) return;
 
@@ -104,7 +140,10 @@ function KanbanBoard() {
         const activeIndex = ts.findIndex((t) => t.id === activeId);
         const overIndex = ts.findIndex((t) => t.id === overId);
 
-        tasks[activeIndex].columnId = tasks[overIndex].columnId;
+        // console.log(tasks[overIndex].carId);
+        // console.log(tasks[overIndex].car?.regnr);
+        // editJobMutation.mutate({ task: tasks[activeIndex], carId: tasks[overIndex].carId! });
+        tasks[activeIndex].carId = tasks[overIndex].carId;
 
         return arrayMove(ts, activeIndex, overIndex);
       });
@@ -116,7 +155,9 @@ function KanbanBoard() {
       setTasks((ts) => {
         const activeIndex = ts.findIndex((t) => t.id === activeId);
 
-        tasks[activeIndex].columnId = overId;
+        // eslint-disable-next-line radix
+        tasks[activeIndex].carId = parseInt(overId.toString());
+        // console.log(overId);
 
         return arrayMove(ts, activeIndex, activeIndex);
       });
@@ -134,15 +175,15 @@ function KanbanBoard() {
         <Flex gap="sm">
           <Flex gap="md">
             <SortableContext items={columnsId}>
-              <ColumnContainer
-                column={{ id: '0', regnr: 'Unassigned' }}
-                tasks={tasks.filter((task) => task.columnId === col.id)}
-              />
               {columns.map((col) => (
                 <ColumnContainer
                   key={col.id}
                   column={col}
-                  tasks={tasks.filter((task) => task.columnId === col.id)}
+                  tasks={tasks.filter(
+                    (task) =>
+                      task.carId === col.id ||
+                      (task.carId === null && task.status !== 'completed' && col.id === 0)
+                  )}
                 />
               ))}
             </SortableContext>
@@ -155,7 +196,11 @@ function KanbanBoard() {
           {activeColumn && (
             <ColumnContainer
               column={activeColumn}
-              tasks={tasks.filter((task) => task.columnId === activeColumn.id)}
+              tasks={tasks.filter(
+                (task) =>
+                  task.carId === activeColumn.id ||
+                  (task.carId === null && task.status !== 'completed' && activeColumn.id === 0)
+              )}
             />
           )}
           {activeTask && <TaskCard task={activeTask} />}

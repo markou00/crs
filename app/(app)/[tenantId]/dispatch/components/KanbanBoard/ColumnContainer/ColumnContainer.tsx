@@ -3,21 +3,21 @@ import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { Box, Flex } from '@mantine/core';
 import { CSS } from '@dnd-kit/utilities';
 
-import { Task } from '../types';
 import classes from './ColumnContainer.module.css';
-import TaskCard from '../TaskCard/TaskCard';
-import { CarType } from '@/app/(app)/[tenantId]/employees/CreateCarRelationModal/types';
+import { CarType } from '../../../../trucks/types';
+import { JobDetails } from '@/app/(app)/[tenantId]/jobs/types';
+import { JobCard } from '@/app/(app)/[tenantId]/jobs/JobCard/JobCard';
 
 interface Props {
   column: Partial<CarType>;
-  tasks: Task[];
+  tasks: JobDetails[];
 }
 
 function ColumnContainer(props: Props) {
   const { column, tasks } = props;
 
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
-    id: column.id?.toString()!,
+    id: column.id!,
     data: {
       type: 'Column',
       column,
@@ -53,7 +53,7 @@ function ColumnContainer(props: Props) {
       <Box className={classes.taskContainer}>
         <SortableContext items={tasksIds}>
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
+            <JobCard key={task.id} job={task} />
           ))}
         </SortableContext>
       </Box>

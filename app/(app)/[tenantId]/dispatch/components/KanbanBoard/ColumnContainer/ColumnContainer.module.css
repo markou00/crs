@@ -1,8 +1,8 @@
 .container {
   background-color: var(--mantine-color-gray-3);
-  width: rem(350);
-  height: rem(500);
-  max-height: rem(500);
+  width: rem(716);
+  height: 75vh;
+  max-height: 75vh;
   border-radius: var(--mantine-radius-md);
   display: flex;
   flex-direction: column;
