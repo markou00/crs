@@ -60,6 +60,11 @@ export default function JobsPage() {
   const cars = getCarsQuery.data?.cars;
   const agreements = getAgreementsQuery.data?.agreements;
   const customers = getCustomersQuery.data?.customers;
+  const currentDateDay = new Date();
+  const currentDateWeek = new Date();
+  const currentDateMonth = new Date();
+  const currentDateQuarter = new Date();
+  const currentDateYear = new Date();
 
   const [opened, { open, close }] = useDisclosure(false);
   const [openedModal, { open: openModal, close: closeModal }] = useDisclosure(false);
@@ -79,7 +84,12 @@ export default function JobsPage() {
   const [filteredJobs, setFilteredJobs] = useState<JobDetails[]>([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
   const [selectedAgreementId, setSelectedAgreementId] = useState<number | null>(null);
+  const [selectedCarId, setSelectedCarId] = useState<number | null>(null);
   const [selectedType, setSelectedType] = useState<AgreementType | null>(null);
+  const [selectedRepetition, setSelectedRepetition] = useState<RepetitionFrequency | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [selectedTimeVisible, setSelectedTimeVisible] = useState<string | null>(null);
+
   const [completedJobs, setCompletedJobs] = useState<JobDetails[]>([]);
 
   useEffect(() => {
@@ -152,10 +162,35 @@ export default function JobsPage() {
       jobs = jobs.filter((job) => job.agreement.type === selectedType);
     }
 
+    if (selectedCarId !== null) {
+      jobs = jobs.filter((job) => job.carId === selectedCarId);
+    }
+
+    if (selectedRepetition !== null) {
+      jobs = jobs.filter((job) => job.repetition === selectedRepetition);
+    }
+
+    if (selectedStatus !== null) {
+      jobs = jobs.filter((job) => job.status === selectedStatus);
+    }
+
+    if (selectedTimeVisible !== null) {
+      jobs = jobs.filter((job) => job.date <= new Date(selectedTimeVisible));
+    }
+
     const newlyFilteredJobs = jobs.filter((job) => job.status !== 'completed');
 
     setFilteredJobs(newlyFilteredJobs);
-  }, [selectedCustomerId, selectedAgreementId, selectedType, allJobs]);
+  }, [
+    selectedCustomerId,
+    selectedAgreementId,
+    selectedType,
+    selectedCarId,
+    selectedRepetition,
+    selectedStatus,
+    selectedTimeVisible,
+    allJobs,
+  ]);
 
   const filterJobs = (jobsData: any[] | ((prevState: JobDetails[]) => JobDetails[])) => {
     setAllJobs(jobsData);
@@ -365,6 +400,17 @@ export default function JobsPage() {
             />
             <Select
               comboboxProps={{ withinPortal: true }}
+              data={cars?.map((car) => ({
+                value: car.id.toString(),
+                label: `${car.id} - ${car.regnr} - ${car.Employee?.name || 'mangler sjåfør'}`,
+              }))}
+              value={selectedCarId?.toString() || ''}
+              onChange={(value) => setSelectedCarId(value ? parseInt(value, 10) : null)}
+              label="Billiste"
+              placeholder="Velg en bil"
+            />
+            <Select
+              comboboxProps={{ withinPortal: true }}
               data={
                 AgreementType
                   ? Object.keys(AgreementType).map((type) => ({
@@ -377,6 +423,72 @@ export default function JobsPage() {
               onChange={(value) => setSelectedType(value as AgreementType | null)}
               label="Avfallstype"
               placeholder="Velg en type"
+            />
+            <Select
+              comboboxProps={{ withinPortal: true }}
+              data={
+                RepetitionFrequency
+                  ? Object.keys(RepetitionFrequency).map((type) => ({
+                      value: type,
+                      label: getRepetitionFrequencyDisplayValue(type),
+                    }))
+                  : []
+              }
+              value={selectedType || undefined}
+              onChange={(value) => setSelectedRepetition(value as RepetitionFrequency | null)}
+              label="Gjentagelse"
+              placeholder="Velg frekvens"
+            />
+            <Select
+              comboboxProps={{ withinPortal: true }}
+              data={[
+                { value: 'assigned', label: 'Tildelt' },
+                { value: 'unassigned', label: 'Ikke tildelt' },
+              ]}
+              value={selectedStatus || null}
+              onChange={(value) => setSelectedStatus(value || null)}
+              label="Status"
+              placeholder="Tildelt/ikke tildelt"
+            />
+            <Select
+              comboboxProps={{ withinPortal: true }}
+              data={[
+                { value: '', label: 'Ingen valgt tidsperiode' },
+                {
+                  value: new Date(
+                    currentDateDay.setDate(currentDateDay.getDate() + 1)
+                  ).toISOString(),
+                  label: '1 dag',
+                },
+                {
+                  value: new Date(
+                    currentDateWeek.setDate(currentDateWeek.getDate() + 7)
+                  ).toISOString(),
+                  label: '1 uke',
+                },
+                {
+                  value: new Date(
+                    currentDateMonth.setMonth(currentDateMonth.getMonth() + 1)
+                  ).toISOString(),
+                  label: '1 måned',
+                },
+                {
+                  value: new Date(
+                    currentDateQuarter.setDate(currentDateQuarter.getDate() + 31 * 3)
+                  ).toISOString(),
+                  label: '1 kvartal',
+                },
+                {
+                  value: new Date(
+                    currentDateYear.setFullYear(currentDateYear.getFullYear() + 1)
+                  ).toISOString(),
+                  label: '1 år',
+                },
+              ]}
+              value={selectedTimeVisible || ''}
+              onChange={(value) => setSelectedTimeVisible(value === '' ? null : value)}
+              label="Tidsbegrensning"
+              placeholder="Tid frem i tid"
             />
           </Group>
           <Group mb="md">
@@ -519,11 +631,14 @@ export default function JobsPage() {
             </Flex>
           </Modal>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-            {filteredJobs.map((job) => (
-              <div key={job.id} style={{ marginBottom: '5px' }}>
-                <JobCard key={job.id} job={job} onEdit={openDrawer} />
-              </div>
-            ))}
+            {filteredJobs
+              .slice()
+              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+              .map((job) => (
+                <div key={job.id} style={{ marginBottom: '5px' }}>
+                  <JobCard key={job.id} job={job} onEdit={openDrawer} />
+                </div>
+              ))}
           </div>
           <Drawer.Root
             radius="md"
@@ -673,6 +788,11 @@ export default function JobsPage() {
           <Group mb="md" gap="xs">
             <Select label="Kunde" placeholder="Velg en kunde" disabled />
             <Select label="Avtale" placeholder="Velg en avtale" disabled />
+            <Select label="Billiste" placeholder="Velg en bil" disabled />
+            <Select label="Avfallstype" placeholder="Velg en type" disabled />
+            <Select label="Gjentagelse" placeholder="Velg frekvens" disabled />
+            <Select label="Status" placeholder="Tildelt/ikke tildelt" disabled />
+            <Select label="Tidsbegrensning" placeholder="Tid frem i tid" disabled />
           </Group>
           <Group mb="md" justify="flex-end">
             <Badge color="grey" variant="filled">
@@ -680,11 +800,14 @@ export default function JobsPage() {
             </Badge>
           </Group>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-            {completedJobs.map((job) => (
-              <div key={job.id} style={{ marginBottom: '5px' }}>
-                <JobCard key={job.id} job={job} />
-              </div>
-            ))}
+            {completedJobs
+              .slice()
+              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+              .map((job) => (
+                <div key={job.id} style={{ marginBottom: '5px' }}>
+                  <JobCard key={job.id} job={job} onEdit={openDrawer} />
+                </div>
+              ))}
           </div>
         </Tabs.Panel>
       </Tabs>
