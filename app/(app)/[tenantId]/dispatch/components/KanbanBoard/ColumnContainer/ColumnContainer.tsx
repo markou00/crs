@@ -1,20 +1,20 @@
 import { useMemo } from 'react';
-import { IconPlus } from '@tabler/icons-react';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
-import { ActionIcon, Box, Flex } from '@mantine/core';
+import { Box, Flex } from '@mantine/core';
 import { CSS } from '@dnd-kit/utilities';
-import { Column, Id, Task } from '../types';
+
+import { Task } from '../types';
 import classes from './ColumnContainer.module.css';
 import TaskCard from '../TaskCard/TaskCard';
+import { CarType } from '@/app/(app)/[tenantId]/employees/CreateCarRelationModal/types';
 
 interface Props {
-  column: Column;
+  column: CarType;
   tasks: Task[];
-  createTask: (columnId: Id) => void;
 }
 
 function ColumnContainer(props: Props) {
-  const { column, createTask, tasks } = props;
+  const { column, tasks } = props;
 
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
     id: column.id,
@@ -46,16 +46,8 @@ function ColumnContainer(props: Props) {
       <Box {...attributes} {...listeners} className={classes.title}>
         <Flex gap="0.5rem">
           <div className={classes.taskNumber}>0</div>
-          {column.title}
+          {column.regnr}
         </Flex>
-        <ActionIcon
-          radius="md"
-          onClick={() => {
-            createTask(column.id);
-          }}
-        >
-          <IconPlus />
-        </ActionIcon>
       </Box>
 
       <Box className={classes.taskContainer}>

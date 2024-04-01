@@ -2,7 +2,7 @@
 
 import { Button, Flex } from '@mantine/core';
 import { IconPlus } from '@tabler/icons-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -14,19 +14,35 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { createPortal } from 'react-dom';
+import { useQuery } from '@tanstack/react-query';
 import { SortableContext, arrayMove } from '@dnd-kit/sortable';
 
 import { Column, Id, Task } from './types';
 import ColumnContainer from './ColumnContainer/ColumnContainer';
 import classes from './KanbandBoard.module.css';
 import TaskCard from './TaskCard/TaskCard';
+import { getJobs } from '@/lib/server/actions/job-actions';
+import { JobDetails } from '../../../jobs/types';
+import { getCars } from '@/lib/server/actions/car-actions';
+import { CarType } from '../../../trucks/types';
 
 function KanbanBoard() {
-  const [columns, setColumns] = useState<Column[]>([]);
+  const getCarsQuery = useQuery({
+    queryKey: ['cars'],
+    queryFn: () => getCars(),
+  });
+
+  const [columns, setColumns] = useState<CarType[]>([]);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+
+  useEffect(() => {
+    if (getCarsQuery.data?.cars) {
+      setColumns(getCarsQuery.data.cars);
+    }
+  }, [getCarsQuery.data?.cars]);
 
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
 
@@ -40,15 +56,6 @@ function KanbanBoard() {
 
   function generateId() {
     return Math.floor(Math.random() * 10001);
-  }
-
-  function createNewColumn() {
-    const columnToAdd: Column = {
-      id: generateId(),
-      title: `Column ${columns.length + 1}`,
-    };
-
-    setColumns([...columns, columnToAdd]);
   }
 
   function onDragStart(event: DragStartEvent) {
@@ -80,16 +87,6 @@ function KanbanBoard() {
 
       return arrayMove(columns, activeColumnIndex, overColumnIndex);
     });
-  }
-
-  function createTask(columnId: Id) {
-    const newTask: Task = {
-      id: generateId(),
-      columnId,
-      content: `Task ${tasks.length + 1}`,
-    };
-
-    setTasks([...tasks, newTask]);
   }
 
   function onDragOver(event: DragOverEvent) {
@@ -148,15 +145,11 @@ function KanbanBoard() {
                 <ColumnContainer
                   key={col.id}
                   column={col}
-                  createTask={createTask}
                   tasks={tasks.filter((task) => task.columnId === col.id)}
                 />
               ))}
             </SortableContext>
           </Flex>
-          <Button leftSection={<IconPlus />} onClick={createNewColumn}>
-            Add Column
-          </Button>
         </Flex>
       </div>
 
@@ -165,7 +158,6 @@ function KanbanBoard() {
           {activeColumn && (
             <ColumnContainer
               column={activeColumn}
-              createTask={createTask}
               tasks={tasks.filter((task) => task.columnId === activeColumn.id)}
             />
           )}

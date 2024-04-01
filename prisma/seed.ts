@@ -206,33 +206,33 @@ async function main() {
   });
   console.log('Created agreements:', agreements.count);
 
+  const agreementsRecords = await prisma.agreement.findMany();
+  const carsRecords = await prisma.car.findMany();
+
   const jobs = await prisma.job.createMany({
     data: [
       {
-        type: 'ORGANIC_WASTE',
         status: 'assigned',
         date: new Date(2023, 3, 14, 10, 0),
         comment: 'Engangsjobb med matavfall',
         tenantId: tenant.id,
-        agreementId: 1,
-        carId: 1,
+        agreementId: agreementsRecords.at(0)?.id!,
+        carId: carsRecords.at(0)?.id!,
       },
       {
-        type: 'ORGANIC_WASTE',
         status: 'assigned',
         date: new Date(2023, 3, 13, 14, 30),
         comment: 'Det lukter vondt!',
         tenantId: tenant.id,
-        agreementId: 2,
-        carId: 2,
+        agreementId: agreementsRecords.at(1)?.id!,
+        carId: carsRecords.at(1)?.id!,
       },
       {
-        type: 'RESIDUAL_WASTE',
         status: 'unassigned',
         date: new Date(2023, 3, 15, 9, 0),
         comment: 'Ingen vil ha denne jobben',
         tenantId: tenant.id,
-        agreementId: 4,
+        agreementId: agreementsRecords.at(2)?.id!,
       },
     ],
   });
@@ -284,7 +284,7 @@ async function main() {
         phone: '99000011',
         picture:
           'https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=2598&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        carId: 1,
+        carId: carsRecords.at(0)?.id!,
         tenantId: tenant.id,
       },
       {
@@ -294,7 +294,7 @@ async function main() {
         phone: '99433111',
         picture:
           'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=2576&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        carId: 2,
+        carId: carsRecords.at(1)?.id!,
         tenantId: tenant.id,
       },
       {
@@ -313,7 +313,7 @@ async function main() {
         phone: '91183111',
         picture:
           'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        carId: 4,
+        carId: carsRecords.at(2)?.id!,
         tenantId: tenant.id,
       },
     ],
