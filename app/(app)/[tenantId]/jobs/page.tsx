@@ -788,6 +788,11 @@ export default function JobsPage() {
           <Group mb="md" gap="xs">
             <Select label="Kunde" placeholder="Velg en kunde" disabled />
             <Select label="Avtale" placeholder="Velg en avtale" disabled />
+            <Select label="Billiste" placeholder="Velg en bil" disabled />
+            <Select label="Avfallstype" placeholder="Velg en type" disabled />
+            <Select label="Gjentagelse" placeholder="Velg frekvens" disabled />
+            <Select label="Status" placeholder="Tildelt/ikke tildelt" disabled />
+            <Select label="Tidsbegrensning" placeholder="Tid frem i tid" disabled />
           </Group>
           <Group mb="md" justify="flex-end">
             <Badge color="grey" variant="filled">
@@ -795,11 +800,14 @@ export default function JobsPage() {
             </Badge>
           </Group>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-            {completedJobs.map((job) => (
-              <div key={job.id} style={{ marginBottom: '5px' }}>
-                <JobCard key={job.id} job={job} />
-              </div>
-            ))}
+            {completedJobs
+              .slice()
+              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+              .map((job) => (
+                <div key={job.id} style={{ marginBottom: '5px' }}>
+                  <JobCard key={job.id} job={job} onEdit={openDrawer} />
+                </div>
+              ))}
           </div>
         </Tabs.Panel>
       </Tabs>
