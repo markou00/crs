@@ -631,11 +631,14 @@ export default function JobsPage() {
             </Flex>
           </Modal>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-            {filteredJobs.map((job) => (
-              <div key={job.id} style={{ marginBottom: '5px' }}>
-                <JobCard key={job.id} job={job} onEdit={openDrawer} />
-              </div>
-            ))}
+            {filteredJobs
+              .slice()
+              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+              .map((job) => (
+                <div key={job.id} style={{ marginBottom: '5px' }}>
+                  <JobCard key={job.id} job={job} onEdit={openDrawer} />
+                </div>
+              ))}
           </div>
           <Drawer.Root
             radius="md"
