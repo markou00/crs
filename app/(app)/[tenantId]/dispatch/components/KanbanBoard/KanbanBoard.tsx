@@ -9,6 +9,7 @@ import {
   DragOverlay,
   DragStartEvent,
   PointerSensor,
+  UniqueIdentifier,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
@@ -51,7 +52,10 @@ function KanbanBoard() {
     }
   }, [getCarsQuery.data?.cars, getJobsQuery.data?.jobs]);
 
-  const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
+  const columnsId = useMemo(
+    () => columns.map((col) => col.id).filter((id) => id !== undefined) as UniqueIdentifier[],
+    [columns]
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

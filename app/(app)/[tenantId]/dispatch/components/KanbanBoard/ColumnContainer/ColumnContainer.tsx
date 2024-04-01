@@ -45,7 +45,7 @@ function ColumnContainer(props: Props) {
     <Box ref={setNodeRef} style={style} className={classes.container}>
       <Box {...attributes} {...listeners} className={classes.title}>
         <Flex gap="0.5rem" align="center">
-          <div className={classes.taskNumber}>0</div>
+          <div className={classes.taskNumber}>{tasks.length}</div>
           {column.regnr}
         </Flex>
       </Box>
