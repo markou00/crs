@@ -1,11 +1,11 @@
 import { useSortable } from '@dnd-kit/sortable';
 import React from 'react';
 import { CSS } from '@dnd-kit/utilities';
-import { Task } from '../types';
 import classes from './TaskCard.module.css';
+import { JobDetails } from '@/app/(app)/[tenantId]/jobs/types';
 
 interface Props {
-  task: Task;
+  task: JobDetails;
 }
 
 function TaskCard({ task }: Props) {
@@ -29,9 +29,7 @@ function TaskCard({ task }: Props) {
   }
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={classes.card}>
-      {task.content}
-    </div>
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={classes.card} />
   );
 }
 

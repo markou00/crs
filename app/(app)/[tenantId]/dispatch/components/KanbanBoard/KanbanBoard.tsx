@@ -144,9 +144,6 @@ function KanbanBoard() {
         const activeIndex = ts.findIndex((t) => t.id === activeId);
         const overIndex = ts.findIndex((t) => t.id === overId);
 
-        // console.log(tasks[overIndex].carId);
-        // console.log(tasks[overIndex].car?.regnr);
-        // editJobMutation.mutate({ task: tasks[activeIndex], carId: tasks[overIndex].carId! });
         tasks[activeIndex].carId = tasks[overIndex].carId;
 
         return arrayMove(ts, activeIndex, overIndex);
@@ -161,7 +158,6 @@ function KanbanBoard() {
 
         // eslint-disable-next-line radix
         tasks[activeIndex].carId = parseInt(overId.toString());
-        // console.log(overId);
 
         return arrayMove(ts, activeIndex, activeIndex);
       });
@@ -195,22 +191,24 @@ function KanbanBoard() {
         </Flex>
       </div>
 
-      {createPortal(
-        <DragOverlay>
-          {activeColumn && (
-            <ColumnContainer
-              column={activeColumn}
-              tasks={tasks.filter(
-                (task) =>
-                  task.carId === activeColumn.id ||
-                  (task.carId === null && task.status !== 'completed' && activeColumn.id === 0)
-              )}
-            />
-          )}
-          {activeTask && <TaskCard task={activeTask} />}
-        </DragOverlay>,
-        document.body
-      )}
+      {
+        createPortal(
+          <DragOverlay>
+            {activeColumn && (
+              <ColumnContainer
+                column={activeColumn}
+                tasks={tasks.filter(
+                  (task) =>
+                    task.carId === activeColumn.id ||
+                    (task.carId === null && task.status !== 'completed' && activeColumn.id === 0)
+                )}
+              />
+            )}
+            {activeTask && <TaskCard task={activeTask} />}
+          </DragOverlay>,
+          document.body
+        ) as React.ReactPortal
+      }
     </DndContext>
   );
 }
