@@ -1,6 +1,7 @@
 'use server';
 
 import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
+import { Car } from '@prisma/client';
 import { cookies } from 'next/headers';
 
 import prisma from '@/lib/prisma';
@@ -20,6 +21,19 @@ export async function getCars() {
     });
 
     return { cars };
+  } catch (error) {
+    return { error };
+  }
+}
+
+export async function editCar(car: Partial<Car>) {
+  try {
+    const modifiedCar = await prisma.car.update({
+      where: { id: car.id },
+      data: car,
+    });
+
+    return { modifiedCar };
   } catch (error) {
     return { error };
   }

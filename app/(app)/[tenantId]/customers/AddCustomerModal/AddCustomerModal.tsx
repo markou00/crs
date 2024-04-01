@@ -8,8 +8,9 @@ import { AddCustomerModalProps, CustomerFormValues } from './types';
 export function AddCustomerModal({
   opened,
   onClose,
-  onCustomerAdded,
   tenantId,
+  getCustomersQuery,
+  setRecords,
 }: AddCustomerModalProps) {
   const form = useForm<CustomerFormValues>({
     initialValues: {
@@ -37,10 +38,17 @@ export function AddCustomerModal({
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-      if (onCustomerAdded) onCustomerAdded();
-      onClose();
     },
     retry: false,
+    onSuccess: async () => {
+      form.reset();
+      const { data } = await getCustomersQuery.refetch();
+      setRecords(data?.customers);
+      onClose();
+    },
+    onError: (error) => {
+      console.error('Failed to create customer:', error);
+    },
   });
 
   return (
@@ -65,7 +73,9 @@ export function AddCustomerModal({
           <TextInput label="Postnr" {...form.getInputProps('postalCode')} />
           <TextInput label="Land" {...form.getInputProps('country')} />
           <Group justify="flex-end" mt="md">
-            <Button type="submit">Lagre</Button>
+            <Button type="submit" loading={createCustomerMutation.isPending}>
+              Lagre
+            </Button>
           </Group>
         </Flex>
       </form>

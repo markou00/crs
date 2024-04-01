@@ -1,48 +1,51 @@
 'use server';
 
 import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
-import { Customer } from '@prisma/client';
+import { Employee } from '@prisma/client';
 import { cookies } from 'next/headers';
 
 import prisma from '@/lib/prisma';
 
-export async function getCustomers() {
+export async function getEmployees() {
   try {
     const supabase = createServerActionClient({ cookies });
 
     const authUser = await supabase.auth.getUser();
     const tenantId = authUser.data.user?.user_metadata.tenantId;
 
-    const customers = await prisma.customer.findMany({
+    const employees = await prisma.employee.findMany({
       where: { tenantId },
+      include: {
+        Car: true,
+      },
     });
 
-    return { customers };
+    return { employees };
   } catch (error) {
     return { error };
   }
 }
 
-export async function editCustomer(customer: Partial<Customer>) {
+export async function editEmployee(employee: Partial<Employee>) {
   try {
-    const modifiedCustomer = await prisma.customer.update({
-      where: { id: customer.id },
-      data: customer,
+    const modifiedEmployee = await prisma.employee.update({
+      where: { id: employee.id },
+      data: employee,
     });
 
-    return { modifiedCustomer };
+    return { modifiedEmployee };
   } catch (error) {
     return { error };
   }
 }
 
-export async function deleteCustomer(id: number) {
+export async function deleteEmployee(id: number) {
   try {
-    const deletedCustomer = await prisma.customer.delete({
+    const deletedEmployee = await prisma.employee.delete({
       where: { id },
     });
 
-    return { deletedCustomer };
+    return { deletedEmployee };
   } catch (error) {
     return { error };
   }

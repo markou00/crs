@@ -1,13 +1,18 @@
-import Link from 'next/link';
 import { Card, Text, Button, Group } from '@mantine/core';
 import { Customer } from '@prisma/client';
 
 type CustomerCardProps = {
   customer: Customer;
-  tenantId: string;
+  onEdit?: (customer: Customer) => void;
 };
 
-export function CustomerCard({ customer, tenantId }: CustomerCardProps) {
+export function CustomerCard({ customer, onEdit }: CustomerCardProps) {
+  const handleEditClick = () => {
+    if (onEdit) {
+      onEdit(customer);
+    }
+  };
+
   return (
     <Card key={customer.id} withBorder style={{ marginBottom: 20, padding: '20px' }}>
       <Group justify="space-between" style={{ marginBottom: 5, marginTop: 5 }}>
@@ -18,9 +23,9 @@ export function CustomerCard({ customer, tenantId }: CustomerCardProps) {
             {customer.address}
           </Text>
         </div>
-        <Link href={`/${tenantId}/customers/${customer.id}`}>
-          <Button variant="subtle">Mer info</Button>
-        </Link>
+        <Group justify="flex-end">
+          {onEdit && <Button onClick={handleEditClick}>Rediger</Button>}
+        </Group>
       </Group>
     </Card>
   );

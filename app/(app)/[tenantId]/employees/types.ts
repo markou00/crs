@@ -1,9 +1,10 @@
-export type EmployeeType = {
-  id: string;
-  name: string;
-  status: string;
-  email: string;
-  phone: string;
-  picture: string;
-  Car: { regnr: string; model: string; status: string } | null;
+import { Employee, Car } from '@prisma/client';
+
+export type EmployeeType = Employee & {
+  Car: Car | null;
+};
+
+export type MutationArgs = {
+  employeeId: number;
+  carRelationId: string;
 };

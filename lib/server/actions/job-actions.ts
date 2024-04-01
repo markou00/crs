@@ -75,7 +75,6 @@ export async function addJob(job: Partial<Job>) {
     const newJob = await prisma.job.create({
       data: {
         tenantId,
-        type: job.type!,
         status: job.status!,
         comment: job.comment || null,
         agreementId: job.agreementId!,
