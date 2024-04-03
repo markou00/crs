@@ -5,7 +5,7 @@
   "scripts": {
     "preinstall": "npx only-allow yarn",
     "prepare": "husky install",
-    "dev": "next dev",
+    "dev": "next dev --turbo",
     "build": "next build",
     "analyze": "ANALYZE=true next build",
     "start": "next start",
@@ -55,7 +55,7 @@
     "dayjs": "^1.11.10",
     "dotenv": "^16.4.3",
     "mantine-datatable": "^7.5.1",
-    "next": "14.0.1",
+    "next": "14.2.0-canary.55",
     "nodemailer": "^6.9.9",
     "postgres": "^3.4.3",
     "react": "18.2.0",
@@ -112,5 +112,5 @@
     "ts-node": "^10.9.2",
     "typescript": "5.2.2"
   },
-  "packageManager": "yarn@4.0.1"
+  "packageManager": "yarn@4.1.1"
 }

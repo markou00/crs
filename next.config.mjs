@@ -11,5 +11,8 @@ export default withBundleAnalyzer({
   },
   experimental: {
     optimizePackageImports: ['@mantine/core', '@mantine/hooks'],
+    turbo: {
+      resolveExtensions: ['.mdx', '.tsx', '.ts', '.jsx', '.js', '.mjs', '.json'],
+    },
   },
 });
