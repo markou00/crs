@@ -181,7 +181,7 @@ function KanbanBoard() {
                   column={col}
                   tasks={tasks.filter(
                     (task) =>
-                      task.carId === col.id ||
+                      (task.carId === col.id && task.status !== 'completed') ||
                       (task.carId === null && task.status !== 'completed' && col.id === 0)
                   )}
                 />
@@ -199,7 +199,7 @@ function KanbanBoard() {
                 column={activeColumn}
                 tasks={tasks.filter(
                   (task) =>
-                    task.carId === activeColumn.id ||
+                    (task.carId === activeColumn.id && task.status !== 'completed') ||
                     (task.carId === null && task.status !== 'completed' && activeColumn.id === 0)
                 )}
               />
