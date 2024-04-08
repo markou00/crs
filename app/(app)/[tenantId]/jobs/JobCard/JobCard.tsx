@@ -132,7 +132,7 @@ export function JobCard({ job, onEdit }: JobCardProps) {
           </Group>
         </Grid.Col>
         <Grid.Col span={3}>
-          <Text size="sm">Jobb-id: {job.id}</Text>
+          <Text size="sm">Oppdragsnr.: {job.id}</Text>
         </Grid.Col>
         <Grid.Col span={6}>
           <Text size="sm">
