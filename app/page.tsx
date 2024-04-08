@@ -1,7 +1,9 @@
 export default function HomePage() {
   return (
     <>
-      <div>Gå til http://localhost:3000/dashboard</div>
+      <div>
+        Gå til: <a href="http://localhost:3000/dashboard">http://localhost:3000/dashboard</a>
+      </div>
     </>
   );
 }
