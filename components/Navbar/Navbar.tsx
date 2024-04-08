@@ -64,7 +64,6 @@ export function Navbar() {
       link: `/${user?.user_metadata?.tenantId}/dispatch`,
       label: 'Planlegging',
       icon: IconColumns3,
-      isDisabled: true, // remove this to remove the "grey out" effect
     },
     {
       link: `/${user?.user_metadata?.tenantId}/containers`,
