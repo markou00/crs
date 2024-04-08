@@ -1,0 +1,58 @@
+@startuml CRS C4 Component diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+!include <office/users/users.puml>
+!include <office/users/mobile_user.puml>
+!include <office/users/administrator.puml>
+
+LAYOUT_WITH_LEGEND()
+
+title Component Diagram for Container Rental System - Component Level
+
+Person(user, "Kontoransatt", "En ansatt i en bedrift som leier ut containere")
+
+Container(supabase, "Supabase\n<size:10>Backend as a Service (BaaS)</size>", "Database, authentication, fil lagring, edge functions etc.")
+Container(email_system, "Email System\n<size:10>[Gmail]</size>", "Brukes til å sende e-poster")
+
+Boundary(CRS_Web_Client, "Container Rental System") {
+    Component(agreements, "agreements", "Next.js Page", "Behandler og viser avtaler")
+    Component(containers, "containers", "Next.js Page", "Administrerer og viser containere")
+    Component(customers, "customers", "Next.js Page", "Administrerer og viser kundelister")
+    Component(dashboard, "dashboard", "Next.js Page", "Statisk side som bruker dummy data til å vise oversikt og statistikk")
+    Component(dispatch, "dispatch", "Next.js Page", "Organiserer og styrer oppdrag")
+    Component(employees, "employees", "Next.js Page", "Administrerer ansattinformasjon")
+    Component(jobs, "jobs", "Next.js Page", "Håndterer jobber og oppgaver")
+    Component(settings, "settings", "Next.js Page", "En siden til å administrere tilgang til system og til å invitere nye brukere")
+    Component(trucks, "trucks", "Next.js Page", "Administrerer og viser informasjon om biler")
+    Component(login, "login", "Next.js Page", "En side som bruker til å autentisere brukere")
+    Component(signup, "signup", "Next.js Page", "En side til å registrere nye brukere")
+    Component(user_actions, "user-actions", "Next.js Server Actions", "Server Actions som håndterer autentisering operasjoner")
+    Component(agreements_actions, "agreements-actions", "Next.js Server Actions", "Server Actions som håndterer agreements CRUD operasjoner")
+    Component(containers_actions, "containers-actions", "Next.js Server Actions", "Server Actions som håndterer container CRUD operasjoner")
+    Component(customers_actions, "customers-actions", "Next.js Server Actions", "Server Actions som håndterer customers CRUD operasjoner")
+    Component(jobs_actions, "jobs-actions", "Next.js Server Actions", "Server Actions som håndterer jobs CRUD operasjoner")
+    Component(employees_actions, "employees-actions", "Next.js Server Actions", "Server Actions som håndterer employees CRUD operasjoner")
+    Component(cars_actions, "cars-actions", "Next.js Server Actions", "Server Actions som håndterer trucks CRUD operasjoner")
+}
+
+Rel_D(user, CRS_Web_Client, "Bruker web app for å håndtere container operasjoner")
+
+Rel( agreements, agreements_actions, "Sender & henter avtaler data v.h.a.", "HTTP")
+Rel( containers, containers_actions, "Sender & henter container data v.h.a.", "HTTP")
+Rel( customers, customers_actions, "Sender & henter kunder data v.h.a.", "HTTP")
+Rel( dispatch, jobs_actions, "Tildeler oppdrag til biler v.h.a.", "HTTP")
+Rel( employees, employees_actions, "Sender & henter sjåfør data v.h.a.", "HTTP")
+Rel( jobs, jobs_actions, "Sender & henter oppdrag data v.h.a.", "HTTP")
+Rel( settings, user_actions, "Inviterer brukere v.h.a.", "HTTP")
+Rel( user_actions, email_system, "Sender e-post ved hjelp av", "HTTP")
+Rel( trucks, cars_actions, "Sender & henter biler data v.h.a.", "HTTP")
+Rel(login, user_actions, "Autentiserer bruker v.h.a.", "HTTP")
+Rel(signup, user_actions, "Registrerer bruker v.h.a.", "HTTP")
+Rel(user_actions, supabase, "autentiserer mot", "HTTP")
+Rel(agreements_actions, supabase, "Henter & sender data til", "HTTP")
+Rel(containers_actions, supabase, "Henter & sender data til", "HTTP")
+Rel(customers_actions, supabase, "Henter & sender data til", "HTTP")
+Rel(jobs_actions, supabase, "Henter & sender data til", "HTTP")
+Rel(employees_actions, supabase, "Henter & sender data til", "HTTP")
+Rel(cars_actions, supabase, "Henter & sender data til", "HTTP")
+
+@enduml

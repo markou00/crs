@@ -11,7 +11,7 @@ title System & Container Diagram For Container Rental System
 Person(user, "Kontoransatt", "En ansatt i en bedrift som leier ut containere")
 
 System(CRS_Web_Client, "Container Rental System\n<size:10>[Web app, Next.js & Mantine UI]</size>", "System for håndtering av avfallskontainer")
-System_Ext(email_system, "Email System\n<size:10>[Gmail & Nodemailer]</size>", "Email system. Brukes til å sende e-poster i forbindelse med verifisering av konto og invitasjon")
+System_Ext(email_system, "Email System\n<size:10>[Gmail app]</size>", "Email system. Brukes til å sende e-poster i forbindelse med verifisering av konto og invitasjon")
 System_Ext(supabase, "Supabase\n<size:10>Backend as a Service (BaaS)</size>", "Brukes for database, authentication, fil lagring, edge functions etc.")
 
 Rel_D(user, CRS_Web_Client, "CRUD kunder, biler, sjåfører, container, oppdrag og avtaler")
