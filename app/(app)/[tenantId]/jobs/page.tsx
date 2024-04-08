@@ -635,7 +635,7 @@ export default function JobsPage() {
               .slice()
               .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
               .map((job) => (
-                <div key={job.id} style={{ marginBottom: '5px' }}>
+                <div key={job.id} style={{ width: '100%', marginBottom: '5px' }}>
                   <JobCard key={job.id} job={job} onEdit={openDrawer} />
                 </div>
               ))}

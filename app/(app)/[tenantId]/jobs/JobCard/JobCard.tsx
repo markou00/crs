@@ -69,7 +69,7 @@ export function JobCard({ job, onEdit }: JobCardProps) {
       {...attributes}
       {...listeners}
       style={{
-        width: '700px',
+        width: '100%',
         position: 'relative',
         '--status-color': getStatusColor(job.status),
         transition,
