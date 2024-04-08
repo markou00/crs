@@ -157,13 +157,18 @@ export default function SettignsPage() {
             mt="md"
             {...form.getInputProps('email')}
           />
-          <Button
-            loading={inviteUserMutation.isPending}
-            leftSection={<IconSend width="1.4rem" />}
-            onClick={() => inviteUserMutation.mutate()}
-          >
-            Send
-          </Button>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={close}>
+              Avbryt
+            </Button>
+            <Button
+              loading={inviteUserMutation.isPending}
+              leftSection={<IconSend width="1.4rem" />}
+              onClick={() => inviteUserMutation.mutate()}
+            >
+              Send
+            </Button>
+          </Group>
         </Flex>
       </Modal>
     </>

@@ -63,6 +63,9 @@ export function AddCarModal({
             {...form.getInputProps('status')}
           />
           <Group justify="flex-end" mt="md">
+            <Button onClick={onClose} variant="default">
+              Avbryt
+            </Button>
             <Button type="submit" loading={createCarMutation.isPending}>
               Lagre
             </Button>

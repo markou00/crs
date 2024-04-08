@@ -82,7 +82,7 @@ export function EditCarDrawer({
 
             <Group justify="flex-end" mt="md">
               <Button variant="default" onClick={onClose}>
-                Cancel
+                Avbryt
               </Button>
               <Button
                 type="button"

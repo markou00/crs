@@ -281,14 +281,17 @@ export default function ContainersPage() {
                 valueFormat="DD.MM.YYYY"
                 label="Ledig fra"
               />
-              <Flex justify="end">
+              <Group justify="flex-end">
+                <Button variant="default" onClick={closeModal}>
+                  Avbryt
+                </Button>
                 <Button
                   onClick={() => createContainerMutation.mutate()}
                   loading={createContainerMutation.isPending}
                 >
                   Opprett
                 </Button>
-              </Flex>
+              </Group>
             </Flex>
           </Modal>
           <Drawer.Root
@@ -324,14 +327,17 @@ export default function ContainersPage() {
                     valueFormat="DD.MM.YYYY"
                     label="Ledig fra"
                   />
-                  <Flex justify="end">
+                  <Group justify="flex-end">
+                    <Button variant="default" onClick={close}>
+                      Avbryt
+                    </Button>
                     <Button
                       onClick={() => editContainerMutation.mutate()}
                       loading={editContainerMutation.isPending}
                     >
                       Bekreft
                     </Button>
-                  </Flex>
+                  </Group>
                 </Flex>
               </Drawer.Body>
             </Drawer.Content>

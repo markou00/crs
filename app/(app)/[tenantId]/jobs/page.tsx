@@ -632,9 +632,14 @@ export default function JobsPage() {
                 onChange={(event) => setNewComment(event.currentTarget.value)}
               />
               <Flex justify="end">
-                <Button onClick={handleCreateJobs} loading={createJobMutation.isPending}>
-                  Opprett
-                </Button>
+                <Group justify="flex-end" mt="md">
+                  <Button variant="default" onClick={closeModal}>
+                    Avbryt
+                  </Button>
+                  <Button onClick={handleCreateJobs} loading={createJobMutation.isPending}>
+                    Opprett
+                  </Button>
+                </Group>
               </Flex>
             </Flex>
           </Modal>
@@ -758,6 +763,9 @@ export default function JobsPage() {
                         </Button>
                       </Group>
                       <Group>
+                        <Button variant="default" onClick={close}>
+                          Avbryt
+                        </Button>
                         <Button
                           color="red"
                           onClick={() => {
