@@ -387,11 +387,12 @@ export default function AgreementsPage() {
         columns={[
           {
             accessor: 'id',
+            title: 'Avtalenr.',
             filter: (
               <TextInput
-                label="Id"
-                description="Show agreements whose id include the specified id"
-                placeholder="Search agreements..."
+                label="Avtalenummer"
+                description="Vis avtaler med det spesifiserte avtalenummeret"
+                placeholder="Søk avtaler..."
                 leftSection={<IconSearch size={16} />}
                 rightSection={
                   <ActionIcon
