@@ -213,7 +213,7 @@ async function main() {
     data: [
       {
         status: 'assigned',
-        date: new Date(2023, 3, 14, 10, 0),
+        date: new Date(2024, 3, 14, 10, 0),
         comment: 'Engangsjobb med matavfall',
         tenantId: tenant.id,
         agreementId: agreementsRecords.at(0)?.id!,
@@ -221,7 +221,7 @@ async function main() {
       },
       {
         status: 'assigned',
-        date: new Date(2023, 3, 13, 14, 30),
+        date: new Date(2024, 3, 13, 14, 30),
         comment: 'Det lukter vondt!',
         tenantId: tenant.id,
         agreementId: agreementsRecords.at(1)?.id!,
@@ -229,7 +229,7 @@ async function main() {
       },
       {
         status: 'unassigned',
-        date: new Date(2023, 3, 15, 9, 0),
+        date: new Date(2024, 3, 25, 9, 0),
         comment: 'Ingen vil ha denne jobben',
         tenantId: tenant.id,
         agreementId: agreementsRecords.at(2)?.id!,

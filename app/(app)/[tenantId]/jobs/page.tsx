@@ -62,7 +62,7 @@ export default function JobsPage() {
   const customers = getCustomersQuery.data?.customers;
   const currentDateDay = new Date();
   const currentDateWeek = new Date();
-  const currentDateMonth = new Date();
+  const currentDate30Days = new Date();
   const currentDateQuarter = new Date();
   const currentDateYear = new Date();
 
@@ -88,7 +88,9 @@ export default function JobsPage() {
   const [selectedType, setSelectedType] = useState<AgreementType | null>(null);
   const [selectedRepetition, setSelectedRepetition] = useState<RepetitionFrequency | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
-  const [selectedTimeVisible, setSelectedTimeVisible] = useState<string | null>(null);
+  const [selectedTimeVisible, setSelectedTimeVisible] = useState<string | null>(
+    new Date(currentDate30Days.setDate(currentDate30Days.getDate() + 30)).toISOString()
+  );
 
   const [completedJobs, setCompletedJobs] = useState<JobDetails[]>([]);
 
@@ -386,6 +388,7 @@ export default function JobsPage() {
               onChange={(value) => setSelectedCustomerId(value ? parseInt(value, 10) : null)}
               label="Kunde"
               placeholder="Velg en kunde"
+              searchable
             />
             <Select
               comboboxProps={{ withinPortal: true }}
@@ -397,6 +400,7 @@ export default function JobsPage() {
               onChange={(value) => setSelectedAgreementId(value ? parseInt(value, 10) : null)}
               label="Avtale"
               placeholder="Velg en avtale"
+              searchable
             />
             <Select
               comboboxProps={{ withinPortal: true }}
@@ -408,6 +412,7 @@ export default function JobsPage() {
               onChange={(value) => setSelectedCarId(value ? parseInt(value, 10) : null)}
               label="Billiste"
               placeholder="Velg en bil"
+              searchable
             />
             <Select
               comboboxProps={{ withinPortal: true }}
@@ -423,6 +428,7 @@ export default function JobsPage() {
               onChange={(value) => setSelectedType(value as AgreementType | null)}
               label="Avfallstype"
               placeholder="Velg en type"
+              searchable
             />
             <Select
               comboboxProps={{ withinPortal: true }}
@@ -438,6 +444,7 @@ export default function JobsPage() {
               onChange={(value) => setSelectedRepetition(value as RepetitionFrequency | null)}
               label="Gjentagelse"
               placeholder="Velg frekvens"
+              searchable
             />
             <Select
               comboboxProps={{ withinPortal: true }}
@@ -449,45 +456,46 @@ export default function JobsPage() {
               onChange={(value) => setSelectedStatus(value || null)}
               label="Status"
               placeholder="Tildelt/ikke tildelt"
+              searchable
             />
             <Select
               comboboxProps={{ withinPortal: true }}
               data={[
-                { value: '', label: 'Ingen valgt tidsperiode' },
+                {
+                  value: new Date(
+                    currentDate30Days.setDate(currentDate30Days.getDate() + 30)
+                  ).toISOString(),
+                  label: '30 dager fremover',
+                },
                 {
                   value: new Date(
                     currentDateDay.setDate(currentDateDay.getDate() + 1)
                   ).toISOString(),
-                  label: '1 dag',
+                  label: '24 timer fremover',
                 },
                 {
                   value: new Date(
                     currentDateWeek.setDate(currentDateWeek.getDate() + 7)
                   ).toISOString(),
-                  label: '1 uke',
-                },
-                {
-                  value: new Date(
-                    currentDateMonth.setMonth(currentDateMonth.getMonth() + 1)
-                  ).toISOString(),
-                  label: '1 måned',
+                  label: '7 dager fremover',
                 },
                 {
                   value: new Date(
                     currentDateQuarter.setDate(currentDateQuarter.getDate() + 31 * 3)
                   ).toISOString(),
-                  label: '1 kvartal',
+                  label: '1 kvartal fremover',
                 },
                 {
                   value: new Date(
-                    currentDateYear.setFullYear(currentDateYear.getFullYear() + 1)
+                    currentDateYear.setFullYear(currentDateYear.getDate() + 365)
                   ).toISOString(),
-                  label: '1 år',
+                  label: '1 år fremover',
                 },
+                { value: '', label: 'Alle fremtidige oppdrag' },
               ]}
               value={selectedTimeVisible || ''}
               onChange={(value) => setSelectedTimeVisible(value === '' ? null : value)}
-              label="Tidsbegrensning"
+              label="Tidsrom"
               placeholder="Tid frem i tid"
             />
           </Group>
