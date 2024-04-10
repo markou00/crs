@@ -56,11 +56,28 @@ export default function JobsPage() {
   const cars = getCarsQuery.data?.cars;
   const agreements = getAgreementsQuery.data?.agreements;
   const customers = getCustomersQuery.data?.customers;
-  const currentDateDay = new Date();
-  const currentDateWeek = new Date();
-  const currentDate30Days = new Date();
-  const currentDateQuarter = new Date();
-  const currentDateYear = new Date();
+
+  const now = new Date();
+  now.setMinutes(0, 0, 0);
+
+  const thirtyDaysInMilliseconds = 30 * 24 * 60 * 60 * 1000;
+  const sevenDaysInMilliseconds = 7 * 24 * 60 * 60 * 1000;
+  const oneDayInMilliseconds = 24 * 60 * 60 * 1000;
+  const oneQuarterInMilliseconds = 92 * 24 * 60 * 60 * 1000;
+  const oneYearInMilliseconds = 365 * 24 * 60 * 60 * 1000;
+
+  const dateOptions = {
+    thirtyDaysForward: new Date(now.getTime() + thirtyDaysInMilliseconds).toISOString(),
+    oneDayForward: new Date(now.getTime() + oneDayInMilliseconds).toISOString(),
+    sevenDaysForward: new Date(now.getTime() + sevenDaysInMilliseconds).toISOString(),
+    oneQuarterForward: new Date(now.getTime() + oneQuarterInMilliseconds).toISOString(),
+    oneYearForward: new Date(now.getTime() + oneYearInMilliseconds).toISOString(),
+    oneDayBack: new Date(now.getTime() - oneDayInMilliseconds).toISOString(),
+    sevenDaysBack: new Date(now.getTime() - sevenDaysInMilliseconds).toISOString(),
+    thirtyDaysBack: new Date(now.getTime() - thirtyDaysInMilliseconds).toISOString(),
+    oneQuarterBack: new Date(now.getTime() - oneQuarterInMilliseconds).toISOString(),
+    oneYearBack: new Date(now.getTime() - oneYearInMilliseconds).toISOString(),
+  };
 
   const [opened, { open, close }] = useDisclosure(false);
   const [openedModal, { open: openModal, close: closeModal }] = useDisclosure(false);
@@ -84,7 +101,10 @@ export default function JobsPage() {
   const [selectedType, setSelectedType] = useState<AgreementType | null>(null);
   const [selectedRepetition, setSelectedRepetition] = useState<RepetitionFrequency | null>(null);
   const [selectedTimeVisible, setSelectedTimeVisible] = useState<string | null>(
-    new Date(currentDate30Days.setDate(currentDate30Days.getDate() + 30)).toISOString()
+    dateOptions.thirtyDaysForward
+  );
+  const [selectedPastTimeVisible, setSelectedPastTimeVisible] = useState<string | null>(
+    dateOptions.oneDayBack
   );
 
   const [isAssigned, setIsAssigned] = useState(true);
@@ -176,8 +196,16 @@ export default function JobsPage() {
       jobs = jobs.filter((job) => job.repetition === selectedRepetition);
     }
 
-    if (selectedTimeVisible !== null) {
-      jobs = jobs.filter((job) => job.date <= new Date(selectedTimeVisible));
+    const pastDate = selectedPastTimeVisible ? new Date(selectedPastTimeVisible) : null;
+    const futureDate = selectedTimeVisible ? new Date(selectedTimeVisible) : null;
+
+    if (pastDate) {
+      jobs = jobs.filter((job) => new Date(job.date) >= pastDate);
+    }
+
+    if (futureDate) {
+      futureDate.setHours(23, 59, 59);
+      jobs = jobs.filter((job) => new Date(job.date) <= futureDate);
     }
 
     setFilteredJobs(jobs);
@@ -190,6 +218,7 @@ export default function JobsPage() {
     selectedType,
     selectedCarId,
     selectedRepetition,
+    selectedPastTimeVisible,
     selectedTimeVisible,
     allJobs,
   ]);
@@ -448,38 +477,37 @@ export default function JobsPage() {
         <Select
           comboboxProps={{ withinPortal: true }}
           data={[
-            {
-              value: new Date(
-                currentDate30Days.setDate(currentDate30Days.getDate() + 30)
-              ).toISOString(),
-              label: '30 dager fremover',
-            },
-            {
-              value: new Date(currentDateDay.setDate(currentDateDay.getDate() + 1)).toISOString(),
-              label: '24 timer fremover',
-            },
-            {
-              value: new Date(currentDateWeek.setDate(currentDateWeek.getDate() + 7)).toISOString(),
-              label: '7 dager fremover',
-            },
-            {
-              value: new Date(
-                currentDateQuarter.setDate(currentDateQuarter.getDate() + 31 * 3)
-              ).toISOString(),
-              label: '1 kvartal fremover',
-            },
-            {
-              value: new Date(
-                currentDateYear.setFullYear(currentDateYear.getDate() + 365)
-              ).toISOString(),
-              label: '1 år fremover',
-            },
+            { value: dateOptions.thirtyDaysForward, label: '30 dager fremover' },
+            { value: dateOptions.oneDayForward, label: '24 timer fremover' },
+            { value: dateOptions.sevenDaysForward, label: '7 dager fremover' },
+            { value: dateOptions.oneQuarterForward, label: '1 kvartal fremover' },
+            { value: dateOptions.oneYearForward, label: '1 år fremover' },
             { value: '', label: 'Alle fremtidige oppdrag' },
           ]}
-          value={selectedTimeVisible || ''}
-          onChange={(value) => setSelectedTimeVisible(value === '' ? null : value)}
-          label="Tidsrom"
+          value={selectedTimeVisible}
+          onChange={(value) => {
+            setSelectedTimeVisible(value);
+            console.log('chosen value:', value);
+            console.log('newSelectedTimeVisible:', selectedTimeVisible);
+            console.log('thirtyDaysForward:', dateOptions.thirtyDaysForward);
+          }}
+          label="Tidsrom fremover"
           placeholder="Tid frem i tid"
+        />
+        <Select
+          comboboxProps={{ withinPortal: true }}
+          data={[
+            { value: dateOptions.oneDayBack, label: '24 timer tilbake' },
+            { value: dateOptions.sevenDaysBack, label: '7 dager tilbake' },
+            { value: dateOptions.thirtyDaysBack, label: '30 dager tilbake' },
+            { value: dateOptions.oneQuarterBack, label: '1 kvartal tilbake' },
+            { value: dateOptions.oneYearBack, label: '1 år tilbake' },
+            { value: '', label: 'Alle tidligere oppdrag' },
+          ]}
+          value={selectedPastTimeVisible}
+          onChange={(value) => setSelectedPastTimeVisible(value)}
+          label="Tidsrom bakover"
+          placeholder="Tid tilbake i tid"
         />
       </Group>
       <Modal
