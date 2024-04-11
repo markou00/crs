@@ -1,0 +1,18 @@
+@startuml create a job process
+
+start
+
+if (Grunndata eksisterer?) then (ja)
+  :opprett et oppdrag;
+else (nei)
+  :opprett en kunde;
+  :opprett en sjåfør;
+  :opprett en bil;
+  :opprett en container;
+  :opprett en avtale;
+  :opprett et oppdrag;
+endif
+
+stop
+
+@enduml
