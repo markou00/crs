@@ -94,9 +94,6 @@ export default function SettignsPage() {
         records={records}
         columns={[
           {
-            accessor: 'id',
-          },
-          {
             accessor: 'email',
           },
           {
