@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Job" ALTER COLUMN "servicetype" DROP DEFAULT,
+ALTER COLUMN "type" DROP DEFAULT;

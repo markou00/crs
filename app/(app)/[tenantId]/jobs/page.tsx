@@ -82,11 +82,15 @@ export default function JobsPage() {
   const [opened, { open, close }] = useDisclosure(false);
   const [openedModal, { open: openModal, close: closeModal }] = useDisclosure(false);
   const [currentRecord, setCurrentRecord] = useState<JobDetails>();
+  const [currentRecordType, setCurrentRecordType] = useState(currentRecord?.status);
+  const [currentRecordServiceType, setCurrentRecordServiceType] = useState(currentRecord?.status);
   const [currentRecordComment, setCurrentRecordComment] = useState(currentRecord?.comment);
   const [currentRecordDate, setCurrentRecordDate] = useState(currentRecord?.date);
   const [currentRecordCarId, setCurrentRecordCarId] = useState(currentRecord?.carId);
   const [newAgreement, setNewAgreement] = useState<Agreement | null>();
   const [newCar, setNewCar] = useState<ComboboxItem | null>();
+  const [newType, setNewType] = useState('');
+  const [newServiceType, setNewServiceType] = useState('');
   const [newDate, setNewDate] = useState<Date>();
   const [newComment, setNewComment] = useState('');
   const [newEndDate, setNewEndDate] = useState<Date>();
@@ -230,6 +234,8 @@ export default function JobsPage() {
         agreementId: job.agreementId,
         carId: job.carId,
         status: job.status,
+        type: job.type,
+        servicetype: job.servicetype,
         date: job.date,
         repetition: job.repetition,
       });
@@ -265,6 +271,8 @@ export default function JobsPage() {
     while (chosenDate <= endDate) {
       jobs.push({
         comment: newComment,
+        servicetype: newServiceType,
+        type: newType,
         agreementId: newAgreement.id,
         carId: newCar ? parseInt(newCar.value, 10) : null,
         status: newCar ? 'assigned' : 'unassigned',
@@ -287,6 +295,8 @@ export default function JobsPage() {
         setNewCar(null);
         setNewDate(undefined);
         setNewRepetition(RepetitionFrequency.NONE);
+        setNewServiceType('');
+        setNewType('');
         setNewComment('');
         closeModal();
       })
@@ -303,6 +313,8 @@ export default function JobsPage() {
         id: currentRecord?.id,
         status: determinedStatus,
         comment: currentRecordComment,
+        type: currentRecordType,
+        servicetype: currentRecordServiceType,
         date: currentRecordDate,
         carId: currentRecordCarId,
       });
@@ -347,6 +359,8 @@ export default function JobsPage() {
   const openDrawer = (record: JobDetails) => {
     setCurrentRecord(record);
     setCurrentRecordDate(record.date);
+    setCurrentRecordType(record.type);
+    setCurrentRecordServiceType(record.servicetype);
     setCurrentRecordComment(record.comment);
     setCurrentRecordCarId(record.carId);
     open();
@@ -477,19 +491,16 @@ export default function JobsPage() {
         <Select
           comboboxProps={{ withinPortal: true }}
           data={[
-            { value: dateOptions.thirtyDaysForward, label: '30 dager fremover' },
-            { value: dateOptions.oneDayForward, label: '24 timer fremover' },
-            { value: dateOptions.sevenDaysForward, label: '7 dager fremover' },
-            { value: dateOptions.oneQuarterForward, label: '1 kvartal fremover' },
-            { value: dateOptions.oneYearForward, label: '1 år fremover' },
-            { value: '', label: 'Alle fremtidige oppdrag' },
+            { value: dateOptions.thirtyDaysForward, label: '30 dager' },
+            { value: dateOptions.oneDayForward, label: '1 døgn' },
+            { value: dateOptions.sevenDaysForward, label: '7 dager' },
+            { value: dateOptions.oneQuarterForward, label: '1 kvartal' },
+            { value: dateOptions.oneYearForward, label: '1 år' },
+            { value: '', label: 'Alt fremover' },
           ]}
           value={selectedTimeVisible}
           onChange={(value) => {
             setSelectedTimeVisible(value);
-            console.log('chosen value:', value);
-            console.log('newSelectedTimeVisible:', selectedTimeVisible);
-            console.log('thirtyDaysForward:', dateOptions.thirtyDaysForward);
           }}
           label="Tidsrom fremover"
           placeholder="Tid frem i tid"
@@ -497,12 +508,12 @@ export default function JobsPage() {
         <Select
           comboboxProps={{ withinPortal: true }}
           data={[
-            { value: dateOptions.oneDayBack, label: '24 timer tilbake' },
-            { value: dateOptions.sevenDaysBack, label: '7 dager tilbake' },
-            { value: dateOptions.thirtyDaysBack, label: '30 dager tilbake' },
-            { value: dateOptions.oneQuarterBack, label: '1 kvartal tilbake' },
-            { value: dateOptions.oneYearBack, label: '1 år tilbake' },
-            { value: '', label: 'Alle tidligere oppdrag' },
+            { value: dateOptions.oneDayBack, label: '1 døgn' },
+            { value: dateOptions.sevenDaysBack, label: '7 dager' },
+            { value: dateOptions.thirtyDaysBack, label: '30 dager' },
+            { value: dateOptions.oneQuarterBack, label: '1 kvartal' },
+            { value: dateOptions.oneYearBack, label: '1 år' },
+            { value: '', label: 'Alt bakover' },
           ]}
           value={selectedPastTimeVisible}
           onChange={(value) => setSelectedPastTimeVisible(value)}
@@ -518,6 +529,8 @@ export default function JobsPage() {
           setNewCar(null);
           setNewDate(undefined);
           setNewComment('');
+          setNewServiceType('');
+          setNewType('');
         }}
         title="Opprett nytt oppdrag"
       >
@@ -557,6 +570,20 @@ export default function JobsPage() {
             />
           </Paper>
           <Stack gap="xs">
+            <Select
+              comboboxProps={{ withinPortal: true }}
+              data={['Standard', 'Type2B', 'LittAvEnType', 'NoenSaViTrengerTyper']}
+              value={newType}
+              onChange={(_value, option) => setNewType(option.label)}
+              label="Type"
+            />
+            <Select
+              comboboxProps={{ withinPortal: true }}
+              data={['Inngående', 'Utågende', 'Ut&Inn']}
+              value={newServiceType}
+              onChange={(_value, option) => setNewServiceType(option.label)}
+              label="Servicetype"
+            />
             <HoverCard width={280} shadow="md">
               <HoverCard.Target>
                 <Select
@@ -677,6 +704,20 @@ export default function JobsPage() {
                 onChange={(value) => setCurrentRecordDate(value === null ? undefined : value)}
                 label="Velg dato og tid"
                 placeholder="Velg dato og tid"
+              />
+              <Select
+                comboboxProps={{ withinPortal: true }}
+                data={['Standard', 'Type2B', 'LittAvEnType', 'NoenSaViTrengerTyper']}
+                value={currentRecordType}
+                onChange={(_value, option) => setCurrentRecordType(option.label)}
+                label="Type"
+              />
+              <Select
+                comboboxProps={{ withinPortal: true }}
+                data={['Inngående', 'Utgående', 'Ut&Inn']}
+                value={currentRecordServiceType}
+                onChange={(_value, option) => setCurrentRecordServiceType(option.label)}
+                label="Service type"
               />
               <TextInput
                 label="Gjentagelse"
