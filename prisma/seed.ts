@@ -213,8 +213,8 @@ async function main() {
     data: [
       {
         status: 'assigned',
-        servicetype: 'outgoing',
-        type: 'standard',
+        servicetype: 'Inngående',
+        type: 'Standard',
         date: new Date(2024, 3, 14, 10, 0),
         comment: 'Engangsjobb med matavfall',
         tenantId: tenant.id,
@@ -223,8 +223,8 @@ async function main() {
       },
       {
         status: 'assigned',
-        servicetype: 'inbound',
-        type: 'standard',
+        servicetype: 'Utgående',
+        type: 'Standard',
         date: new Date(2024, 3, 13, 14, 30),
         comment: 'Det lukter vondt!',
         tenantId: tenant.id,
@@ -233,8 +233,8 @@ async function main() {
       },
       {
         status: 'unassigned',
-        servicetype: 'out&inbound',
-        type: 'standard',
+        servicetype: 'Ut&Inn',
+        type: 'Standard',
         date: new Date(2024, 3, 25, 9, 0),
         comment: 'Ingen vil ha denne jobben',
         tenantId: tenant.id,
