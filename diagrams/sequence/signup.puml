@@ -1,0 +1,37 @@
+@startuml Signup process
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+
+actor User
+participant "/signup" as signup
+participant "Supabase" as supabase
+participant "/dashboard" as dashboard
+
+User -> signup: Brukeren går til signup siden
+signup -> supabase: Sjekk om brukeren har gyldig cookie
+alt Gyldig cookie
+    supabase -> dashboard: Brukeren er autentisert, omdiriger til dashboard
+else Ugyldig cookie
+    supabase -> signup: Brukeren er ikke autentisert
+    signup -> supabase: Valider e-post og passord
+    alt E-post eller passord er ugyldig
+        supabase -> signup: Vis feilmelding
+    else E-post og passord er gyldig
+        supabase -> signup: Opprettet brukerkonto og sent OTC til e-posten
+        loop OTC-verifisering
+            signup -> supabase : Sjekk OTC gyldighet
+            alt OTC er ugyldig
+                supabase -> signup: Vis feilmelding
+            else OTC er gyldig
+                supabase -> signup: Verifisert brukeren, venter på tilleggsinformasjon
+                signup -> supabase: Sjekk gyldighet for organisasjons-ID
+                alt Ugyldig organisasjons-ID
+                    supabase -> signup: Vis feilmelding
+                else Gyldig organisasjons-ID
+                    supabase -> dashboard: Omdiriger til brukerens dashboard
+                end
+            end
+        end
+    end
+end
+@enduml
