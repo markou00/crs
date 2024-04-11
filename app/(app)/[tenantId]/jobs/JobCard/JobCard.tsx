@@ -92,7 +92,7 @@ export function JobCard({ job, onEdit }: JobCardProps) {
         </Grid.Col>
         <Grid.Col span={2}>
           <Group gap="xs" justify="flex-end">
-            <Text size="xs">{job.agreement.containerName}</Text>
+            <Text size="xs">{job.agreement.containerName.slice(0, 7)}</Text>
             <IconBox size={16} />
           </Group>
         </Grid.Col>

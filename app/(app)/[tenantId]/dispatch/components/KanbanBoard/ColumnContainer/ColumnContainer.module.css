@@ -1,6 +1,6 @@
 .container {
   background-color: var(--mantine-color-gray-3);
-  width: rem(716);
+  width: rem(640);
   height: 75vh;
   max-height: 75vh;
   border-radius: var(--mantine-radius-md);
