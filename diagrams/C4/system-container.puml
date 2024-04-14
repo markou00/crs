@@ -1,4 +1,4 @@
-@startuml CRS C4 System & Container diagram
+@startuml CRS C4 System diagram
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
 !include <office/users/users.puml>
 !include <office/users/mobile_user.puml>
@@ -16,7 +16,7 @@ System_Ext(supabase, "Supabase\n<size:10>Backend as a Service (BaaS)</size>", "B
 
 Rel_D(user, CRS_Web_Client, "CRUD kunder, biler, sjåfører, container, oppdrag og avtaler")
 Rel_R(CRS_Web_Client, email_system, "Sender e-poster v.h.a.")
-BiRel_D(CRS_Web_Client, supabase, "Data")
+Rel_D(CRS_Web_Client, supabase, "Data")
 Rel_U(email_system, user, "Sender e-poster til")
 
 @enduml
