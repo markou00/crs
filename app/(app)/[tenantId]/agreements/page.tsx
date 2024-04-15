@@ -290,14 +290,17 @@ export default function AgreementsPage() {
             minRows={4}
             onChange={(event) => setNewComment(event.currentTarget.value)}
           />
-          <Flex justify="end">
+          <Group justify="flex-end">
+            <Button variant="default" onClick={closeModal}>
+              Avbryt
+            </Button>
             <Button
               onClick={() => createAgreementMutation.mutate()}
               loading={createAgreementMutation.isPending}
             >
               Opprett
             </Button>
-          </Flex>
+          </Group>
         </Flex>
       </Modal>
       <Drawer.Root
@@ -364,14 +367,17 @@ export default function AgreementsPage() {
                 onChange={(event) => setCurrentRecordComment(event.currentTarget.value)}
               />
               {/* //TODO: Display oppdrag here */}
-              <Flex justify="end">
+              <Group justify="flex-end">
+                <Button variant="default" onClick={close}>
+                  Avbryt
+                </Button>
                 <Button
                   onClick={() => editAgreementMutation.mutate()}
                   loading={editAgreementMutation.isPending}
                 >
                   Bekreft
                 </Button>
-              </Flex>
+              </Group>
             </Flex>
           </Drawer.Body>
         </Drawer.Content>
@@ -387,11 +393,12 @@ export default function AgreementsPage() {
         columns={[
           {
             accessor: 'id',
+            title: 'Avtalenr.',
             filter: (
               <TextInput
-                label="Id"
-                description="Show agreements whose id include the specified id"
-                placeholder="Search agreements..."
+                label="Avtalenummer"
+                description="Vis avtaler med det spesifiserte avtalenummeret"
+                placeholder="Søk avtaler..."
                 leftSection={<IconSearch size={16} />}
                 rightSection={
                   <ActionIcon

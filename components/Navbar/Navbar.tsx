@@ -36,19 +36,9 @@ export function Navbar() {
       icon: IconLayoutDashboard,
     },
     {
-      link: `/${user?.user_metadata?.tenantId}/customers`,
-      label: 'Kunder',
-      icon: IconUsers,
-    },
-    {
-      link: `/${user?.user_metadata?.tenantId}/employees`,
-      label: 'Sjåfører',
-      icon: IconSteeringWheel,
-    },
-    {
-      link: `/${user?.user_metadata?.tenantId}/agreements`,
-      label: 'Avtaler',
-      icon: IconClipboard,
+      link: `/${user?.user_metadata?.tenantId}/dispatch`,
+      label: 'Planlegging',
+      icon: IconColumns3,
     },
     {
       link: `/${user?.user_metadata?.tenantId}/jobs`,
@@ -56,20 +46,29 @@ export function Navbar() {
       icon: IconCheckbox,
     },
     {
-      link: `/${user?.user_metadata?.tenantId}/trucks`,
-      label: 'Biler',
-      icon: IconTruck,
+      link: `/${user?.user_metadata?.tenantId}/agreements`,
+      label: 'Avtaler',
+      icon: IconClipboard,
     },
     {
-      link: `/${user?.user_metadata?.tenantId}/dispatch`,
-      label: 'Planlegging',
-      icon: IconColumns3,
-      isDisabled: true, // remove this to remove the "grey out" effect
+      link: `/${user?.user_metadata?.tenantId}/customers`,
+      label: 'Kunder',
+      icon: IconUsers,
     },
     {
       link: `/${user?.user_metadata?.tenantId}/containers`,
       label: 'Beholdere',
       icon: IconBox,
+    },
+    {
+      link: `/${user?.user_metadata?.tenantId}/trucks`,
+      label: 'Biler',
+      icon: IconTruck,
+    },
+    {
+      link: `/${user?.user_metadata?.tenantId}/employees`,
+      label: 'Sjåfører',
+      icon: IconSteeringWheel,
     },
     {
       link: `/${user?.user_metadata?.tenantId}/settings`,

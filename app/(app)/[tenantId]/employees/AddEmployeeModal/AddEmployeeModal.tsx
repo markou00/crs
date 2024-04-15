@@ -68,6 +68,9 @@ export function AddEmployeeModal({
           />
           <TextInput label="Picture URL" {...form.getInputProps('picture')} />
           <Group justify="flex-end" mt="md">
+            <Button onClick={onClose} variant="default">
+              Avbryt
+            </Button>
             <Button type="submit" loading={createEmployeeMutation.isPending}>
               Lagre
             </Button>

@@ -73,6 +73,9 @@ export function AddCustomerModal({
           <TextInput label="Postnr" {...form.getInputProps('postalCode')} />
           <TextInput label="Land" {...form.getInputProps('country')} />
           <Group justify="flex-end" mt="md">
+            <Button variant="default" onClick={onClose}>
+              Avbryt
+            </Button>
             <Button type="submit" loading={createCustomerMutation.isPending}>
               Lagre
             </Button>

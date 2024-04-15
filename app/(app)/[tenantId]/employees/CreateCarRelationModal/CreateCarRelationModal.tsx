@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Modal, Select, Text } from '@mantine/core';
+import { Button, Group, Modal, Select, Text } from '@mantine/core';
 import { CarType, CreateCarRelationModalProps } from './types';
 
 export function CreateCarRelationModal({
@@ -50,6 +50,11 @@ export function CreateCarRelationModal({
       ) : (
         <Text>Ingen tilgjengelige biler</Text>
       )}
+      <Group justify="flex-end" mt="md">
+        <Button onClick={onClose} variant="default">
+          Avbryt
+        </Button>
+      </Group>
     </Modal>
   );
 }

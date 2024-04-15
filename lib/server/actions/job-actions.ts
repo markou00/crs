@@ -76,6 +76,8 @@ export async function addJob(job: Partial<Job>) {
       data: {
         tenantId,
         status: job.status!,
+        servicetype: job.servicetype!,
+        type: job.type!,
         comment: job.comment || null,
         agreementId: job.agreementId!,
         carId: job.carId || null,

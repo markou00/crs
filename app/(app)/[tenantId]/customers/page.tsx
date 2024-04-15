@@ -218,6 +218,9 @@ export default function CustomersPage() {
               />
               <Flex justify="end">
                 <Group>
+                  <Button variant="default" onClick={close}>
+                    Avbryt
+                  </Button>
                   <Button
                     color="red"
                     onClick={() => {

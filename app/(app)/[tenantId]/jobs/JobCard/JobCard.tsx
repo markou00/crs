@@ -2,9 +2,13 @@ import { Card, Text, Button, Group, Grid } from '@mantine/core';
 import {
   IconBox,
   IconTruck,
+  IconTruckOff,
   IconClock,
   IconRepeatOff,
   IconCalendarRepeat,
+  IconArrowsExchange,
+  IconArrowLeft,
+  IconArrowRight,
 } from '@tabler/icons-react';
 import { CSS } from '@dnd-kit/utilities';
 import { useSortable } from '@dnd-kit/sortable';
@@ -69,7 +73,7 @@ export function JobCard({ job, onEdit }: JobCardProps) {
       {...attributes}
       {...listeners}
       style={{
-        width: '700px',
+        width: '100%',
         position: 'relative',
         '--status-color': getStatusColor(job.status),
         transition,
@@ -79,70 +83,102 @@ export function JobCard({ job, onEdit }: JobCardProps) {
     >
       <div style={{ position: 'relative', height: '100%', backgroundColor: statusColor }} />
       <Grid gutter="sm">
-        <Grid.Col span={3}>
-          <Text fw={700}>{getAgreementTypeDisplayValue(job.agreement.type)}</Text>
-        </Grid.Col>
-        <Grid.Col span={2.5}>
-          <Group gap="xs">
-            <IconBox size={16} />
-            <Button variant="light" size="xs" className={styles.compactButton}>
-              <Text size="xs" className={styles.compactText}>
-                {job.agreement.containerName}
-              </Text>
-            </Button>
+        <Grid.Col span={2}>
+          <Group gap="xs" justify="flex-end">
+            <Text fw={700} size="xs">
+              {getAgreementTypeDisplayValue(job.agreement.type)}
+            </Text>
           </Group>
         </Grid.Col>
         <Grid.Col span={2}>
-          {job.car && (
-            <Group gap="xs">
-              <IconTruck size={16} />
-              <Button variant="default" size="xs" className={styles.compactButton}>
-                <Text size="xs" className={styles.compactText}>
-                  {job.car?.regnr}
-                </Text>
-              </Button>
-            </Group>
-          )}
-        </Grid.Col>
-        <Grid.Col span={2.5}>
           <Group gap="xs" justify="flex-end">
-            {job.repetition === 'NONE' ? (
-              <IconRepeatOff size={16} />
-            ) : (
-              <IconCalendarRepeat size={16} />
-            )}
-            <Text size="sm">
+            <Text size="xs">{job.agreement.containerName.slice(0, 7)}</Text>
+            <IconBox size={16} />
+          </Group>
+        </Grid.Col>
+        <Grid.Col span={2}>
+          <Group gap="xs" justify="flex-end">
+            <Text size="xs">{job.agreement.customer.name}</Text>
+          </Group>
+        </Grid.Col>
+        <Grid.Col span={2}>
+          <Group gap="xs" justify="flex-end">
+            <Text size="xs">{job.agreement.customer.address}</Text>
+          </Group>
+        </Grid.Col>
+        <Grid.Col span={2}>
+          <Group gap="xs" justify="flex-end">
+            <Text size="xs">
               {new Date(job.date).toLocaleDateString('no-NB', {
                 year: 'numeric',
                 month: '2-digit',
                 day: '2-digit',
               })}
             </Text>
+            {job.repetition === 'NONE' ? (
+              <IconRepeatOff size={16} />
+            ) : (
+              <IconCalendarRepeat size={16} />
+            )}
           </Group>
         </Grid.Col>
-        <Grid.Col span={1.5}>
+        <Grid.Col span={2}>
+          <Group justify="flex-end">
+            <Text size="xs">Oppdragsnr.: {job.id}</Text>
+          </Group>
+        </Grid.Col>
+        <Grid.Col span={2}>
+          <Group justify="flex-end">
+            <Text size="xs">Type: {job.type}</Text>
+          </Group>
+        </Grid.Col>
+        <Grid.Col span={2}>
           <Group gap="xs" justify="flex-end">
-            <IconClock size={16} />
-            <Text size="sm">
+            {job.car?.regnr ? (
+              <>
+                <Text size="xs">{job.car.regnr}</Text>
+                <IconTruck size={16} />
+              </>
+            ) : (
+              <IconTruckOff size={16} color="red" />
+            )}
+          </Group>
+        </Grid.Col>
+        <Grid.Col span={2}>
+          <Group gap="xs" justify="flex-end">
+            <Text size="xs">{job.servicetype}</Text>
+            {job.servicetype === 'Ut&Inn' ? (
+              <IconArrowsExchange size={16} />
+            ) : job.servicetype === 'Inngående' ? (
+              <IconArrowLeft size={16} />
+            ) : job.servicetype === 'Utgående' ? (
+              <IconArrowRight size={16} />
+            ) : null}
+          </Group>
+        </Grid.Col>
+        <Grid.Col span={2}>
+          <Group gap="xs" justify="flex-end">
+            <Text size="xs">{job.agreement.customer.city}</Text>
+          </Group>
+        </Grid.Col>
+        <Grid.Col span={2}>
+          <Group gap="xs" justify="flex-end">
+            <Text size="xs">
               {new Date(job.date).toLocaleTimeString('no-NB', {
                 hour: '2-digit',
                 minute: '2-digit',
               })}
             </Text>
+            <IconClock size={16} />
           </Group>
         </Grid.Col>
-        <Grid.Col span={3}>
-          <Text size="sm">Jobb-id: {job.id}</Text>
-        </Grid.Col>
-        <Grid.Col span={6}>
-          <Text size="sm">
-            {job.agreement.customer.name} - {job.agreement.customer.address},{' '}
-            {job.agreement.customer.city}
-          </Text>
-        </Grid.Col>
-        <Grid.Col span={3}>
+        <Grid.Col span={2}>
           <Group justify="flex-end">
-            {onEdit && <Button onClick={handleEditClick}>Rediger</Button>}
+            {onEdit && (
+              <Button size="xs" onClick={handleEditClick}>
+                Rediger
+              </Button>
+            )}
           </Group>
         </Grid.Col>
       </Grid>
