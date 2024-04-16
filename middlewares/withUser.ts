@@ -35,6 +35,6 @@ export const withUser: MiddlewareFactory =
       }
     }
 
-    // If none of the conditions match, proceed to the next middleware
+    // If none of the conditions match, proceed to the next middlewaree
     return next(req, _next);
   };
