@@ -4,11 +4,6 @@
 
 Dette bachelorprosjektet har som mål å utvikle en prototype av et system for containerhåndtering. Se hovedrapporten for mer informasjon.
 
-### Oppdragsgiver og Kontaktinformasjon
-
-- **Oppdragsgiver:** Reknes AS
-- **Kontaktperson:** Frank Grytting
-
 ### Veiledning og Utdanning
 
 - **Institusjon:** NTNU Ålesund
@@ -17,6 +12,7 @@ Dette bachelorprosjektet har som mål å utvikle en prototype av et system for c
 
 ### Tidsramme
 
+- **Start:** Mandag 1. januar 2024
 - **Frist:** Tirsdag 21. mai 2024
 
 ## Teknologi som benyttes
