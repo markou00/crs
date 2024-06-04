@@ -42,7 +42,7 @@ export const carData = [
 
 export const containerStatusData = [
   { name: 'På lager', value: 400, color: 'indigo.6' },
-  { name: 'I oppdrag', value: 300, color: 'yellow.6' },
+  { name: 'I bruk', value: 300, color: 'yellow.6' },
   { name: 'Reservert', value: 100, color: 'teal.6' },
 ];
 

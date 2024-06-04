@@ -7,7 +7,6 @@ export const withNoUser: MiddlewareFactory =
   (next) => async (req: NextRequest, _next: NextFetchEvent) => {
     const { pathname } = req.nextUrl;
 
-    // Regex to match any pathname that does not start with the specified paths
     const excludePathsRegex =
       /^(?!\/api|\/_next\/static|\/_next\/image|\/favicon.ico|\/sw.js|\/signup|\/login|\/$).*/;
 
@@ -17,10 +16,13 @@ export const withNoUser: MiddlewareFactory =
 
       const {
         data: { user },
+        error,
       } = await supabase.auth.getUser();
 
-      if (!user) {
-        return NextResponse.redirect(new URL('/login', req.url));
+      if (error || !user) {
+        const loginUrl = new URL('/login', req.url);
+        res.cookies.delete('sb-access-token');
+        return NextResponse.redirect(loginUrl);
       }
     }
 
