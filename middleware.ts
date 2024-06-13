@@ -1,6 +1,6 @@
 import { stackMiddlewares } from '@/middlewares/stackHandler';
-import { withUser } from '@/middlewares/withUser';
 import { withNoUser } from '@/middlewares/withNoUser';
+import { withUser } from '@/middlewares/withUser';
 
-const middlewares = [withUser, withNoUser];
+const middlewares = [withNoUser, withUser];
 export default stackMiddlewares(middlewares);
