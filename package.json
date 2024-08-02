@@ -21,7 +21,7 @@
     "storybook:build": "storybook build"
   },
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=20.0.0",
     "yarn": ">=4.0.0"
   },
   "lint-staged": {
@@ -38,6 +38,7 @@
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",
     "@dnd-kit/sortable": "^8.0.0",
+    "@lucia-auth/adapter-prisma": "^4.0.1",
     "@mantine/charts": "^7.11.2",
     "@mantine/core": "7.11.2",
     "@mantine/dates": "^7.11.2",
@@ -50,6 +51,7 @@
     "clsx": "^2.1.0",
     "dayjs": "^1.11.10",
     "dotenv": "^16.4.3",
+    "lucia": "^3.2.0",
     "mantine-datatable": "^7.11.3",
     "next": "14.2.5",
     "nodemailer": "^6.9.14",

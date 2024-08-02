@@ -448,7 +448,7 @@ export default function JobsPage() {
           comboboxProps={{ withinPortal: true }}
           data={cars?.map((car) => ({
             value: car.id.toString(),
-            label: `${car.id} - ${car.regnr} - ${car.Employee?.name || 'mangler sjåfør'}`,
+            label: `${car.id} - ${car.regnr} - ${car.employee?.name || 'mangler sjåfør'}`,
           }))}
           value={selectedCarId?.toString() || ''}
           onChange={(value) => setSelectedCarId(value ? parseInt(value, 10) : null)}
@@ -628,7 +628,7 @@ export default function JobsPage() {
                     comboboxProps={{ withinPortal: true }}
                     data={cars?.map((car) => ({
                       value: car.id.toString(),
-                      label: `${car.regnr} - ${car.Employee?.name || 'mangler sjåfør'}`,
+                      label: `${car.regnr} - ${car.employee?.name || 'mangler sjåfør'}`,
                     }))}
                     value={newCar?.value ? newCar.value : null}
                     onChange={(_value, option) => {
@@ -765,7 +765,7 @@ export default function JobsPage() {
                   { value: 'none', label: 'Ingen bil' },
                   ...(cars || []).map((car) => ({
                     value: car.id.toString(),
-                    label: `${car.regnr} - ${car.Employee?.name || 'mangler sjåfør'}`,
+                    label: `${car.regnr} - ${car.employee?.name || 'mangler sjåfør'}`,
                   })),
                 ]}
                 value={currentRecordCarId?.toString() || 'none'}

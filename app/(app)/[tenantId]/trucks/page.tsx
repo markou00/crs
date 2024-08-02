@@ -78,7 +78,7 @@ export default function CarsPage() {
 
   useEffect(() => {
     setRecords(
-      getCarsQuery.data?.cars?.filter(({ regnr, model, Employee, status }) => {
+      getCarsQuery.data?.cars?.filter(({ regnr, model, employee, status }) => {
         if (
           debouncedRegnrQuery !== '' &&
           !`${regnr}`.toLowerCase().includes(debouncedRegnrQuery.trim().toLowerCase())
@@ -95,8 +95,8 @@ export default function CarsPage() {
 
         if (
           debouncedNameQuery !== '' &&
-          (Employee == null ||
-            !`${Employee.name}`.toLowerCase().includes(debouncedNameQuery.trim().toLowerCase()))
+          (employee == null ||
+            !`${employee.name}`.toLowerCase().includes(debouncedNameQuery.trim().toLowerCase()))
         ) {
           return false;
         }
@@ -214,7 +214,7 @@ export default function CarsPage() {
             accessor: 'employee',
             title: 'Sjåfør',
             sortable: true,
-            render: (car) => car.Employee?.name || 'Ingen sjåfør',
+            render: (car) => car.employee?.name || 'Ingen sjåfør',
             filter: (
               <TextInput
                 label="Sjåfør"

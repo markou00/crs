@@ -6,7 +6,7 @@ export async function GET(req: NextRequest, { params }: { params: { tenantId: st
     const cars = await prisma.car.findMany({
       where: {
         tenantId: params.tenantId,
-        Employee: null,
+        employee: null,
       },
     });
 

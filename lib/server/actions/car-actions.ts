@@ -16,7 +16,7 @@ export async function getCars() {
     const cars = await prisma.car.findMany({
       where: { tenantId },
       include: {
-        Employee: true,
+        employee: true,
       },
     });
 

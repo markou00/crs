@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
 enum Role {
@@ -41,26 +42,35 @@ enum AgreementType {
   ELECTRONIC_WASTE
 }
 
+model Session {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+
+  user User @relation(references: [id], fields: [userId], onDelete: Cascade)
+}
+
 model User {
-  id        String  @id @db.Uuid
-  email     String  @unique
-  role      Role    @default(user)
+  id        String    @id
+  email     String    @unique
+  role      Role      @default(user)
   firstName String?
   lastName  String?
   tenantId  String?
-  Tenant    Tenant? @relation(fields: [tenantId], references: [id])
+  tenant    Tenant?   @relation(fields: [tenantId], references: [id])
+  sessions  Session[]
 }
 
 model Tenant {
-  id        String      @id @unique
-  name      String
-  users     User[]
-  Customer  Customer[]
-  Agreement Agreement[]
-  Container Container[]
-  Employee  Employee[]
-  Car       Car[]
-  job       Job[]
+  id         String      @id @unique
+  name       String
+  users      User[]
+  customers  Customer[]
+  agreements Agreement[]
+  containers Container[]
+  employees  Employee[]
+  cars       Car[]
+  jobs       Job[]
 }
 
 model Customer {
@@ -75,28 +85,28 @@ model Customer {
   postalCode   String
   country      String
   tenantId     String
-  Tenant       Tenant      @relation(fields: [tenantId], references: [id])
+  tenant       Tenant      @relation(fields: [tenantId], references: [id])
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
-  Agreement    Agreement[]
+  agreements   Agreement[]
 }
 
 model Agreement {
-  id            Int       @id @default(autoincrement())
-  type          AgreementType @default(RESIDUAL_WASTE)
+  id            Int                 @id @default(autoincrement())
+  type          AgreementType       @default(RESIDUAL_WASTE)
   status        String
   containerName String
-  customer      Customer  @relation(fields: [customerId], references: [id])
+  customer      Customer            @relation(fields: [customerId], references: [id])
   validFrom     DateTime
   validTo       DateTime?
   comment       String?
   tenantId      String
-  Tenant        Tenant    @relation(fields: [tenantId], references: [id])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  Tenant        Tenant              @relation(fields: [tenantId], references: [id])
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
   customerId    Int
   repetition    RepetitionFrequency @default(NONE)
-  job           Job[]
+  jobs          Job[]
 }
 
 model Container {
@@ -108,7 +118,7 @@ model Container {
   status      ContainerStatus @default(available)
   availableAt DateTime        @default(now())
   tenantId    String
-  Tenant      Tenant          @relation(fields: [tenantId], references: [id])
+  tenant      Tenant          @relation(fields: [tenantId], references: [id])
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   job         Job?
@@ -123,42 +133,42 @@ model Employee {
   phone     String   @unique
   picture   String?
   carId     Int?     @unique
-  Car       Car?     @relation(fields: [carId], references: [id])
+  car       Car?     @relation(fields: [carId], references: [id])
   tenantId  String
-  Tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Car {
-  id        Int      @id @default(autoincrement())
-  regnr     String   @unique
+  id        Int       @id @default(autoincrement())
+  regnr     String    @unique
   model     String
   status    String
-  Employee  Employee?
+  employee  Employee?
   tenantId  String
-  Tenant    Tenant    @relation(fields: [tenantId], references: [id])
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  job       Job[]
+  jobs      Job[]
 }
 
 model Job {
-  id          Int        @id @default(autoincrement())
+  id          Int                 @id @default(autoincrement())
   status      String
   servicetype String
   type        String
   repetition  RepetitionFrequency @default(NONE)
   date        DateTime
-  agreement   Agreement @relation(fields: [agreementId], references: [id])
+  agreement   Agreement           @relation(fields: [agreementId], references: [id])
   comment     String?
   tenantId    String
-  Tenant      Tenant     @relation(fields: [tenantId], references: [id])
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  containerId Int?       @unique
+  tenant      Tenant              @relation(fields: [tenantId], references: [id])
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  containerId Int?                @unique
   agreementId Int
   carId       Int?
-  container   Container? @relation(fields: [containerId], references: [id])
-  car         Car? @relation(fields: [carId], references: [id])
+  container   Container?          @relation(fields: [containerId], references: [id])
+  car         Car?                @relation(fields: [carId], references: [id])
 }

@@ -6,13 +6,13 @@ export async function GET(req: NextRequest, { params }: { params: { tenantId: st
     const employees = await prisma.employee.findMany({
       where: { tenantId: params.tenantId },
       include: {
-        Car: true,
+        car: true,
       },
     });
 
     const response = employees.map((employee) => ({
       ...employee,
-      car: employee.Car?.regnr || 'Ingen bil',
+      car: employee.car?.regnr || 'Ingen bil',
     }));
 
     return new NextResponse(JSON.stringify(response), {

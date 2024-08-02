@@ -16,7 +16,7 @@ export async function getEmployees() {
     const employees = await prisma.employee.findMany({
       where: { tenantId },
       include: {
-        Car: true,
+        car: true,
       },
     });
 

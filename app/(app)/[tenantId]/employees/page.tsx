@@ -71,7 +71,7 @@ export default function EmployeesPage() {
 
   useEffect(() => {
     setRecords(
-      getEmployeesQuery.data?.employees?.filter(({ name, Car, status }) => {
+      getEmployeesQuery.data?.employees?.filter(({ name, car, status }) => {
         if (
           debouncedNameQuery !== '' &&
           !`${name}`.toLowerCase().includes(debouncedNameQuery.trim().toLowerCase())
@@ -81,8 +81,8 @@ export default function EmployeesPage() {
 
         if (
           debouncedRegnrQuery !== '' &&
-          (Car == null ||
-            !`${Car.regnr}`.toLowerCase().includes(debouncedRegnrQuery.trim().toLowerCase()))
+          (car == null ||
+            !`${car.regnr}`.toLowerCase().includes(debouncedRegnrQuery.trim().toLowerCase()))
         ) {
           return false;
         }
@@ -281,16 +281,16 @@ export default function EmployeesPage() {
             sortable: true,
             render: (employee) => (
               <div>
-                {employee.Car ? (
+                {employee.car ? (
                   <>
                     <Group gap="xs" justify="center">
                       <Tooltip
-                        label={`Modell: ${employee.Car.model}, Status: ${employee.Car.status}`}
+                        label={`Modell: ${employee.car.model}, Status: ${employee.car.status}`}
                         withArrow
                         position="bottom"
                       >
                         <Text style={{ width: '60px' }} ta="center">
-                          {employee.Car.regnr}
+                          {employee.car.regnr}
                         </Text>
                       </Tooltip>
                       <ActionIcon
