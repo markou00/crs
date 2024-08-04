@@ -94,20 +94,18 @@ export default function SettignsPage() {
         records={records}
         columns={[
           {
+            accessor: 'firstName',
+          },
+          {
+            accessor: 'lastName',
+          },
+          {
             accessor: 'email',
           },
           {
             accessor: 'created_at',
-            render: ({ created_at }) => (
-              <Box fw={700}>{created_at ? new Date(created_at).toLocaleDateString('NO') : ''}</Box>
-            ),
-          },
-          {
-            accessor: 'last_sign_in_at',
-            render: ({ last_sign_in_at }) => (
-              <Box fw={700}>
-                {last_sign_in_at ? new Date(last_sign_in_at).toLocaleDateString('NO') : ''}
-              </Box>
+            render: ({ createdAt }) => (
+              <Box fw={700}>{createdAt ? new Date(createdAt).toLocaleDateString('NO') : ''}</Box>
             ),
           },
           {

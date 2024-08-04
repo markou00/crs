@@ -15,8 +15,10 @@ import '@mantine/core/styles.layer.css';
 import '@mantine/charts/styles.css';
 import 'mantine-datatable/styles.layer.css';
 
+import { redirect } from 'next/navigation';
+
 import { Navbar } from '@/components/Navbar/Navbar';
-import { getAllUsers, getAuthUser, getUser } from '@/lib/server/actions/user-actions';
+import { getAllUsers, getUser, validateRequest } from '@/lib/server/actions/user-actions';
 import { UserButton } from '@/components/Navbar/UserButton/UserButton';
 import { getAgreements } from '@/lib/server/actions/agreements-actions';
 import { getCustomers } from '@/lib/server/actions/customer-actions';
@@ -26,12 +28,17 @@ import { getEmployees } from '@/lib/server/actions/employees-actions';
 import { getCars } from '@/lib/server/actions/car-actions';
 
 export default async function AppShellLayout({ children }: { children: ReactNode }) {
-  const queryClient = new QueryClient();
+  const { user } = await validateRequest();
 
-  await queryClient.prefetchQuery({
-    queryKey: ['auth-user'],
-    queryFn: getAuthUser,
-  });
+  if (!user) {
+    return redirect('/login');
+  }
+
+  if (!user.firstName && !user.lastName) {
+    return redirect('/onboarding');
+  }
+
+  const queryClient = new QueryClient();
 
   await queryClient.prefetchQuery({
     queryKey: ['user'],
@@ -87,13 +94,13 @@ export default async function AppShellLayout({ children }: { children: ReactNode
             </Flex>
 
             <Box hiddenFrom="md">
-              <UserButton />
+              <UserButton user={user} />
             </Box>
           </Group>
         </AppShellHeader>
 
         <AppShellNavbar>
-          <Navbar />
+          <Navbar user={user} />
         </AppShellNavbar>
 
         <AppShellMain>{children}</AppShellMain>

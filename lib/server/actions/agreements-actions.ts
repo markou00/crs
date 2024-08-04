@@ -1,17 +1,14 @@
 'use server';
 
-import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
 import { Agreement } from '@prisma/client';
-import { cookies } from 'next/headers';
 
 import prisma from '@/lib/prisma';
+import { validateRequest } from './user-actions';
 
 export async function getAgreements() {
   try {
-    const supabase = createServerActionClient({ cookies });
-
-    const authUser = await supabase.auth.getUser();
-    const tenantId = authUser.data.user?.user_metadata.tenantId;
+    const { user } = await validateRequest();
+    const tenantId = user?.tenantId ?? '';
 
     const agreements = await prisma.agreement.findMany({
       where: { tenantId },
@@ -41,10 +38,8 @@ export async function editAgreement(agreement: Partial<Agreement>) {
 
 export async function addAgreement(agreement: Partial<Agreement>) {
   try {
-    const supabase = createServerActionClient({ cookies });
-
-    const authUser = await supabase.auth.getUser();
-    const tenantId = authUser.data.user?.user_metadata.tenantId;
+    const { user } = await validateRequest();
+    const tenantId = user?.tenantId ?? '';
 
     const newAgreement = await prisma.agreement.create({
       data: {

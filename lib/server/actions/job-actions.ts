@@ -1,17 +1,14 @@
 'use server';
 
-import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
 import { Job } from '@prisma/client';
-import { cookies } from 'next/headers';
 
 import prisma from '@/lib/prisma';
+import { validateRequest } from './user-actions';
 
 export async function getJobs() {
   try {
-    const supabase = createServerActionClient({ cookies });
-
-    const authUser = await supabase.auth.getUser();
-    const tenantId = authUser.data.user?.user_metadata.tenantId;
+    const { user } = await validateRequest();
+    const tenantId = user?.tenantId ?? '';
 
     const jobs = await prisma.job.findMany({
       where: { tenantId },
@@ -67,10 +64,8 @@ export async function editJob(job: Partial<Job>) {
 
 export async function addJob(job: Partial<Job>) {
   try {
-    const supabase = createServerActionClient({ cookies });
-
-    const authUser = await supabase.auth.getUser();
-    const tenantId = authUser.data.user?.user_metadata.tenantId;
+    const { user } = await validateRequest();
+    const tenantId = user?.tenantId ?? '';
 
     const newJob = await prisma.job.create({
       data: {

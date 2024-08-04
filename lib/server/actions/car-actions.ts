@@ -1,17 +1,14 @@
 'use server';
 
-import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
 import { Car } from '@prisma/client';
-import { cookies } from 'next/headers';
 
 import prisma from '@/lib/prisma';
+import { validateRequest } from './user-actions';
 
 export async function getCars() {
   try {
-    const supabase = createServerActionClient({ cookies });
-
-    const authUser = await supabase.auth.getUser();
-    const tenantId = authUser.data.user?.user_metadata.tenantId;
+    const { user } = await validateRequest();
+    const tenantId = user?.tenantId ?? '';
 
     const cars = await prisma.car.findMany({
       where: { tenantId },

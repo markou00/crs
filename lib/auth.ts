@@ -1,3 +1,4 @@
+import { hash } from '@node-rs/argon2';
 import { Lucia } from 'lucia';
 import { PrismaAdapter } from '@lucia-auth/adapter-prisma';
 
@@ -18,6 +19,9 @@ export const lucia = new Lucia(adapter, {
   getUserAttributes: (attributes) => ({
     // we don't need to expose the password hash!
     email: attributes.email,
+    tenantId: attributes.tenantId,
+    firstName: attributes.firstName,
+    lastName: attributes.lastName,
   }),
 });
 
@@ -27,10 +31,18 @@ declare module 'lucia' {
     Lucia: typeof lucia;
     DatabaseUserAttributes: {
       email: string;
+      tenantId: string;
+      firstName: string;
+      lastName: string;
     };
   }
 }
 
-export function isValidEmail(email: string): boolean {
-  return /.+@.+/.test(email);
-}
+export const getHash = async (password: string) =>
+  hash(password, {
+    // recommended minimum parameters
+    memoryCost: 19456,
+    timeCost: 2,
+    outputLen: 32,
+    parallelism: 1,
+  });

@@ -20,5 +20,6 @@ export default withBundleAnalyzer({
     turbo: {
       resolveExtensions: ['.mdx', '.tsx', '.ts', '.jsx', '.js', '.mjs', '.json'],
     },
+    serverComponentsExternalPackages: ['@node-rs/argon2'],
   },
 });

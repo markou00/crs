@@ -13,65 +13,59 @@ import {
   IconBox,
   IconLayoutDashboard,
 } from '@tabler/icons-react';
-import { useQuery } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
+import { User } from 'lucia';
 
 import { UserButton } from './UserButton/UserButton';
 import classes from './Navbar.module.css';
-import { getAuthUser } from '@/lib/server/actions/user-actions';
 
-export function Navbar() {
-  const { data: authUserData } = useQuery({
-    queryKey: ['auth-user'],
-    queryFn: getAuthUser,
-  });
-
+export function Navbar({ user }: { user: User }) {
+  console.log(user);
   const pathname = usePathname();
-  const user = authUserData?.data?.data?.user;
 
   const data = [
     {
-      link: `/${user?.user_metadata?.tenantId}/dashboard`,
+      link: `/${user.tenantId}/dashboard`,
       label: 'Dashboard',
       icon: IconLayoutDashboard,
     },
     {
-      link: `/${user?.user_metadata?.tenantId}/dispatch`,
+      link: `/${user.tenantId}/dispatch`,
       label: 'Planlegging',
       icon: IconColumns3,
     },
     {
-      link: `/${user?.user_metadata?.tenantId}/jobs`,
+      link: `/${user.tenantId}/jobs`,
       label: 'Oppdrag',
       icon: IconCheckbox,
     },
     {
-      link: `/${user?.user_metadata?.tenantId}/agreements`,
+      link: `/${user.tenantId}/agreements`,
       label: 'Avtaler',
       icon: IconClipboard,
     },
     {
-      link: `/${user?.user_metadata?.tenantId}/customers`,
+      link: `/${user.tenantId}/customers`,
       label: 'Kunder',
       icon: IconUsers,
     },
     {
-      link: `/${user?.user_metadata?.tenantId}/containers`,
+      link: `/${user.tenantId}/containers`,
       label: 'Beholdere',
       icon: IconBox,
     },
     {
-      link: `/${user?.user_metadata?.tenantId}/trucks`,
+      link: `/${user.tenantId}/trucks`,
       label: 'Biler',
       icon: IconTruck,
     },
     {
-      link: `/${user?.user_metadata?.tenantId}/employees`,
+      link: `/${user.tenantId}/employees`,
       label: 'Sjåfører',
       icon: IconSteeringWheel,
     },
     {
-      link: `/${user?.user_metadata?.tenantId}/settings`,
+      link: `/${user.tenantId}/settings`,
       label: 'Innstillinger',
       icon: IconSettings,
     },
@@ -89,15 +83,13 @@ export function Navbar() {
     </Link>
   ));
 
-  if (authUserData) {
-    return (
-      <Box className={classes.navbar}>
-        <div className={classes.links}>{links}</div>
+  return (
+    <Box className={classes.navbar}>
+      <div className={classes.links}>{links}</div>
 
-        <div className={classes.footer}>
-          <UserButton />
-        </div>
-      </Box>
-    );
-  }
+      <div className={classes.footer}>
+        <UserButton user={user} />
+      </div>
+    </Box>
+  );
 }

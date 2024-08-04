@@ -10,23 +10,31 @@ import {
   Container,
   Button,
   Alert,
-  Modal,
-  Flex,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useDisclosure } from '@mantine/hooks';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { IconCheck, IconInfoCircle } from '@tabler/icons-react';
+import { IconInfoCircle } from '@tabler/icons-react';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-
-import { confirmInvitation, getUser } from '@/lib/server/actions/user-actions';
+import { useEffect, useState } from 'react';
+import { login } from './actions';
+import { validateRequest } from '@/lib/server/actions/user-actions';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [opened, { open, close }] = useDisclosure(false);
-  const [tenantId, setTenantId] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const validateUser = async () => {
+      const { user } = await validateRequest();
+      if (user) {
+        router.push(`/${user.tenantId}/dashboard`);
+      } else {
+        setLoading(false);
+      }
+    };
+
+    validateUser();
+  }, []);
 
   const form = useForm({
     initialValues: {
@@ -40,69 +48,23 @@ export default function LoginPage() {
     }),
   });
 
-  const confirmInvitationform = useForm({
-    initialValues: {
-      firstName: '',
-      lastName: '',
-      newPassword: '',
-    },
-
-    validate: (values) => ({
-      firstName: values.firstName.length < 2 ? 'Fornavnet må bestå av minst 2 karakterer' : null,
-      lastName: values.lastName.length < 2 ? 'Etternavnet må bestå av minst 2 karakterer' : null,
-      newPassword:
-        values.newPassword.length < 6 ? 'Passordet må bestå av minst 6 karakterer' : null,
-    }),
-  });
-
-  const supabase = createClientComponentClient();
-
   const signInMutation = useMutation({
     mutationFn: async () => {
       if (form.validate().hasErrors) return;
 
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error, errorMessage } = await login({
         email: form.values.email,
         password: form.values.password,
       });
 
-      if (error) throw new Error(error.message);
-      const _tenantId = data.user.user_metadata.tenantId;
-
-      const { user } = await getUser(data.user.email!);
-
-      if (!user?.firstName && !user?.lastName) {
-        setTenantId(_tenantId);
-        open();
-      } else {
-        router.push(`/${_tenantId}/dashboard`);
-      }
+      if (error) throw new Error(errorMessage);
     },
     retry: false,
   });
 
-  const confirmInvitationMutation = useMutation({
-    mutationFn: async () => {
-      if (confirmInvitationform.validate().hasErrors) throw new Error('Invalid form!');
-
-      const { user, error } = await confirmInvitation(
-        form.values.email,
-        confirmInvitationform.values.firstName,
-        confirmInvitationform.values.lastName,
-        confirmInvitationform.values.newPassword
-      );
-
-      if (error) throw new Error("Couldn't confirm the user's invitation!");
-
-      return user;
-    },
-    retry: false,
-    onSuccess: () => {
-      close();
-      router.push(`/${tenantId}/dashboard`);
-    },
-    onError: (error) => console.log(error.message),
-  });
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <Container size={420} my={40}>
@@ -131,7 +93,7 @@ export default function LoginPage() {
 
         {signInMutation.isError && (
           <Alert mt="md" variant="light" color="red" icon={<IconInfoCircle />}>
-            E-post/passord er feil!
+            {signInMutation.error.message}
           </Alert>
         )}
 
@@ -144,34 +106,6 @@ export default function LoginPage() {
           Sign in
         </Button>
       </Paper>
-
-      <Modal opened={opened} onClose={close} title="Velkommen til CRS">
-        <Flex direction="column" gap="md">
-          <TextInput
-            data-autofocus
-            label="Fornavn"
-            placeholder="Ole"
-            {...confirmInvitationform.getInputProps('firstName')}
-          />
-          <TextInput
-            label="Etternavn"
-            placeholder="Nordmann"
-            {...confirmInvitationform.getInputProps('lastName')}
-          />
-          <PasswordInput
-            label="Nytt passord"
-            placeholder="Sterk passord"
-            {...confirmInvitationform.getInputProps('newPassword')}
-          />
-          <Button
-            loading={confirmInvitationMutation.isPending}
-            leftSection={<IconCheck width="1.4rem" />}
-            onClick={() => confirmInvitationMutation.mutate()}
-          >
-            Bekreft
-          </Button>
-        </Flex>
-      </Modal>
     </Container>
   );
 }

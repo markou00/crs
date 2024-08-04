@@ -1,17 +1,14 @@
 'use server';
 
-import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
 import { Container } from '@prisma/client';
-import { cookies } from 'next/headers';
 
 import prisma from '@/lib/prisma';
+import { validateRequest } from './user-actions';
 
 export async function getContainers() {
   try {
-    const supabase = createServerActionClient({ cookies });
-
-    const authUser = await supabase.auth.getUser();
-    const tenantId = authUser.data.user?.user_metadata.tenantId;
+    const { user } = await validateRequest();
+    const tenantId = user?.tenantId ?? '';
 
     const containers = await prisma.container.findMany({
       where: { tenantId },
@@ -26,10 +23,8 @@ export async function getContainers() {
 
 export async function addContainer(container: Partial<Container>) {
   try {
-    const supabase = createServerActionClient({ cookies });
-
-    const authUser = await supabase.auth.getUser();
-    const tenantId = authUser.data.user?.user_metadata.tenantId;
+    const { user } = await validateRequest();
+    const tenantId = user?.tenantId ?? '';
 
     const newContainer = await prisma.container.create({
       data: {
