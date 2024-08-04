@@ -1,7 +1,7 @@
 'use client';
 
 import { Employee } from '@prisma/client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DataTable, type DataTableSortStatus } from 'mantine-datatable';
 import { IconEdit, IconTrash, IconSearch, IconX, IconTruck } from '@tabler/icons-react';
@@ -199,207 +199,209 @@ export default function EmployeesPage() {
   if (getEmployeesQuery.isLoading) return <Text>Loading...</Text>;
 
   return (
-    <Paper style={{ overflow: 'hidden', borderRadius: '8px' }} m="0" pb="md" pt="xs">
-      <TableHeader userCount={userCount} onClick={() => openCreateModal()} />
-      <DataTable
-        borderRadius="sm"
-        withTableBorder
-        withColumnBorders
-        pinFirstColumn
-        striped
-        highlightOnHover
-        records={records}
-        columns={[
-          {
-            accessor: 'name',
-            title: 'Navn',
-            width: '30%',
-            sortable: true,
-            render: (employee: EmployeeType) => (
-              <Group>
-                <EmployeePicture imageSrc={employee.picture} />
-                <Stack align="flex-start" gap="xs">
-                  <Text fw={700}>{employee.name}</Text>
-                  <Text c="dimmed" size="xs" style={{ marginTop: '-13px' }}>
-                    {employee.email}
-                  </Text>
-                </Stack>
-              </Group>
-            ),
-            filter: (
-              <TextInput
-                label="Ansatte"
-                description="Vis ansatte som har det spesifiserte navnet"
-                placeholder="Søk etter ansatte..."
-                leftSection={<IconSearch size={16} />}
-                rightSection={
-                  <ActionIcon
-                    size="sm"
-                    variant="transparent"
-                    c="dimmed"
-                    onClick={() => setNameQuery('')}
-                  >
-                    <IconX size={14} />
-                  </ActionIcon>
-                }
-                value={nameQuery}
-                onChange={(e) => setNameQuery(e.currentTarget.value)}
-              />
-            ),
-            filtering: nameQuery !== '',
-          },
-          { accessor: 'phone', title: 'Telefon', width: '20%', sortable: true },
-          {
-            accessor: 'status',
-            title: 'Status',
-            width: '20%',
-            render: (employee) => employee.status,
-            sortable: true,
-            filter: (
-              <MultiSelect
-                label="Status"
-                placeholder="Filtrer etter status"
-                data={[
-                  { value: 'Tilgjengelig', label: 'Tilgjengelig' },
-                  { value: 'Utilgjengelig', label: 'Utilgjengelig' },
-                  { value: 'På ferie', label: 'På ferie' },
-                  { value: 'Permittert', label: 'Permittert' },
-                  { value: 'Sykemeldt', label: 'Sykemeldt' },
-                ]}
-                value={selectedStatus}
-                onChange={setSelectedStatus}
-                clearable
-              />
-            ),
-            filtering: selectedStatus.length > 0,
-          },
-          {
-            accessor: 'car',
-            title: 'Bil',
-            width: '8%',
-            sortable: true,
-            render: (employee) => (
-              <div>
-                {employee.car ? (
-                  <>
-                    <Group gap="xs" justify="center">
-                      <Tooltip
-                        label={`Modell: ${employee.car.model}, Status: ${employee.car.status}`}
-                        withArrow
-                        position="bottom"
-                      >
-                        <Text style={{ width: '60px' }} ta="center">
-                          {employee.car.regnr}
-                        </Text>
-                      </Tooltip>
-                      <ActionIcon
-                        size="sm"
-                        variant="subtle"
-                        color="red"
-                        onClick={() => handleDeleteTruckRelation(employee.id)}
-                        loading={deleteTruckRelationMutation.isPending}
-                      >
-                        <IconTruck size={16} />
-                      </ActionIcon>
-                    </Group>
-                  </>
-                ) : (
-                  <Group justify="center">
-                    <Button
-                      size="xs"
-                      color="green"
-                      rightSection={<IconTruck size={16} />}
-                      onClick={() => handleOpenCarRelationModal(employee.id)}
+    <Suspense fallback={<div>Loading...</div>}>
+      <Paper style={{ overflow: 'hidden', borderRadius: '8px' }} m="0" pb="md" pt="xs">
+        <TableHeader userCount={userCount} onClick={() => openCreateModal()} />
+        <DataTable
+          borderRadius="sm"
+          withTableBorder
+          withColumnBorders
+          pinFirstColumn
+          striped
+          highlightOnHover
+          records={records}
+          columns={[
+            {
+              accessor: 'name',
+              title: 'Navn',
+              width: '30%',
+              sortable: true,
+              render: (employee: EmployeeType) => (
+                <Group>
+                  <EmployeePicture imageSrc={employee.picture} />
+                  <Stack align="flex-start" gap="xs">
+                    <Text fw={700}>{employee.name}</Text>
+                    <Text c="dimmed" size="xs" style={{ marginTop: '-13px' }}>
+                      {employee.email}
+                    </Text>
+                  </Stack>
+                </Group>
+              ),
+              filter: (
+                <TextInput
+                  label="Ansatte"
+                  description="Vis ansatte som har det spesifiserte navnet"
+                  placeholder="Søk etter ansatte..."
+                  leftSection={<IconSearch size={16} />}
+                  rightSection={
+                    <ActionIcon
+                      size="sm"
+                      variant="transparent"
+                      c="dimmed"
+                      onClick={() => setNameQuery('')}
                     >
-                      Tildel
-                    </Button>
-                  </Group>
-                )}
-              </div>
-            ),
-            filter: (
-              <TextInput
-                label="Bil"
-                description="Vis ansatte basert på regnr"
-                placeholder="Søk etter bil..."
-                leftSection={<IconSearch size={16} />}
-                rightSection={
+                      <IconX size={14} />
+                    </ActionIcon>
+                  }
+                  value={nameQuery}
+                  onChange={(e) => setNameQuery(e.currentTarget.value)}
+                />
+              ),
+              filtering: nameQuery !== '',
+            },
+            { accessor: 'phone', title: 'Telefon', width: '20%', sortable: true },
+            {
+              accessor: 'status',
+              title: 'Status',
+              width: '20%',
+              render: (employee) => employee.status,
+              sortable: true,
+              filter: (
+                <MultiSelect
+                  label="Status"
+                  placeholder="Filtrer etter status"
+                  data={[
+                    { value: 'Tilgjengelig', label: 'Tilgjengelig' },
+                    { value: 'Utilgjengelig', label: 'Utilgjengelig' },
+                    { value: 'På ferie', label: 'På ferie' },
+                    { value: 'Permittert', label: 'Permittert' },
+                    { value: 'Sykemeldt', label: 'Sykemeldt' },
+                  ]}
+                  value={selectedStatus}
+                  onChange={setSelectedStatus}
+                  clearable
+                />
+              ),
+              filtering: selectedStatus.length > 0,
+            },
+            {
+              accessor: 'car',
+              title: 'Bil',
+              width: '8%',
+              sortable: true,
+              render: (employee) => (
+                <div>
+                  {employee.car ? (
+                    <>
+                      <Group gap="xs" justify="center">
+                        <Tooltip
+                          label={`Modell: ${employee.car.model}, Status: ${employee.car.status}`}
+                          withArrow
+                          position="bottom"
+                        >
+                          <Text style={{ width: '60px' }} ta="center">
+                            {employee.car.regnr}
+                          </Text>
+                        </Tooltip>
+                        <ActionIcon
+                          size="sm"
+                          variant="subtle"
+                          color="red"
+                          onClick={() => handleDeleteTruckRelation(employee.id)}
+                          loading={deleteTruckRelationMutation.isPending}
+                        >
+                          <IconTruck size={16} />
+                        </ActionIcon>
+                      </Group>
+                    </>
+                  ) : (
+                    <Group justify="center">
+                      <Button
+                        size="xs"
+                        color="green"
+                        rightSection={<IconTruck size={16} />}
+                        onClick={() => handleOpenCarRelationModal(employee.id)}
+                      >
+                        Tildel
+                      </Button>
+                    </Group>
+                  )}
+                </div>
+              ),
+              filter: (
+                <TextInput
+                  label="Bil"
+                  description="Vis ansatte basert på regnr"
+                  placeholder="Søk etter bil..."
+                  leftSection={<IconSearch size={16} />}
+                  rightSection={
+                    <ActionIcon
+                      size="sm"
+                      variant="transparent"
+                      color="dimmed"
+                      onClick={() => setRegnrQuery('')}
+                    >
+                      <IconX size={14} />
+                    </ActionIcon>
+                  }
+                  value={regnrQuery}
+                  onChange={(e) => setRegnrQuery(e.currentTarget.value)}
+                />
+              ),
+              filtering: regnrQuery !== '',
+            },
+            {
+              accessor: 'actions',
+              title: 'Rediger/slett',
+              textAlign: 'center',
+              width: '0%',
+              render: (employee: EmployeeType) => (
+                <Group gap={4} justify="center" wrap="nowrap">
                   <ActionIcon
                     size="sm"
-                    variant="transparent"
-                    color="dimmed"
-                    onClick={() => setRegnrQuery('')}
+                    variant="subtle"
+                    color="blue"
+                    onClick={() => {
+                      setSelectedEmployee(employee);
+                      open();
+                    }}
                   >
-                    <IconX size={14} />
+                    <IconEdit size={16} />
                   </ActionIcon>
-                }
-                value={regnrQuery}
-                onChange={(e) => setRegnrQuery(e.currentTarget.value)}
-              />
-            ),
-            filtering: regnrQuery !== '',
-          },
-          {
-            accessor: 'actions',
-            title: 'Rediger/slett',
-            textAlign: 'center',
-            width: '0%',
-            render: (employee: EmployeeType) => (
-              <Group gap={4} justify="center" wrap="nowrap">
-                <ActionIcon
-                  size="sm"
-                  variant="subtle"
-                  color="blue"
-                  onClick={() => {
-                    setSelectedEmployee(employee);
-                    open();
-                  }}
-                >
-                  <IconEdit size={16} />
-                </ActionIcon>
-                <ActionIcon
-                  size="sm"
-                  variant="subtle"
-                  color="red"
-                  onClick={() => handleDelete(employee.id)}
-                  loading={deleteEmployeeMutation.isPending}
-                >
-                  <IconTrash size={16} />
-                </ActionIcon>
-              </Group>
-            ),
-          },
-        ]}
-        sortStatus={sortStatus}
-        onSortStatusChange={setSortStatus}
-      />
+                  <ActionIcon
+                    size="sm"
+                    variant="subtle"
+                    color="red"
+                    onClick={() => handleDelete(employee.id)}
+                    loading={deleteEmployeeMutation.isPending}
+                  >
+                    <IconTrash size={16} />
+                  </ActionIcon>
+                </Group>
+              ),
+            },
+          ]}
+          sortStatus={sortStatus}
+          onSortStatusChange={setSortStatus}
+        />
 
-      {selectedEmployee && (
-        <EditEmployeeDrawer
-          employee={selectedEmployee}
-          opened={opened}
+        {selectedEmployee && (
+          <EditEmployeeDrawer
+            employee={selectedEmployee}
+            opened={opened}
+            tenantId={tenantId}
+            onClose={() => {
+              close();
+              setSelectedEmployee(null);
+            }}
+            getEmployeesQuery={getEmployeesQuery}
+            setRecords={setRecords}
+          />
+        )}
+        <AddEmployeeModal
+          opened={addModalOpened}
+          onClose={() => setAddModalOpened(false)}
           tenantId={tenantId}
-          onClose={() => {
-            close();
-            setSelectedEmployee(null);
-          }}
           getEmployeesQuery={getEmployeesQuery}
           setRecords={setRecords}
         />
-      )}
-      <AddEmployeeModal
-        opened={addModalOpened}
-        onClose={() => setAddModalOpened(false)}
-        tenantId={tenantId}
-        getEmployeesQuery={getEmployeesQuery}
-        setRecords={setRecords}
-      />
-      <CreateCarRelationModal
-        opened={showCarRelationModal}
-        onClose={() => setShowCarRelationModal(false)}
-        onCarSelect={handleCarSelected}
-        tenantId={tenantId}
-      />
-    </Paper>
+        <CreateCarRelationModal
+          opened={showCarRelationModal}
+          onClose={() => setShowCarRelationModal(false)}
+          onCarSelect={handleCarSelected}
+          tenantId={tenantId}
+        />
+      </Paper>
+    </Suspense>
   );
 }

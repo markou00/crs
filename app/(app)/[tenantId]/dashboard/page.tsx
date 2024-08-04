@@ -1,11 +1,12 @@
 import { AreaChart, BarChart, DonutChart } from '@mantine/charts';
 import { Card, Divider, Flex, SimpleGrid, Title } from '@mantine/core';
+import { Suspense } from 'react';
 
 import { carData, containerData, containerStatusData, jobsStatusData } from './data';
 
 export default function DashboardPage() {
   return (
-    <>
+    <Suspense fallback={<div>Loading...</div>}>
       <Title>Dashboard</Title>
 
       <Divider mt="lg" mb="xl" />
@@ -67,6 +68,6 @@ export default function DashboardPage() {
           </Flex>
         </Card>
       </SimpleGrid>
-    </>
+    </Suspense>
   );
 }

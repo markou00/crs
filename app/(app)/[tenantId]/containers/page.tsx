@@ -23,7 +23,7 @@ import {
 } from '@mantine/core';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import {
   IconEdit,
   IconSearch,
@@ -198,7 +198,7 @@ export default function ContainersPage() {
   if (getContainersQuery.isLoading) return <Text>LOADING...</Text>;
 
   return (
-    <>
+    <Suspense fallback={<div>Loading...</div>}>
       <Tabs variant="unstyled" defaultValue="availability" classNames={classes}>
         <Tabs.List grow>
           <Tabs.Tab
@@ -446,6 +446,6 @@ export default function ContainersPage() {
           />
         </Tabs.Panel>
       </Tabs>
-    </>
+    </Suspense>
   );
 }

@@ -13,7 +13,7 @@ import {
 } from '@mantine/core';
 import { IconSearch, IconUserPlus } from '@tabler/icons-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Customer } from '@prisma/client';
 import { useDisclosure } from '@mantine/hooks';
 import { CustomerCard } from './CustomerCard/CustomerCard';
@@ -137,7 +137,7 @@ export default function CustomersPage() {
   if (getCustomersQuery.isLoading) return <Text>Loading...</Text>;
 
   return (
-    <>
+    <Suspense fallback={<div>Loading...</div>}>
       <Group justify="space-between" style={{ marginBottom: '20px', marginRight: '50px' }}>
         <Title>Kunder</Title>
         <TextInput
@@ -260,6 +260,6 @@ export default function CustomersPage() {
         getCustomersQuery={getCustomersQuery}
         setRecords={setRecords}
       />
-    </>
+    </Suspense>
   );
 }

@@ -8,7 +8,7 @@ import {
   Group,
   Text,
 } from '@mantine/core';
-import { ReactNode } from 'react';
+import { ReactNode, Suspense } from 'react';
 import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query';
 
 import '@mantine/core/styles.layer.css';
@@ -103,7 +103,9 @@ export default async function AppShellLayout({ children }: { children: ReactNode
           <Navbar user={user} />
         </AppShellNavbar>
 
-        <AppShellMain>{children}</AppShellMain>
+        <AppShellMain>
+          <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
+        </AppShellMain>
       </AppShell>
     </HydrationBoundary>
   );

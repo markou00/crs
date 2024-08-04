@@ -21,7 +21,7 @@ import { IconCheckbox } from '@tabler/icons-react';
 import { DateTimePicker } from '@mantine/dates';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useDisclosure } from '@mantine/hooks';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Agreement, AgreementType, Job, RepetitionFrequency } from '@prisma/client';
 import { getJobs, editJob, deleteJob, addJob } from '@/lib/server/actions/job-actions';
 import { getCustomers } from '@/lib/server/actions/customer-actions';
@@ -387,7 +387,7 @@ export default function JobsPage() {
   if (getJobsQuery.isLoading) return <Text>Loading...</Text>;
 
   return (
-    <>
+    <Suspense fallback={<div>Loading...</div>}>
       <Group justify="space-between" mb="md">
         <Title>Oppdrag</Title>
         <Button onClick={openModal}>Nytt oppdrag</Button>
@@ -837,6 +837,6 @@ export default function JobsPage() {
           </Drawer.Body>
         </Drawer.Content>
       </Drawer.Root>
-    </>
+    </Suspense>
   );
 }

@@ -15,7 +15,7 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import { IconAt, IconClick, IconSend, IconTrash, IconUsersPlus } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { DataTable } from 'mantine-datatable';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
@@ -75,7 +75,7 @@ export default function SettignsPage() {
   });
 
   return (
-    <>
+    <Suspense fallback={<div>Loading...</div>}>
       <Group justify="space-between">
         <Title>Innstillinger</Title>
         <Button onClick={open} leftSection={<IconUsersPlus />}>
@@ -166,6 +166,6 @@ export default function SettignsPage() {
           </Group>
         </Flex>
       </Modal>
-    </>
+    </Suspense>
   );
 }

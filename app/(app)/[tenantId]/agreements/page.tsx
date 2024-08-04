@@ -22,7 +22,7 @@ import {
 } from '@mantine/core';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { DataTable } from 'mantine-datatable';
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { IconEdit, IconSearch, IconTrash, IconX, IconClick } from '@tabler/icons-react';
 import { Agreement, AgreementType, Customer, RepetitionFrequency } from '@prisma/client';
 import { DateInput } from '@mantine/dates';
@@ -201,7 +201,7 @@ export default function AgreementsPage() {
   if (getAgreementsQuery.isLoading) return <Text>LOADING...</Text>;
 
   return (
-    <>
+    <Suspense fallback={<div>Loading...</div>}>
       <Group justify="space-between" mb="md">
         <Title>Avtaler</Title>
         <Button onClick={openModal}>Ny avtale</Button>
@@ -523,6 +523,6 @@ export default function AgreementsPage() {
           },
         ]}
       />
-    </>
+    </Suspense>
   );
 }
