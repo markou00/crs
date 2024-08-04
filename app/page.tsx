@@ -7,7 +7,7 @@ export default function HomePage() {
           hosting.
         </p>
         <p>
-          Gå til: <a href="https://crs-ecru.vercel.app/login">https://crs-ecru.vercel.app/login</a>{' '}
+          Gå til: <a href="https://crs-ecru.vercel.app/login">https://crs-pi.vercel.app/login</a>{' '}
           for nettsiden.
         </p>
       </div>
