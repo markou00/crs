@@ -13,19 +13,18 @@ import {
 } from '@mantine/core';
 import { IconSearch, IconUserPlus } from '@tabler/icons-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useEffect, useState } from 'react';
 import { Customer } from '@prisma/client';
 import { useDisclosure } from '@mantine/hooks';
 import { CustomerCard } from './CustomerCard/CustomerCard';
 import { AddCustomerModal } from './AddCustomerModal/AddCustomerModal';
 import { getCustomers, deleteCustomer, editCustomer } from '@/lib/server/actions/customer-actions';
+import { validateRequest } from '@/lib/server/actions/user-actions';
 
 export default function CustomersPage() {
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [search, setSearch] = useState('');
   const [tenantId, setTenantId] = useState('');
-  const supabase = createClientComponentClient();
 
   const getCustomersQuery = useQuery({
     queryKey: ['customers'],
@@ -33,15 +32,15 @@ export default function CustomersPage() {
   });
 
   useEffect(() => {
-    async function fetchTenantId() {
-      const user = await supabase.auth.getUser();
-      if (user.data.user?.user_metadata.tenantId) {
-        setTenantId(user.data.user.user_metadata.tenantId);
+    const validateUser = async () => {
+      const { user } = await validateRequest();
+      if (user) {
+        setTenantId(user.tenantId);
       }
-    }
+    };
 
-    fetchTenantId();
-  }, [supabase]);
+    validateUser();
+  }, []);
 
   const openCreateModal = () => {
     setAddModalOpened(true);

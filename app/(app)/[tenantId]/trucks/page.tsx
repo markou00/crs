@@ -8,12 +8,12 @@ import sortBy from 'lodash/sortBy';
 import { IconEdit, IconTrash, IconSearch, IconX } from '@tabler/icons-react';
 import { Group, ActionIcon, Paper, Text, TextInput, MultiSelect } from '@mantine/core';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { getCars } from '@/lib/server/actions/car-actions';
 import { TableHeader } from './TableHeader/TableHeader';
 import { AddCarModal } from './AddCarModal/AddCarModal';
 import { EditCarDrawer } from './EditCarDrawer/EditCarDrawer';
 import { CarType } from './types';
+import { validateRequest } from '@/lib/server/actions/user-actions';
 
 export default function CarsPage() {
   const getCarsQuery = useQuery({
@@ -23,20 +23,19 @@ export default function CarsPage() {
 
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [tenantId, setTenantId] = useState('');
-  const supabase = createClientComponentClient();
   const [selectedCar, setSelectedCar] = useState<Car | null>();
   const [opened, { open, close }] = useDisclosure(false);
 
   useEffect(() => {
-    async function fetchTenantId() {
-      const user = await supabase.auth.getUser();
-      if (user.data.user?.user_metadata.tenantId) {
-        setTenantId(user.data.user.user_metadata.tenantId);
+    const validateUser = async () => {
+      const { user } = await validateRequest();
+      if (user) {
+        setTenantId(user.tenantId);
       }
-    }
+    };
 
-    fetchTenantId();
-  }, [supabase]);
+    validateUser();
+  }, []);
 
   const [records, setRecords] = useState(getCarsQuery.data?.cars);
   const [nameQuery, setNameQuery] = useState('');

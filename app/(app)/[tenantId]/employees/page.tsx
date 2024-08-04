@@ -18,7 +18,6 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { getEmployees } from '@/lib/server/actions/employees-actions';
 import { EmployeePicture } from '../../../../components/Employees/EmployeePicture';
 import { TableHeader } from './TableHeader/TableHeader';
@@ -26,6 +25,7 @@ import { AddEmployeeModal } from './AddEmployeeModal/AddEmployeeModal';
 import { EditEmployeeDrawer } from './EditEmployeeDrawer/EditEmployeeDrawer';
 import { CreateCarRelationModal } from './CreateCarRelationModal/CreateCarRelationModal';
 import { EmployeeType, MutationArgs } from './types';
+import { validateRequest } from '@/lib/server/actions/user-actions';
 
 export default function EmployeesPage() {
   const getEmployeesQuery = useQuery({
@@ -35,7 +35,6 @@ export default function EmployeesPage() {
 
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [tenantId, setTenantId] = useState('');
-  const supabase = createClientComponentClient();
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>();
   const [opened, { open, close }] = useDisclosure(false);
   const [showCarRelationModal, setShowCarRelationModal] = useState(false);
@@ -43,15 +42,15 @@ export default function EmployeesPage() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    async function fetchTenantId() {
-      const user = await supabase.auth.getUser();
-      if (user.data.user?.user_metadata.tenantId) {
-        setTenantId(user.data.user.user_metadata.tenantId);
+    const validateUser = async () => {
+      const { user } = await validateRequest();
+      if (user) {
+        setTenantId(user.tenantId);
       }
-    }
+    };
 
-    fetchTenantId();
-  }, [supabase]);
+    validateUser();
+  }, []);
 
   const [records, setRecords] = useState(getEmployeesQuery.data?.employees);
   const [nameQuery, setNameQuery] = useState('');
